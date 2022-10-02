@@ -1,0 +1,70 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block custom_css %}
+  <style>
+      .invalid{
+        font-style: italic;
+        font-weight: bold;
+        color: red;
+      }
+      .valid{
+        font-style: italic;
+        font-weight: bold;
+        color: green;
+      }
+  </style>
+{% endblock custom_css %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">{{page_title}}</h3>
+                    </div>
+
+                    {% include "main_app/form_template.html" with messages=messages  form=form button_text="Add Staff"%}
+                </div>
+                <!-- /.card -->
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+{% block custom_js %}
+<script>
+    function validateEmail(email) {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+    $(document).ready(function(){
+        $("#id_email").keyup(function(){
+            
+            var email = $(this).val()
+            if (validateEmail(email)){
+            $.ajax({
+                url: "{% url 'check_email_availability' %}",
+                type: 'POST',
+                data:{email:email}
+            }).done(function(response){
+                if (response == "True"){
+                    $(".email_error").remove()
+                    $("<span class='invalid email_error'>Email Address Already Exist</span>").insertAfter("#id_email");
+                }
+                else{
+                    $(".email_error").remove()
+                    $("<span class='valid email_error'>Email Address Available</span>").insertAfter("#id_email");
+                }
+            }).fail(function(response){
+                $("<span class='alert alert-warning'>Server Could Not Process This</span>").insertAfter("#id_email");
+            })
+        }
+        })
+    });
+</script>
+{% endblock custom_js %}

@@ -1,0 +1,71 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}Add Book{% endblock page_title %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <form method="POST"> 
+                    {% csrf_token %}
+                    <div class="card card-dark">
+                        <div class="card-header">
+                            <h3 class="card-title">Add Book</h3>
+                        </div>
+    
+           
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <div class="card-body">
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label>Book Name</label>
+                            <input type="text" class="form-control mt-2" name="name" placeholder="Enter name of the Book" required>
+                        </div>
+                    </div>
+                
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label>Author Name</label>
+                            <input type="text" class="form-control mt-2" name="author" placeholder="Enter name of the Author" required>
+                        </div>
+                    </div>
+                
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label>ISBN Number</label>
+                            <input type="number" class="form-control mt-2" name="isbn" placeholder="Enter ISBN number of the book" required>
+                        </div>
+                    </div>
+                
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" class="form-control mt-2" name="category" placeholder="Enter Category of the book" required>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit"  id='fetch_student' class="btn btn-primary btn-block">Add Book</button>
+                        
+                    </div>
+                </div>
+                </form>
+            </div>
+            <!-- /.card -->
+
+        </div>
+    </div>
+</div>
+</section>
+    
+<!-- {% endblock content %}
+{% block custom_js %}
+<script>
+    if alert 
+        alert("Book is added successfully.");
+    document.location = "/view_books"
+    endif 
+</script>
+{% endblock custom_js %} -->

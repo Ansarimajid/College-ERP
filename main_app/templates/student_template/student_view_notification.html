@@ -1,0 +1,53 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">{{page_title}}</h3>
+                    </div>
+
+
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                    <div class="card-body">
+
+
+
+                       
+
+
+                        <div class="form-group table">
+              <table class="table table-bordered">
+                  <tr>
+                      <th>#</th>
+                      <th>Date</th>
+                      <th>Message</th>
+                  </tr>
+                  {% for notification in  notifications %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{notification.created_at}}</td>
+                        <td>{{notification.message}}</td>
+                    </tr>
+                  {% endfor %}
+              </table>
+                        </div>
+                   
+                    </div>
+                    <!-- /.card-body -->
+
+                <!-- /.card -->
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+

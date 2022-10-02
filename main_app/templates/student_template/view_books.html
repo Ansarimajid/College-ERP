@@ -1,0 +1,54 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}Library{% endblock page_title %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">Available Books </h3>
+                    </div>
+
+
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                <div class="card-body">
+                <div class="form-group" style="color: red;">
+                    <label>Available books which you can issue from college library !</label>
+                </div>
+            <div class="form-group table">
+              <table class="table table-bordered">
+                  <tr>
+                    <th>Sr.No</th>
+                    <th>Book Name</th>
+                    <th>Author</th>
+                    <th>ISBN Number</th>
+                    <th>Category</th>
+                  </tr>
+                  {% for book in books %}
+                  <tr>
+                      <td>{{forloop.counter}}.</td>
+                      <td>{{book.name}}</td>
+                      <td>{{book.author}}</td>
+                      <td>{{book.isbn}}</td>
+                      <td>{{book.category}}</td>
+                  </tr>
+                  {% endfor %}
+              </table>
+                        </div>
+                   
+                    </div>
+                    <!-- /.card-body -->
+
+                <!-- /.card -->
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
