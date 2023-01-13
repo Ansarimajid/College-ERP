@@ -7,7 +7,7 @@ For viewing the home page of student you must have required credentials given be
 
 -> E-Mail : student@gmail.com               -> Password : student@2023
 
-<a href="https://reactjs.org/" target="_blank" rel="noreferrer"><img src="https://www.google.com/imgres?imgurl=http%3A%2F%2Fsigce.edu.in%2Fimages%2FSIGCE.png&imgrefurl=http%3A%2F%2Fsigce.edu.in%2F&tbnid=oH4_6kRhVeKPFM&vet=12ahUKEwjEwcHh_MT8AhU5odgFHVbnC3gQMygAegUIARC2AQ..i&docid=PF3SI6077lGsFM&w=1059&h=991&q=sigce%20logo&ved=2ahUKEwjEwcHh_MT8AhU5odgFHVbnC3gQMygAegUIARC2AQ" width="36" height="36" alt="React" /></a> 
+<a href="https://reactjs.org/" target="_blank" rel="noreferrer"><img src="media/SIGCE.png" width="36" height="36" alt="React" /></a> 
 
 ## Features of this Project
 
