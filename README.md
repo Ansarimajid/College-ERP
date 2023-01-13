@@ -1,13 +1,13 @@
 # College Enterprise Resource Planner
 This is a College Enterprise Resource Planner Developed by me and my project partners for my college.
 We use Python/Django Framwork for building an fully functional web application.
-## Deployed at [SIGCE](http://sigce.ml "SIGCE") v1.0.0
+## Deployed at [SIGCE](<a href="https://sigce.ml" target="_blank" rel="SIGCE"><img src="media/SIGCE.png" width="36" height="36" alt="SIGCE" /></a> ) v1.0.0
 
 For viewing the home page of student you must have required credentials given below 
 
 -> E-Mail : student@gmail.com               -> Password : student@2023
 
-<a href="https://reactjs.org/" target="_blank" rel="noreferrer"><img src="media/SIGCE.png" width="36" height="36" alt="React" /></a> 
+<a href="https://sigce.ml" target="_blank" rel="SIGCE"><img src="media/SIGCE.png" width="36" height="36" alt="SIGCE" /></a> 
 
 ## Features of this Project
 
