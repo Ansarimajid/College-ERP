@@ -1,9 +1,9 @@
 # College Enterprise Resource Planner
 This is a College Enterprise Resource Planner Developed by me and my project partners for my college.
 We use Python/Django Framwork for building an fully functional web application.
-## Deployed to [SIGCE](http://sigce.ml "SIGCE") v1.0.0
+## Deployed at [SIGCE](http://sigce.ml "SIGCE") v1.0.0
 
-[Front-end Template](http://adminlte.io "Admin LTE.io")
+For viewing the home page of student you must have credentials given below 
 
 
 [Project Demo on YouTube](https://www.youtube.com/watch?v=kArCR96m7uo "Django Student Management System Demo")
