@@ -1,4 +1,4 @@
-## Deployed to [SIGCE](http://sigce.ml "SIGCE") V1.0.0
+## Deployed to [SIGCE](http://sigce.ml "SIGCE") v1.0.0
 # College Enterprise Resource Planner
 This is a Simple Student Management System Developed While Learning Django.
 Feel free to make changes based on your requirements.
