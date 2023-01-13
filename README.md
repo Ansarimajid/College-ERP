@@ -3,10 +3,9 @@ This is a College Enterprise Resource Planner Developed by me and my project par
 We use Python/Django Framwork for building an fully functional web application.
 ## Deployed at [SIGCE](http://sigce.ml "SIGCE") v1.0.0
 
-For viewing the home page of student you must have credentials given below 
+For viewing the home page of student you must have required credentials given below 
 
 Email : student@gmail.com
-
 password : student@2023
 
 And if you like this project, then ADD a STAR ⭐️  to this project 👆
