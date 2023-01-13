@@ -1,6 +1,5 @@
 # College Enterprise Resource Planner
-This is a Simple Student Management System Developed While Learning Django.
-Feel free to make changes based on your requirements.
+This is a College Enterprise Resource Planner Developed for my college using Python/Django.
 ## Deployed to [SIGCE](http://sigce.ml "SIGCE") v1.0.0
 
 [Front-end Template](http://adminlte.io "Admin LTE.io")
