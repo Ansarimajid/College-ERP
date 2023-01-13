@@ -1,5 +1,3 @@
-<img src="media/jpg_20230113_225408_0000.jpg" width="1500" height="400" alt="sigce" />
-
 # College Enterprise Resource Planner
 This is a College Enterprise Resource Planner Developed by me and my project partners for my college.
 We use Python/Django Framwork for building an fully functional web application.
