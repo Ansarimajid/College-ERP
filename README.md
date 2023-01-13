@@ -1,4 +1,4 @@
-# Student Management System Created Using Django
+# [SIGCE](http://sigce.ml "SIGCE")
 This is a Simple Student Management System Developed While Learning Django.
 Feel free to make changes based on your requirements.
 
