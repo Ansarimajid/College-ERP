@@ -7,7 +7,6 @@ For viewing the home page of student you must have required credentials given be
 
 -> E-Mail : student@gmail.com               -> Password : student@2023
 
-<a href="https://sigce.ml" target="_blank" rel="SIGCE"><img src="media/SIGCE.png" width="36" height="36" alt="SIGCE" /></a> 
 
 ## Features of this Project
 
