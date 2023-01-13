@@ -5,8 +5,7 @@ We use Python/Django Framwork for building an fully functional web application.
 
 For viewing the home page of student you must have required credentials given below 
 
--> E-Mail : student@gmail.com
--> Password : student@2023
+-> E-Mail : student@gmail.com               -> Password : student@2023
 
 
 
