@@ -1,4 +1,4 @@
-<img src="media/jpg_20230113_225408_0000.jpg" width="2000" height="800" alt="sigce" />
+<img src="media/jpg_20230113_225408_0000.jpg" width="2000" height="600" alt="sigce" />
 
 # College Enterprise Resource Planner
 This is a College Enterprise Resource Planner Developed by me and my project partners for my college.
