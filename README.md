@@ -4,9 +4,8 @@ We use Python/Django Framwork for building an fully functional web application.
 ## Deployed at [SIGCE](http://sigce.ml "SIGCE") v1.0.0
 
 For viewing the home page of student you must have credentials given below 
-
-
-[Project Demo on YouTube](https://www.youtube.com/watch?v=kArCR96m7uo "Django Student Management System Demo")
+Email : student@gmail.com
+password : student@2023
 
 And if you like this project, then ADD a STAR ⭐️  to this project 👆
 
