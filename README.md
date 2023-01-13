@@ -8,7 +8,7 @@ For viewing the home page of student you must have required credentials given be
 -> E-Mail : student@gmail.com 
 -> Password : student@2023
 
-ADD a STAR ⭐️  to this project 👆
+
 
 ## Features of this Project
 
