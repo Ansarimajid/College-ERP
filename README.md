@@ -212,7 +212,7 @@ Password: student
 
 ## Project's Journey
 | Admin/Staff/Student Login |
-- [x] Add and Edit Course
+| Add and Edit Course |
 - [x] Add and Edit Staff
 - [x] Add and Edit Student
 - [x] Add and Edit Subject
