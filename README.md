@@ -1,3 +1,4 @@
+## Deployed to [SIGCE](http://sigce.ml "SIGCE")
 # [SIGCE College ERP](http://sigce.ml "SIGCE")
 This is a Simple Student Management System Developed While Learning Django.
 Feel free to make changes based on your requirements.
@@ -8,8 +9,7 @@ Feel free to make changes based on your requirements.
 [Project Demo on YouTube](https://www.youtube.com/watch?v=kArCR96m7uo "Django Student Management System Demo")
 
 And if you like this project, then ADD a STAR ⭐️  to this project 👆
-## Deployed to
-https://sigce.ml/
+
 
 
 ## Features of this Project
