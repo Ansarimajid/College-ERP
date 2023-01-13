@@ -1,4 +1,4 @@
-# [SIGCE](http://sigce.ml "SIGCE")
+# [SIGCE College ERP](http://sigce.ml "SIGCE")
 This is a Simple Student Management System Developed While Learning Django.
 Feel free to make changes based on your requirements.
 
