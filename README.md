@@ -7,7 +7,7 @@ For viewing the home page of student you must have required credentials given be
 
 -> E-Mail : student@gmail.com               -> Password : student@2023
 
-
+<a href="https://reactjs.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-colored.svg" width="36" height="36" alt="React" /></a> 
 
 ## Features of this Project
 
