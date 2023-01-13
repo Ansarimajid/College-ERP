@@ -8,10 +8,11 @@ For viewing the home page of student you must have required credentials given be
 -> E-Mail : student@gmail.com 
 -> Password : student@2023
 
+ADD a STAR ⭐️  to this project 👆
 
 ## Features of this Project
 
-And if you like this project, then ADD a STAR ⭐️  to this project 👆
+
 ### A. Admin Users Can
 1. See Overall Summary Charts of Students Performances, Staff Performances, Courses, Subjects, Leave, etc.
 2. Manage Staff (Add, Update and Delete)
