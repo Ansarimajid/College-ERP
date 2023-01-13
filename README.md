@@ -9,7 +9,7 @@ Feel free to make changes based on your requirements.
 
 And if you like this project, then ADD a STAR ⭐️  to this project 👆
 ## Deployed to
-https://smswithdjango.herokuapp.com/
+https://sigce.ml/
 
 
 ## Features of this Project
