@@ -44,10 +44,6 @@ For viewing the home page of student you must have required credentials given be
 2. Follow on Twitter/Github
 
 
-## Passport/Images
-Images are from [Unsplash](https://unsplash.com)
-
-
 ## How to Install and Run this project?
 
 ### Pre-Requisites:
