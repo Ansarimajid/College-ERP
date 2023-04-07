@@ -166,13 +166,6 @@ $  python3 manage.py createsuperuser
 
 
 
-## For Sponsor or Projects Enquiry
-1. Email - jobowonubi@gmail.com
-2. LinkedIn - [jobic10](https://www.linkedin.com/in/jobic10 "Owonubi Job Sunday on LinkedIn")
-2. Twitter - [jobic10](https://www.twitter.com/jobic10 "Owonubi Job Sunday on Twitter")
-
-
-
 ## Project's Journey
 | Admin/Staff/Student Login |
 | Add and Edit Course |
