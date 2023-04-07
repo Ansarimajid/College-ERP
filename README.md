@@ -166,24 +166,6 @@ $  python3 manage.py createsuperuser
 
 
 
-Then Add Email and Password
-
-**or Use Default Credentials**
-
-*For HOD /SuperAdmin*
-Email: admin@admin.com
-Password: admin
-
-*For Staff*
-Email: staff@staff.com
-Password: staff
-
-*For Student*
-Email: student@student.com
-Password: student
-
-
-
 ## For Sponsor or Projects Enquiry
 1. Email - jobowonubi@gmail.com
 2. LinkedIn - [jobic10](https://www.linkedin.com/in/jobic10 "Owonubi Job Sunday on LinkedIn")
