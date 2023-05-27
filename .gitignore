@@ -9,9 +9,6 @@ media
 # Backup files # 
 *.bak 
 
-# Generated files
-.idea/**/contentModel.xml
-
 # Python # 
 *.py[cod] 
 *$py.class 
