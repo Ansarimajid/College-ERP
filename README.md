@@ -41,7 +41,7 @@ For viewing the home page of student you must have required credentials given be
 
 ## Support Developer
 1. Add a Star 🌟  to this 👆 Repository
-2. Follow on Github/LinkedIn 
+2. Follow on Github & LinkedIn 
 
 
 ## How to Install and Run this project?
