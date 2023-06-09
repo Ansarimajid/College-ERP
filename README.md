@@ -191,7 +191,6 @@ $  python3 manage.py createsuperuser
 - [x] Passing Page Title From View  - Improved
 - [x] Staff Dashboard Fixed
 - [x] Admin Dashboard Fixed
-- [x] Firebase Web Push Notifications
 - [x] Staff Add Student's Result
 - [x] Staff Edit Result Using CBVs (Class Based Views)
 - [x] Google CAPTCHA
