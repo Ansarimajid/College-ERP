@@ -107,7 +107,7 @@ $  git clone https://github.com/Ansarimajid/College-ERP.git
 
 Then, Enter the project
 ```
-$  cd student-management-using-django
+$  cd College-ERP
 ```
 
 **4. Install Requirements from 'requirements.txt'**
