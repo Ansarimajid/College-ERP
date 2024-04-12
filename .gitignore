@@ -1,4 +1,3 @@
-# Ignore all Markdown files
-
+*.pyc
 README.md
 
