@@ -222,4 +222,4 @@ $  python3 manage.py createsuperuser
 
 ### Run tests
 
-coverage run manage.py test tests.test_forms
+coverage run manage.py test -v=2 tests.test_forms
