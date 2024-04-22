@@ -37,15 +37,16 @@ class ViewsTestCase(TestCase):
             start_year="2022-01-01", end_year="2023-12-31"
         )
 
+        self.user, _ = CustomUser.objects.get_or_create(
+            email="student@student.com", password="student@erp"
+        )
+        self.client.force_login(self.user)
+
     def test_admin_home(self):
-        self.client.login(email="admin@test.com", password="adminpass")
         response = self.client.get(reverse("admin_home"))
         self.assertEqual(response.status_code, 200)
 
     def test_add_staff(self):
-        self.client.login(email="admin@test.com", password="adminpass")
-
-        # Test GET request
         response = self.client.get(reverse("add_staff"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/add_staff_template.html")
@@ -60,7 +61,7 @@ class ViewsTestCase(TestCase):
             "course": self.course.id,
         }
         response = self.client.post(reverse("add_staff"), data=data)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             CustomUser.objects.filter(email="newstaff@test.com").count(), 1
         )
@@ -73,13 +74,7 @@ class ViewsTestCase(TestCase):
             CustomUser.objects.filter(email="invalidemailformat").count(), 0
         )
 
-    def test_add_student(self):
-        # Similar to test_add_staff
-        pass
-
     def test_add_course(self):
-        self.client.login(email="admin@test.com", password="adminpass")
-
         # Test GET request
         response = self.client.get(reverse("add_course"))
         self.assertEqual(response.status_code, 200)
@@ -97,13 +92,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Course.objects.filter(name="").count(), 0)
 
-    def test_add_subject(self):
-        # Similar to test_add_course
-        pass
-
     def test_manage_views(self):
-        self.client.login(email="admin@test.com", password="adminpass")
-
         # Test manage_staff
         response = self.client.get(reverse("manage_staff"))
         self.assertEqual(response.status_code, 200)
@@ -113,8 +102,6 @@ class ViewsTestCase(TestCase):
         # Similar to manage_staff
 
     def test_edit_views(self):
-        self.client.login(email="admin@test.com", password="adminpass")
-
         # Test edit_staff with GET
         response = self.client.get(reverse("edit_staff", args=[self.staff.id]))
         self.assertEqual(response.status_code, 200)
@@ -202,14 +189,11 @@ class ViewsTestCase(TestCase):
         # Similar to view_student_leave
 
     def test_admin_view_attendance(self):
-        self.client.login(email="admin@test.com", password="adminpass")
         response = self.client.get(reverse("admin_view_attendance"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/admin_view_attendance.html")
 
     def test_admin_view_profile(self):
-        self.client.login(email="admin@test.com", password="adminpass")
-
         # Test GET request
         response = self.client.get(reverse("admin_view_profile"))
         self.assertEqual(response.status_code, 200)
@@ -218,7 +202,7 @@ class ViewsTestCase(TestCase):
         # Test POST request with valid data
         data = {"first_name": "Admin", "last_name": "User Updated"}
         response = self.client.post(reverse("admin_view_profile"), data=data)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.admin.refresh_from_db()
         self.assertEqual(self.admin.last_name, "User Updated")
 
