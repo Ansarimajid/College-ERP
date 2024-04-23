@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from django.test import TestCase
 from django.urls import reverse
@@ -67,14 +67,149 @@ class StaffLoginTest(TestCase):
     def test_staff_login(self):
         # Assert that the staff user is redirected to the staff home page
         staff_home_url = 'staff/home/'
-        # WebDriverWait(self.browser, 10).until(
-        #     EC.url_to_be(self.live_server_url + staff_home_url)
-        # )
         self.assertEqual(self.browser.current_url, self.live_server_url + staff_home_url)
 
         # Check for the presence of page heading
         page_heading = self.browser.find_element(By.TAG_NAME, 'h1')
         self.assertEqual(page_heading.text, 'Staff Panel - John D (Mechanical Engineering (ME))')
+
+    def test_staff_update_profile(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Update Profile" link
+        update_profile_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Update Profile')
+        update_profile_link.click()
+
+        # Fill in the form fields
+        first_name_input = self.browser.find_element(By.NAME, 'first_name')
+        original_first_name = first_name_input.get_attribute('value')
+        first_name_input.clear()
+        first_name_input.send_keys('Updated First Name')
+
+        last_name_input = self.browser.find_element(By.NAME, 'last_name')
+        original_last_name = last_name_input.get_attribute('value')
+        last_name_input.clear()
+        last_name_input.send_keys('Updated Last Name')
+
+        address_input = self.browser.find_element(By.NAME, 'address')
+        original_address = address_input.get_attribute('value')
+        address_input.clear()
+        address_input.send_keys('Updated Address')
+
+        gender_select = Select(self.browser.find_element(By.NAME, 'gender'))
+        original_gender = gender_select.first_selected_option.text
+        gender_select.select_by_value('F')
+
+        # Submit the form
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Wait for the success message to be present (up to 10 seconds)
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+        self.assertIn('Profile Updated!', success_message.text)
+
+        # Check if the profile is updated correctly
+        updated_first_name = self.browser.find_element(By.NAME, 'first_name').get_attribute('value')
+        self.assertEqual(updated_first_name, 'Updated First Name')
+
+        updated_last_name = self.browser.find_element(By.NAME, 'last_name').get_attribute('value')
+        self.assertEqual(updated_last_name, 'Updated Last Name')
+
+        updated_address = self.browser.find_element(By.NAME, 'address').get_attribute('value')
+        self.assertEqual(updated_address, 'Updated Address')
+
+        updated_gender = Select(self.browser.find_element(By.NAME, 'gender')).first_selected_option.text
+        self.assertEqual(updated_gender, 'Female')
+
+        # Revert the profile back to the original values
+        first_name_input = self.browser.find_element(By.NAME, 'first_name')
+        first_name_input.clear()
+        first_name_input.send_keys(original_first_name)
+
+        last_name_input = self.browser.find_element(By.NAME, 'last_name')
+        last_name_input.clear()
+        last_name_input.send_keys(original_last_name)
+
+        address_input = self.browser.find_element(By.NAME, 'address')
+        address_input.clear()
+        address_input.send_keys(original_address)
+
+        gender_select = Select(self.browser.find_element(By.NAME, 'gender'))
+        gender_select.select_by_visible_text(original_gender)
+
+        # Submit the form again to revert the changes
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+    def test_staff_add_result(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Add Result" link
+        add_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Result')
+        add_result_link.click()
+
+        #TODO
+
+    def test_staff_edit_result(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Edit Result" link
+        edit_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Edit Result')
+        edit_result_link.click()
+
+        #TODO
+
+    def test_staff_take_attendance(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Take Attendance" link
+        take_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Take Attendance')
+        take_attendance_link.click()
+
+        #TODO
+
+    def test_staff_update_attendance(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "View/Update Attendance" link
+        update_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View/Update Attendance')
+        update_attendance_link.click()
+
+        #TODO
+    
+    def test_staff_view_notifications(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "View Notifications" link
+        view_notifications_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View Notifications')
+        view_notifications_link.click()
+
+        #TODO
+
+    def test_staff_add_books(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Add Books To Lib" link
+        add_books_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Books To Lib')
+        add_books_link.click()
+
+        #TODO
 
     def test_staff_apply_leave(self):
         # Navigate to the staff home page
@@ -105,6 +240,38 @@ class StaffLoginTest(TestCase):
         table_rows = leave_history_table.find_elements(By.TAG_NAME, 'tr')
         self.assertGreater(len(table_rows), 1)  # Assuming there is at least one leave request in the history
 
+    def test_staff_feedback(self):
+        # Navigate to the staff home page
+        staff_home_url = self.live_server_url + 'staff/home/'
+        self.browser.get(staff_home_url)
+
+        # Click on the "Add Feedback" link
+        add_feedback_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Feedback')
+        add_feedback_link.click()
+
+        # Fill in the form field
+        feedback_input = self.browser.find_element(By.NAME, 'feedback')
+        feedback_input.send_keys('This is a test feedback')
+
+        # Submit the form
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Submit Feedback")]')
+        submit_button.click()
+
+        # Wait for the success message to be present (up to 10 seconds)
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+        self.assertIn('Feedback submitted for review', success_message.text)
+
+        # Check if the feedback is added to the feedback table
+        feedback_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        table_rows = feedback_table.find_elements(By.TAG_NAME, 'tr')
+        self.assertGreater(len(table_rows), 1)  # Assuming there is at least one feedback in the table
+
+        # Check if the feedback text is present in the table
+        feedback_text = self.browser.find_element(By.XPATH, '//td[contains(text(), "This is a test feedback")]')
+        self.assertIsNotNone(feedback_text)
+
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
         self.browser.get(logout_url)
@@ -113,5 +280,3 @@ class StaffLoginTest(TestCase):
     def tearDownClass(cls):
         cls.browser.quit()
         super().tearDownClass()
-
-        
