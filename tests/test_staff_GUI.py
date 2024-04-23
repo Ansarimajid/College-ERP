@@ -250,7 +250,9 @@ class StaffLoginTest(TestCase):
         view_notifications_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View Notifications')
         view_notifications_link.click()
 
-        #TODO
+        notifications_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        table_rows = notifications_table.find_elements(By.TAG_NAME, 'tr')
+        self.assertGreater(len(table_rows), 1)  # Assuming there is at least one notification
 
     def test_staff_add_books(self):
         # Navigate to the staff home page
