@@ -145,7 +145,7 @@ class StaffLoginTest(TestCase):
         submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
         self.browser.execute_script("arguments[0].click();", submit_button)
 
-    def test_staff_add_result(self):
+    def test_staff_add_edit_result(self):
         # Navigate to the staff home page
         staff_home_url = self.live_server_url + 'staff/home/'
         self.browser.get(staff_home_url)
@@ -154,18 +154,70 @@ class StaffLoginTest(TestCase):
         add_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Result')
         add_result_link.click()
 
-        #TODO
+        # Fill in the form to add a new result
+        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
+        subject_select.select_by_visible_text('Test Subject')
 
-    def test_staff_edit_result(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+        session_select = Select(self.browser.find_element(By.ID, 'session'))
+        session_select.select_by_value('1')
+
+        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
+        fetch_student_button.click()
+
+        # Wait for the test score input field to be present
+        test_score_input = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.NAME, 'test'))
+        )
+
+        test_score_input = self.browser.find_element(By.NAME, 'test')
+        test_score_input.send_keys('40')
+
+        exam_score_input = self.browser.find_element(By.NAME, 'exam')
+        exam_score_input.send_keys('60')
+
+        save_button = self.browser.find_element(By.ID, 'save_attendance')
+        save_button.click()
+
+        # Wait for the success message
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+        self.assertIn('Scores Updated', success_message.text)
 
         # Click on the "Edit Result" link
         edit_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Edit Result')
         edit_result_link.click()
 
-        #TODO
+        # Fill in the form to edit the result
+        session_select = Select(self.browser.find_element(By.ID, 'id_session_year'))
+        session_select.select_by_index(1)
+
+        subject_select = Select(self.browser.find_element(By.ID, 'id_subject'))
+        subject_select.select_by_index(1)
+
+        student_select = Select(self.browser.find_element(By.ID, 'id_student'))
+        student_select.select_by_index(1)
+
+        test_score_input = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'id_test'))
+        )
+
+        test_score_input = self.browser.find_element(By.ID, 'id_test')
+        test_score_input.clear()
+        test_score_input.send_keys('90')
+
+        exam_score_input = self.browser.find_element(By.ID, 'id_exam')
+        exam_score_input.clear()
+        exam_score_input.send_keys('95')
+
+        update_button = self.browser.find_element(By.ID, 'update_result')
+        update_button.click()
+
+        # Wait for the success message
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+        self.assertIn('Result Updated', success_message.text)
 
     def test_staff_take_attendance(self):
         # Navigate to the staff home page
@@ -209,7 +261,31 @@ class StaffLoginTest(TestCase):
         add_books_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Books To Lib')
         add_books_link.click()
 
-        #TODO
+        # Fill in the form fields
+        name_input = self.browser.find_element(By.NAME, 'name')
+        name_input.send_keys('Test Book')
+
+        author_input = self.browser.find_element(By.NAME, 'author')
+        author_input.send_keys('Test Author')
+
+        isbn_input = self.browser.find_element(By.NAME, 'isbn')
+        isbn_input.send_keys('1234567890')
+
+        category_input = self.browser.find_element(By.NAME, 'category')
+        category_input.send_keys('Test Category')
+
+        # Submit the form
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Book")]')
+        submit_button.click()
+
+        # Wait for the alert to be present (up to 3 seconds)
+        alert = WebDriverWait(self.browser, 3).until(
+            EC.alert_is_present()
+        )
+
+        # Switch to the alert and assert its text
+        alert_text = self.browser.switch_to.alert.text
+        self.assertEqual(alert_text, 'Book is added successfully.')
 
     def test_staff_apply_leave(self):
         # Navigate to the staff home page
