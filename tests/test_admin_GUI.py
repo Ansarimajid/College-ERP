@@ -394,6 +394,193 @@ class AdminGUITest(TestCase):
         alert = self.browser.switch_to.alert
         alert.accept()
 
+    def test_admin_add_manage_staff(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Add Staff" link
+        add_staff_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/staff/add']"))
+        )
+        add_staff_link.click()
+
+        # Fill in the staff details
+        first_name_input = self.browser.find_element(By.ID, 'id_first_name')
+        first_name_input.send_keys('John')
+
+        last_name_input = self.browser.find_element(By.ID, 'id_last_name')
+        last_name_input.send_keys('Doe')
+
+        email_input = self.browser.find_element(By.ID, 'id_email')
+        email_input.send_keys('staffuser@example.com')
+
+        gender_select = Select(self.browser.find_element(By.ID, 'id_gender'))
+        gender_select.select_by_value('M')
+
+        password_input = self.browser.find_element(By.ID, 'id_password')
+        password_input.send_keys('testpassword')
+
+        # Upload a test profile picture (replace with your file path)
+        profile_pic_input = self.browser.find_element(By.ID, 'id_profile_pic')
+        profile_pic_input.send_keys(os.path.join(os.getcwd(), 'main_app', 'static', 'image', 'favicon1.ico'))
+
+        address_input = self.browser.find_element(By.ID, 'id_address')
+        address_input.send_keys('123 Main St, Anytown USA')
+
+        course_select = Select(self.browser.find_element(By.ID, 'id_course'))
+        course_select.select_by_visible_text('Mechanical Engineering (ME)')
+
+        # Submit the form to add the staff
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Staff")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Click on the "Manage Staff" link
+        manage_staff_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/staff/manage/']"))
+        )
+        manage_staff_link.click()
+
+        # Get the last row of the staff table
+        staff_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = staff_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the staff details in the last row
+        self.assertEqual(cells[1].text, 'Doe, John')
+        self.assertEqual(cells[2].text, 'staffuser@example.com')
+
+        # Click on the Edit button for the last staff member
+        edit_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-info')
+        self.browser.execute_script("arguments[0].click();", edit_link)
+
+        # Update the staff details
+        first_name_input = self.browser.find_element(By.ID, 'id_first_name')
+        first_name_input.clear()
+        first_name_input.send_keys('Jane')
+
+        # Submit the form to update the staff
+        update_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Staff")]')
+        self.browser.execute_script("arguments[0].click();", update_button)
+
+        # Click on the "Manage Staff" link again
+        manage_staff_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/staff/manage/']"))
+        )
+        manage_staff_link.click()
+
+        # Get the updated last row of the staff table
+        staff_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = staff_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the updated staff details
+        self.assertEqual(cells[1].text, 'Doe, Jane')
+        self.assertEqual(cells[2].text, 'staffuser@example.com')
+
+        # Click on the Delete button for the last staff member
+        delete_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-danger')
+        self.browser.execute_script("arguments[0].click();", delete_link)
+
+        # Handle the confirm dialog
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+    def test_admin_add_manage_student(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Add Student" link
+        add_student_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/student/add/']"))
+        )
+        add_student_link.click()
+
+        # Fill in the student details
+        first_name_input = self.browser.find_element(By.ID, 'id_first_name')
+        first_name_input.send_keys('Test')
+
+        last_name_input = self.browser.find_element(By.ID, 'id_last_name')
+        last_name_input.send_keys('Student')
+
+        email_input = self.browser.find_element(By.ID, 'id_email')
+        email_input.send_keys('student@example.com')
+
+        gender_select = Select(self.browser.find_element(By.ID, 'id_gender'))
+        gender_select.select_by_value('M')
+
+        password_input = self.browser.find_element(By.ID, 'id_password')
+        password_input.send_keys('testpassword')
+
+        # Upload a test profile picture (replace with your file path)
+        profile_pic_input = self.browser.find_element(By.ID, 'id_profile_pic')
+        profile_pic_input.send_keys(os.path.join(os.getcwd(), 'main_app', 'static', 'image', 'favicon1.ico'))
+
+        address_input = self.browser.find_element(By.ID, 'id_address')
+        address_input.send_keys('123 Test Address')
+
+        course_select = Select(self.browser.find_element(By.ID, 'id_course'))
+        course_select.select_by_visible_text('Mechanical Engineering (ME)')
+
+        session_select = Select(self.browser.find_element(By.ID, 'id_session'))
+        session_select.select_by_value('1')
+
+        # Submit the form to add the student
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Student")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Click on the "Manage Student" link
+        manage_student_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/student/manage/']"))
+        )
+        manage_student_link.click()
+
+        # Get the last row of the student table
+        student_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = student_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the student details in the last row
+        self.assertEqual(cells[1].text, 'Student, Test')
+        self.assertEqual(cells[2].text, 'student@example.com')
+
+        # Click on the Edit button for the last student
+        edit_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-info')
+        self.browser.execute_script("arguments[0].click();", edit_link)
+
+        # Update the student details
+        first_name_input = self.browser.find_element(By.ID, 'id_first_name')
+        first_name_input.clear()
+        first_name_input.send_keys('Testy')
+
+        # Submit the form to update the student
+        update_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Student")]')
+        self.browser.execute_script("arguments[0].click();", update_button)
+
+        # Click on the "Manage Student" link again
+        manage_student_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/student/manage/']"))
+        )
+        manage_student_link.click()
+
+        # Get the updated last row of the student table
+        student_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = student_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the updated student details
+        self.assertEqual(cells[1].text, 'Student, Testy')
+        self.assertEqual(cells[2].text, 'student@example.com')
+
+        # Click on the Delete button for the last student
+        delete_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-danger')
+        self.browser.execute_script("arguments[0].click();", delete_link)
+
+        # Handle the confirm dialog
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
         self.browser.get(logout_url)
