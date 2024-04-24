@@ -12,6 +12,7 @@ from main_app.models import (
     Admin,
 )
 import json
+from unittest.mock import patch
 
 
 class ViewsTestCase(TestCase):
@@ -64,12 +65,35 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "main_app/login.html")
 
+    def test_login_page_authenticated_admin(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("login_page"))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("admin_home"))
+
+    def test_login_page_authenticated_staff(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.get(reverse("login_page"))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("staff_home"))
+
+    def test_login_page_authenticated_student(self):
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse("login_page"))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("student_home"))
+
     def test_doLogin_admin(self):
         response = self.client.post(
             reverse("user_login"), {"email": "admin@test.com", "password": "adminpass"}
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("login_page"))
+
+    def test_doLogin_invalid_request_method(self):
+        response = self.client.get(reverse("user_login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h4>Denied</h4>")
 
     def test_doLogin_staff(self):
         response = self.client.post(
@@ -101,6 +125,7 @@ class ViewsTestCase(TestCase):
         self.assertRedirects(response, "/")
 
     def test_get_attendance(self):
+        self.client.force_login(self.student_user)
         attendance = Attendance.objects.create(
             subject=self.subject, session=self.session, date="2023-06-01"
         )
@@ -110,11 +135,24 @@ class ViewsTestCase(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        # data = json.loads(response.json())
-        # self.assertEqual(len(data), 1)
-        # self.assertEqual(data[0]["id"], attendance.id)
-        # self.assertEqual(data[0]["attendance_date"], str(attendance.date))
-        # self.assertEqual(data[0]["session"], self.session.id)
+        data = json.loads(response.json())
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], attendance.id)
+        self.assertEqual(data[0]["attendance_date"], str(attendance.date))
+        self.assertEqual(data[0]["session"], self.session.id)
+
+    @patch("main_app.views.get_object_or_404")
+    def test_get_attendance_exception(self, mock_get_object_or_404):
+        self.client.force_login(self.student_user)
+        mock_get_object_or_404.side_effect = Exception("Something went wrong")
+        response = self.client.post(
+            reverse("get_attendance"),
+            {"subject": 999, "session": 999},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {"error": "Something went wrong"})
 
     def test_showFirebaseJS(self):
         response = self.client.get(reverse("showFirebaseJS"), follow=True)
