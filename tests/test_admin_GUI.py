@@ -676,6 +676,402 @@ class AdminGUITest(TestCase):
         # Check if the alert text contains "Notification Sent"
         self.assertIn('Notification Sent', alert_text)
 
+    def test_admin_view_attendance(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "View Attendance" link
+        view_attendance_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/attendance/view/']"))
+        )
+        view_attendance_link.click()
+
+        # Select "Test Subject" from the subject dropdown
+        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
+        subject_select.select_by_visible_text('Test Subject')
+
+        # Select the first session from the session dropdown
+        session_select = Select(self.browser.find_element(By.ID, 'session'))
+        session_select.select_by_index(1)  # Assuming the first session has index 1
+
+        # Click the "Fetch Attendance" button
+        fetch_attendance_button = self.browser.find_element(By.ID, 'fetch_attendance')
+        fetch_attendance_button.click()
+
+        # Wait for the attendance dates to appear
+        attendance_date_select = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'attendance_date'))
+        )
+
+        # Check if the attendance dates are present
+        self.assertTrue(attendance_date_select.is_displayed())
+
+        # Select the first attendance date
+        attendance_date_options = attendance_date_select.find_elements(By.TAG_NAME, 'option')
+        if attendance_date_options:
+            first_attendance_date = attendance_date_options[1].get_attribute('value')
+            attendance_date_select = Select(self.browser.find_element(By.ID, 'attendance_date'))
+            attendance_date_select.select_by_value(first_attendance_date)
+
+        # Click the "Fetch Students" button
+        fetch_students_button = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.ID, 'fetch_student'))
+        )
+        fetch_students_button.click()
+
+        # Check if the student data is displayed
+        student_data_container = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'student_data'))
+        )
+        self.assertTrue(student_data_container.is_displayed())
+
+    def test_admin_student_feedback(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Student Feedback" link
+        student_feedback_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/student/view/feedback/']"))
+        )
+        student_feedback_link.click()
+
+        # Wait for the feedback table to be present
+        feedback_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all feedback rows
+        feedback_rows = feedback_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 feedback row
+        self.assertGreaterEqual(len(feedback_rows), 1)
+
+        # Check the contents of the nth feedback row
+        n = 2
+        first_row_cells = feedback_rows[n].find_elements(By.TAG_NAME, 'td')
+        self.assertEqual(first_row_cells[1].text, 'Student, Test')
+        self.assertEqual(first_row_cells[2].text, 'From 2022-08-19 to 2022-08-27')
+        self.assertEqual(first_row_cells[3].text, 'This is a test feedback')
+        # self.assertEqual(first_row_cells[4].text, 'April 24, 2024, 6:39 a.m.')
+        self.assertEqual(first_row_cells[5].text, 'Pending Response')
+
+        # Click on the "Reply" button for the first feedback
+        reply_button = first_row_cells[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        reply_button.click()
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = reply_modal.find_element(By.ID, 'reply_message')
+        reply_message_input.send_keys('This is a test reply')
+
+        # Click the "Reply" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Reply Sent', alert_text)
+
+    def test_admin_staff_feedback(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Staff Feedback" link
+        staff_feedback_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/staff/view/feedback/']"))
+        )
+        staff_feedback_link.click()
+
+        # Wait for the feedback table to be present
+        feedback_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all feedback rows
+        feedback_rows = feedback_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 feedback row
+        self.assertGreaterEqual(len(feedback_rows), 1)
+
+        # Check the contents of the nth feedback row
+        n = 1
+        first_row_cells = feedback_rows[n].find_elements(By.TAG_NAME, 'td')
+        self.assertEqual(first_row_cells[1].text, 'John Doe')
+        self.assertEqual(first_row_cells[2].text, 'Mechanical Engineering (ME)')
+        self.assertEqual(first_row_cells[3].text, 'This is a test feedback')
+        # self.assertEqual(first_row_cells[4].text, 'April 24, 2024, 3:22 a.m.')
+        self.assertEqual(first_row_cells[5].text, 'Pending Response')
+
+        # Click on the "Reply" button for the first feedback
+        reply_button = first_row_cells[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        reply_button.click()
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = reply_modal.find_element(By.ID, 'reply_message')
+        reply_message_input.send_keys('This is a test reply')
+
+        # Click the "Reply" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Reply Sent', alert_text)
+
+    def test_admin_staff_leave_accept(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Staff Leave" link
+        staff_leave_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/staff/view/leave/']"))
+        )
+        staff_leave_link.click()
+
+        # Wait for the leave table to be present
+        leave_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all leave rows
+        leave_rows = leave_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 leave row
+        self.assertGreaterEqual(len(leave_rows), 1)
+
+        # Check the contents of the nth leave row
+        john_doe_row = None
+        for row in leave_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'John Doe' and cells[6].text == 'Reply':
+                john_doe_row = cells
+                break
+        self.assertEqual(john_doe_row[1].text, 'John Doe')
+        self.assertEqual(john_doe_row[2].text, 'Mechanical Engineering (ME)')
+        self.assertEqual(john_doe_row[3].text, 'Applying for leave')
+
+        # Click on the "Reply" button
+        reply_button = john_doe_row[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        self.browser.execute_script("arguments[0].click();", reply_button)
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = Select(reply_modal.find_element(By.ID, 'reply_leave_status'))
+        reply_message_input.select_by_visible_text('Accept')
+
+        # Click the "Submit" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Leave Response Has Been Saved!', alert_text)
+
+    def test_admin_staff_leave_reject(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Staff Leave" link
+        staff_leave_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/staff/view/leave/']"))
+        )
+        staff_leave_link.click()
+
+        # Wait for the leave table to be present
+        leave_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all leave rows
+        leave_rows = leave_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 leave row
+        self.assertGreaterEqual(len(leave_rows), 1)
+
+        # Check the contents of the nth leave row
+        john_doe_row = None
+        for row in leave_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'John Doe' and cells[6].text == 'Reply':
+                john_doe_row = cells
+                break
+        self.assertEqual(john_doe_row[1].text, 'John Doe')
+        self.assertEqual(john_doe_row[2].text, 'Mechanical Engineering (ME)')
+        self.assertEqual(john_doe_row[3].text, 'Applying for leave')
+
+        # Click on the "Reply" button for the first leave
+        reply_button = john_doe_row[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        self.browser.execute_script("arguments[0].click();", reply_button)
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = Select(reply_modal.find_element(By.ID, 'reply_leave_status'))
+        reply_message_input.select_by_visible_text('Reject')
+
+        # Click the "Submit" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Leave Response Has Been Saved!', alert_text)
+
+    def test_admin_student_leave_approve(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Student Leave" link
+        student_leave_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/student/view/leave/']"))
+        )
+        student_leave_link.click()
+
+        # Wait for the leave table to be present
+        leave_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all leave rows
+        leave_rows = leave_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 leave row
+        self.assertGreaterEqual(len(leave_rows), 1)
+
+        # Check the contents of the nth leave row
+        john_doe_row = None
+        for row in leave_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'Student, Test' and cells[6].text == 'Reply':
+                john_doe_row = cells
+                break
+        self.assertEqual(john_doe_row[1].text, 'Student, Test')
+        self.assertEqual(john_doe_row[2].text, 'Mechanical Engineering (ME)')
+        self.assertEqual(john_doe_row[3].text, 'Applying for leave')
+
+        # Click on the "Reply" button
+        reply_button = john_doe_row[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        self.browser.execute_script("arguments[0].click();", reply_button)
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = Select(reply_modal.find_element(By.ID, 'reply_leave_status'))
+        reply_message_input.select_by_visible_text('Approve')
+
+        # Click the "Submit" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Leave Response Has Been Saved!', alert_text)
+
+    def test_admin_student_leave_reject(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Student Leave" link
+        student_leave_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/student/view/leave/']"))
+        )
+        student_leave_link.click()
+
+        # Wait for the leave table to be present
+        leave_table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.table-bordered'))
+        )
+
+        # Get all leave rows
+        leave_rows = leave_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+
+        # Check if there are at least 1 leave row
+        self.assertGreaterEqual(len(leave_rows), 1)
+
+        # Check the contents of the nth leave row
+        john_doe_row = None
+        for row in leave_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'Student, Test' and cells[6].text == 'Reply':
+                john_doe_row = cells
+                break
+        self.assertEqual(john_doe_row[1].text, 'Student, Test')
+        self.assertEqual(john_doe_row[2].text, 'Mechanical Engineering (ME)')
+        self.assertEqual(john_doe_row[3].text, 'Applying for leave')
+
+        # Click on the "Reply" button
+        reply_button = john_doe_row[6].find_element(By.CSS_SELECTOR, 'button.reply_open_modal')
+        self.browser.execute_script("arguments[0].click();", reply_button)
+
+        # Wait for the reply modal to be visible
+        reply_modal = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'reply_modal'))
+        )
+
+        # Enter a reply message
+        reply_message_input = Select(reply_modal.find_element(By.ID, 'reply_leave_status'))
+        reply_message_input.select_by_visible_text('Reject')
+
+        # Click the "Submit" button in the modal
+        reply_button = reply_modal.find_element(By.ID, 'reply_btn')
+        reply_button.click()
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Reply Sent"
+        self.assertIn('Leave Response Has Been Saved!', alert_text)
+
+    
+
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
         self.browser.get(logout_url)
