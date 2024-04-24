@@ -223,3 +223,4 @@ $  python3 manage.py createsuperuser
 ### Run tests
 
 coverage run manage.py test -v=2 tests.test_forms
+coverage run --branch manage.py test -v=2 tests
