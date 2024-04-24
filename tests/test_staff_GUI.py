@@ -219,7 +219,7 @@ class StaffLoginTest(TestCase):
         )
         self.assertIn('Result Updated', success_message.text)
 
-    def test_staff_take_attendance(self):
+    def test_staff_take_update_attendance(self):
         # Navigate to the staff home page
         staff_home_url = self.live_server_url + 'staff/home/'
         self.browser.get(staff_home_url)
@@ -228,18 +228,74 @@ class StaffLoginTest(TestCase):
         take_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Take Attendance')
         take_attendance_link.click()
 
-        #TODO
+        # Fill in the form to take attendance
+        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
+        subject_select.select_by_visible_text('Test Subject')
 
-    def test_staff_update_attendance(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+        session_select = Select(self.browser.find_element(By.ID, 'session'))
+        session_select.select_by_value('1')
+
+        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
+        fetch_student_button.click()
+
+        # Wait for the student data to be loaded
+        student_data_block = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'student_data'))
+        )
+
+        attendance_date_input = self.browser.find_element(By.ID, 'attendance_date')
+        self.browser.execute_script("arguments[0].value = '2023-06-01';", attendance_date_input)
+
+        save_attendance_button = self.browser.find_element(By.ID, 'save_attendance')
+        save_attendance_button.click()
+
+        # Wait for the alert to be present and switch to it
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+        self.assertIn('Saved', alert_text)
 
         # Click on the "View/Update Attendance" link
         update_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View/Update Attendance')
         update_attendance_link.click()
 
-        #TODO
+        # Fill in the form to update attendance
+        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
+        subject_select.select_by_visible_text('Test Subject')
+
+        session_select = Select(self.browser.find_element(By.ID, 'session'))
+        session_select.select_by_value('1')
+        
+        fetch_attendance_button = self.browser.find_element(By.ID, 'fetch_attendance')
+        fetch_attendance_button.click()
+
+        # Wait for the attendance dates to be loaded
+        attendance_date_select = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'attendance_date'))
+        )
+        attendance_date_select.click()
+
+        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
+        fetch_student_button.click()
+
+        # Wait for the student attendance data to be loaded
+        student_data_block = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'student_data'))
+        )
+
+        # Update attendance for a student
+        student_label = self.browser.find_element(By.CSS_SELECTOR, "label[for='checkbox21']")
+        student_label.click()
+
+        save_attendance_button = self.browser.find_element(By.ID, 'save_attendance')
+        self.browser.execute_script("arguments[0].click();", save_attendance_button)
+
+        # Wait for the success message
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+        self.assertIn('Updated', alert_text)
+        
     
     def test_staff_view_notifications(self):
         # Navigate to the staff home page
@@ -250,6 +306,7 @@ class StaffLoginTest(TestCase):
         view_notifications_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View Notifications')
         view_notifications_link.click()
 
+        # Check if there is at least one notification
         notifications_table = self.browser.find_element(By.CLASS_NAME, 'table')
         table_rows = notifications_table.find_elements(By.TAG_NAME, 'tr')
         self.assertGreater(len(table_rows), 1)  # Assuming there is at least one notification
@@ -302,7 +359,7 @@ class StaffLoginTest(TestCase):
         date_input = self.browser.find_element(By.NAME, 'date')
         self.browser.execute_script("arguments[0].value = '2023-06-01';", date_input)
         message_input = self.browser.find_element(By.NAME, 'message')
-        message_input.send_keys('Applying for leave')  # Replace with the desired message
+        message_input.send_keys('Applying for leave')
 
         # Submit the form
         submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Apply For Leave")]')
