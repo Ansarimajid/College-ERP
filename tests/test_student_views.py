@@ -5,6 +5,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch
 import json
 
+small_gif = (
+    b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04"
+    b"\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02"
+    b"\x02\x4c\x01\x00\x3b"
+)
+
 
 class StudentViewsTestCase(TestCase):
     def setUp(self):
@@ -20,6 +26,9 @@ class StudentViewsTestCase(TestCase):
             address="Student Address",
         )
         self.student = Student.objects.get(admin=self.student_user)
+        self.course = Course.objects.create(name="Test Course")
+        self.student_user.student.course = self.course
+        self.student_user.save()
         self.staff_user = CustomUser.objects.create_user(
             email="staff@test.com",
             password="staffpass",
@@ -31,7 +40,6 @@ class StudentViewsTestCase(TestCase):
             address="Staff Address",
         )
         self.staff = Staff.objects.get(admin=self.staff_user)
-        self.course = Course.objects.create(name="Test Course")
         self.subject = Subject.objects.create(
             name="Test Subject", course=self.course, staff=self.staff
         )
@@ -61,6 +69,49 @@ class StudentViewsTestCase(TestCase):
         self.assertNotEqual(response.context["total_attendance"], 0)
         self.assertEqual(response.context["percent_present"], 100)
         self.assertEqual(response.context["percent_absent"], 0)
+
+    def test_student_home_with_subjects(self):
+        self.client.force_login(self.student_user)
+        # Create additional subjects for the student's course
+        subject2 = Subject.objects.create(
+            name="Subject 2", course=self.course, staff=self.staff
+        )
+        subject3 = Subject.objects.create(
+            name="Subject 3", course=self.course, staff=self.staff
+        )
+        # Create attendance and attendance reports for each subject
+        attendance1 = Attendance.objects.create(
+            subject=self.subject, date="2023-07-01", session=self.session
+        )
+        AttendanceReport.objects.create(
+            student=self.student, attendance=attendance1, status=True
+        )
+
+        attendance2 = Attendance.objects.create(
+            subject=subject2, date="2023-07-02", session=self.session
+        )
+        AttendanceReport.objects.create(
+            student=self.student, attendance=attendance2, status=True
+        )
+
+        attendance3 = Attendance.objects.create(
+            subject=subject3, date="2023-07-03", session=self.session
+        )
+        AttendanceReport.objects.create(
+            student=self.student, attendance=attendance3, status=False
+        )
+        response = self.client.get(reverse("student_home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "student_template/home_content.html")
+
+        # Assert the expected values of subject-related variables
+        self.assertEqual(response.context["total_subject"], 3)
+        self.assertEqual(len(response.context["subjects"]), 3)
+        self.assertEqual(response.context["data_present"], [1, 1, 0])
+        self.assertEqual(response.context["data_absent"], [0, 0, 1])
+        self.assertEqual(
+            response.context["data_name"], ["Test Subject", "Subject 2", "Subject 3"]
+        )
 
     def test_student_view_attendance(self):
         self.client.force_login(self.student_user)
@@ -135,6 +186,25 @@ class StudentViewsTestCase(TestCase):
             "password": "newpassword",
             "address": "Updated Address",
             "gender": "F",
+        }
+        response = self.client.post(
+            reverse("student_view_profile"), data=data, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        self.student_user.refresh_from_db()
+        self.assertEqual(self.student_user.first_name, "Updated Student")
+
+    def test_student_view_profile_post_profile_pic(self):
+        self.client.force_login(self.student_user)
+        data = {
+            "email": "student@test.com",
+            "first_name": "Updated Student",
+            "last_name": "User",
+            "address": "Updated Address",
+            "gender": "F",
+            "profile_pic": SimpleUploadedFile(
+                "test.gif", small_gif, content_type="image/gif"
+            ),
         }
         response = self.client.post(
             reverse("student_view_profile"), data=data, follow=True
