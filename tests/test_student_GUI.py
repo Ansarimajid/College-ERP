@@ -23,8 +23,8 @@ class StudentGUITest(TestCase):
         login_button.click()
 
         # Navigate to the student addition page
-        add_staff_url = cls.live_server_url + 'student/add'
-        cls.browser.get(add_staff_url)
+        add_student_url = cls.live_server_url + 'student/add'
+        cls.browser.get(add_student_url)
 
         # Fill in the student details
         first_name_input = cls.browser.find_element(By.NAME, 'first_name')
@@ -56,7 +56,7 @@ class StudentGUITest(TestCase):
         cls.browser.get(logout_url)
 
     def setUp(self):
-        # Log in as the staff user before each test
+        # Log in as the student user before each test
         self.browser.get(self.live_server_url)
         email_input = self.browser.find_element(By.NAME, 'email')
         password_input = self.browser.find_element(By.NAME, 'password')
@@ -66,7 +66,7 @@ class StudentGUITest(TestCase):
         login_button.click()
 
     def test_student_login(self):
-        # Assert that the staff user is redirected to the staff home page
+        # Assert that the student user is redirected to the student home page
         student_home_url = 'student/home/'
         self.assertEqual(self.browser.current_url, self.live_server_url + student_home_url)
 
