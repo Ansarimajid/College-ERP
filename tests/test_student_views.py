@@ -156,6 +156,19 @@ class StudentViewsTestCase(TestCase):
             LeaveReportStudent.objects.filter(student=self.student).count(), 1
         )
 
+    def test_student_apply_leave_post_invalid(self):
+        self.client.force_login(self.student_user)
+        data = {
+            "date": "2023-07-01",
+            "message": "Test leave application",
+            "status": "blah",
+        }  # message is int but should be string
+        response = self.client.post(reverse("student_apply_leave"), data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            LeaveReportStudent.objects.filter(student=self.student).count(), 1
+        )
+
     def test_student_feedback(self):
         self.client.force_login(self.student_user)
         response = self.client.get(reverse("student_feedback"))
@@ -252,3 +265,63 @@ class StudentViewsTestCase(TestCase):
         response = self.client.get(reverse("view_books"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "student_template/view_books.html")
+
+    # @patch("main_app.views.get_object_or_404")
+    # def test_student_view_attendance_post_exception(self, mocked_get_object_or_404):
+    #     self.client.force_login(self.student_user)
+    #     mocked_get_object_or_404.side_effect = Exception("Database Error")
+    #     data = {
+    #         "subject": self.subject.id,
+    #         "start_date": "2023-07-01",
+    #         "end_date": "2023-07-02",
+    #     }
+    #     response = self.client.post(reverse("student_view_attendance"), data=data)
+    #     self.assertContains(response, "Error Occured While Updating Profile")
+
+    # @patch("main_app.views.LeaveReportStudent.objects.create")
+    # def test_student_apply_leave_post_exception(self, mocked_create_leave_report):
+    #     self.client.force_login(self.student_user)
+    #     mocked_create_leave_report.side_effect = Exception("Database Error")
+    #     data = {
+    #         "date": "2023-07-01",
+    #         "message": "Test leave application",
+    #     }
+    #     response = self.client.post(reverse("student_apply_leave"), data=data)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertContains(response, "Could not submit")
+
+    # @patch("main_app.views.FeedbackStudent.objects.create")
+    # def test_student_feedback_post_exception(self, mocked_create_feedback):
+    #     self.client.force_login(self.student_user)
+    #     mocked_create_feedback.side_effect = Exception("Database Error")
+    #     data = {
+    #         "feedback": "Test feedback",
+    #     }
+    #     response = self.client.post(reverse("student_feedback"), data=data)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertContains(response, "Could not Submit!")
+
+    # @patch("main_app.views.CustomUser.objects.filter")
+    # def test_student_view_profile_post_exception(self, mocked_filter):
+    #     self.client.force_login(self.student_user)
+    #     mocked_filter.side_effect = Exception("Database Error")
+    #     data = {
+    #         "email": "student@test.com",
+    #         "first_name": "Updated Student",
+    #         "last_name": "User",
+    #         "password": "newpassword",
+    #         "address": "Updated Address",
+    #         "gender": "F",
+    #     }
+    #     response = self.client.post(reverse("student_view_profile"), data=data)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertContains(response, "Error Occured While Updating Profile")
+
+    # @patch("main_app.views.CustomUser.objects.get")
+    # def test_student_fcmtoken_exception(self, mocked_get_user):
+    #     self.client.force_login(self.student_user)
+    #     mocked_get_user.side_effect = Exception("Database Error")
+    #     data = {"token": "test_token"}
+    #     response = self.client.post(reverse("student_fcmtoken"), data=data)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(response.content, b"False")
