@@ -1,0 +1,404 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
+from django.test import TestCase
+import os
+
+class AdminGUITest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.browser = webdriver.Chrome()  # Use the appropriate WebDriver for your browser
+        # self.browser.implicitly_wait(10)  # Set an implicit wait for elements to be present
+        cls.live_server_url = 'http://127.0.0.1:8000/'
+
+    def setUp(self):
+        # Log in as the admin before each test
+        self.browser.get(self.live_server_url)
+        email_input = self.browser.find_element(By.NAME, 'email')
+        password_input = self.browser.find_element(By.NAME, 'password')
+        login_button = self.browser.find_element(By.XPATH, '//button[text()="Log In"]')
+        email_input.send_keys('superuser@gmail.com')
+        password_input.send_keys('superuser')
+        login_button.click()
+
+    def test_admin_login(self):
+        # Assert that the admin user is redirected to the admin home page
+        admin_home_url = 'admin/home/'
+        self.assertEqual(self.browser.current_url, self.live_server_url + admin_home_url)
+
+        # Check for the presence of page heading
+        page_heading = self.browser.find_element(By.TAG_NAME, 'h1')
+        self.assertEqual(page_heading.text, 'Administrative Dashboard')
+
+    def test_admin_update_profile(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Update Profile" link
+        update_profile_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Update Profile')
+        update_profile_link.click()
+
+        # Fill in the form fields
+        first_name_input = self.browser.find_element(By.NAME, 'first_name')
+        original_first_name = first_name_input.get_attribute('value')
+        first_name_input.clear()
+        first_name_input.send_keys('Updated First Name')
+
+        last_name_input = self.browser.find_element(By.NAME, 'last_name')
+        original_last_name = last_name_input.get_attribute('value')
+        last_name_input.clear()
+        last_name_input.send_keys('Updated Last Name')
+
+        address_input = self.browser.find_element(By.NAME, 'address')
+        original_address = address_input.get_attribute('value')
+        address_input.clear()
+        address_input.send_keys('Updated Address')
+
+        gender_select = Select(self.browser.find_element(By.NAME, 'gender'))
+        original_gender = gender_select.first_selected_option.text
+        gender_select.select_by_value('F')
+
+        # Submit the form
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Wait for the success message to be present (up to 10 seconds)
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+        self.assertIn('Profile Updated!', success_message.text)
+
+        # Check if the profile is updated correctly
+        updated_first_name = self.browser.find_element(By.NAME, 'first_name').get_attribute('value')
+        self.assertEqual(updated_first_name, 'Updated First Name')
+
+        updated_last_name = self.browser.find_element(By.NAME, 'last_name').get_attribute('value')
+        self.assertEqual(updated_last_name, 'Updated Last Name')
+
+        updated_address = self.browser.find_element(By.NAME, 'address').get_attribute('value')
+        self.assertEqual(updated_address, 'Updated Address')
+
+        updated_gender = Select(self.browser.find_element(By.NAME, 'gender')).first_selected_option.text
+        self.assertEqual(updated_gender, 'Female')
+
+        # Revert the profile back to the original values
+        first_name_input = self.browser.find_element(By.NAME, 'first_name')
+        first_name_input.clear()
+        first_name_input.send_keys(original_first_name)
+
+        last_name_input = self.browser.find_element(By.NAME, 'last_name')
+        last_name_input.clear()
+        last_name_input.send_keys(original_last_name)
+
+        address_input = self.browser.find_element(By.NAME, 'address')
+        address_input.clear()
+        address_input.send_keys(original_address)
+
+        gender_select = Select(self.browser.find_element(By.NAME, 'gender'))
+        gender_select.select_by_visible_text(original_gender)
+
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+
+        # Submit the form again to revert the changes
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+    def test_admin_add_manage_course(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on Course Expandable
+        course_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Course')]")
+        course_menu.click()
+
+        # Click on the "Add Course" link
+        add_course_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/course/add']"))
+        )
+        add_course_link.click()
+
+        # Fill in name of course
+        name_input = self.browser.find_element(By.NAME, 'name')
+        name_input.send_keys('Mechanical Engineering (ME)')
+
+        # Submit the form to add the course
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Course")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Click on Course Expandable
+        course_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Course')]")
+        course_menu.click()
+
+        # Click on the "Manage Course" link
+        manage_course_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/course/manage/']"))
+        )
+        manage_course_link.click()
+
+        # Get the last row of the table
+        courses_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = courses_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+        
+        # Check the contents of each cell in the last row
+        self.assertEqual(cells[1].text, 'Mechanical Engineering (ME)')
+
+        # Click on the Edit button for the last course
+        edit_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-info')
+        self.browser.execute_script("arguments[0].click();", edit_link)
+
+        # Update the course name
+        new_name_input = self.browser.find_element(By.NAME, 'name')
+        new_name_input.clear()
+        new_name_input.send_keys('Aerospace Engineering (AE)')
+
+        # Submit the form to update the course
+        update_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Edit Course")]')
+        update_button.click()
+
+        # Click on Course Expandable
+        course_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Course')]")
+        course_menu.click()
+
+        # Click on the "Manage Course" link again
+        manage_course_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/course/manage/']"))
+        )
+        manage_course_link.click()
+
+        # Get the updated last row of the table
+        courses_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = courses_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the updated course name
+        self.assertEqual(cells[1].text, 'Aerospace Engineering (AE)')
+
+        # Click on the Delete button for the last course
+        delete_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-danger')
+        self.browser.execute_script("arguments[0].click();", delete_link)
+
+        # Handle the confirm dialog
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+    def add_test_subject(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on Subject Expandable
+        subject_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Subject')]")
+        subject_menu.click()
+
+        # Click on the "Add Subject" link
+        add_subject_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/subject/add/']"))
+        )
+        add_subject_link.click()
+
+        # Fill in name of subject
+        name_input = self.browser.find_element(By.NAME, 'name')
+        name_input.send_keys('Test Subject')
+
+        # Select "John Doe" as the staff
+        staff_select = Select(self.browser.find_element(By.ID, 'id_staff'))
+        staff_select.select_by_visible_text('John Doe')
+
+        # Select "Mechanical Engineering (ME)" as the course
+        course_select = Select(self.browser.find_element(By.ID, 'id_course'))
+        course_select.select_by_visible_text('Mechanical Engineering (ME)')
+
+        # Submit the form to add the subject
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Subject")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+    def test_admin_add_manage_subject(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on Subject Expandable
+        subject_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Subject')]")
+        subject_menu.click()
+
+        # Click on the "Add Subject" link
+        add_subject_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/subject/add/']"))
+        )
+        add_subject_link.click()
+
+        # Fill in name of subject
+        name_input = self.browser.find_element(By.NAME, 'name')
+        name_input.send_keys('Test Subject')
+
+        # Select "John Doe" as the staff
+        staff_select = Select(self.browser.find_element(By.ID, 'id_staff'))
+        staff_select.select_by_visible_text('John Doe')
+
+        # Select "Mechanical Engineering (ME)" as the course
+        course_select = Select(self.browser.find_element(By.ID, 'id_course'))
+        course_select.select_by_visible_text('Mechanical Engineering (ME)')
+
+        # Submit the form to add the subject
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Subject")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Click on Subject Expandable
+        subject_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Subject')]")
+        subject_menu.click()
+
+        # Click on the "Manage Subject" link
+        manage_subject_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/subject/manage/']"))
+        )
+        manage_subject_link.click()
+
+        # Get the last row of the table
+        subjects_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = subjects_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+        
+        # Check the contents of each cell in the last row
+        self.assertEqual(cells[1].text, 'Test Subject')
+
+        # Click on the Edit button for the last subject
+        edit_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-info')
+        self.browser.execute_script("arguments[0].click();", edit_link)
+
+        # Update the subject name
+        new_name_input = self.browser.find_element(By.NAME, 'name')
+        new_name_input.clear()
+        new_name_input.send_keys('Test Subject 2')
+
+        # Submit the form to update the subject
+        update_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Edit Subject")]')
+        update_button.click()
+
+        # Click on subject Expandable
+        subject_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Subject')]")
+        subject_menu.click()
+
+        # Click on the "Manage subject" link again
+        manage_subject_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/subject/manage/']"))
+        )
+        manage_subject_link.click()
+
+        # Get the updated last row of the table
+        subjects_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = subjects_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the updated subject name
+        self.assertEqual(cells[1].text, 'Test Subject 2')
+
+        # Click on the Delete button for the last subject
+        delete_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-danger')
+        self.browser.execute_script("arguments[0].click();", delete_link)
+
+        # Handle the confirm dialog
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+    def test_admin_add_manage_session(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on Session Expandable
+        session_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Session')]")
+        session_menu.click()
+
+        # Click on the "Add Session" link
+        add_session_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href='/add_session/']"))
+        )
+        add_session_link.click()
+
+        # Fill in start and end year
+        start_year_input = self.browser.find_element(By.ID, 'id_start_year')
+        self.browser.execute_script("arguments[0].value = '2023-06-01';", start_year_input)
+
+        end_year_input = self.browser.find_element(By.ID, 'id_end_year')
+        self.browser.execute_script("arguments[0].value = '2024-05-31';", end_year_input)
+
+        # Submit the form to add the session
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Session")]')
+        self.browser.execute_script("arguments[0].click();", submit_button)
+
+        # Click on Session Expandable
+        session_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Session')]")
+        session_menu.click()
+
+        # Click on the "Manage Session" link
+        manage_session_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/session/manage/']"))
+        )
+        manage_session_link.click()
+
+        # Get the last row of the table
+        sessions_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = sessions_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the contents of each cell in the last row
+        self.assertEqual(cells[1].text, 'June 1, 2023')
+        self.assertEqual(cells[2].text, 'May 31, 2024')
+
+        # Click on the Edit button for the last session
+        edit_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-info')
+        self.browser.execute_script("arguments[0].click();", edit_link)
+
+        # Update the start and end year
+        start_year_input = self.browser.find_element(By.ID, 'id_start_year')
+        self.browser.execute_script("arguments[0].value = '2023-07-01';", start_year_input)
+
+        end_year_input = self.browser.find_element(By.ID, 'id_end_year')
+        self.browser.execute_script("arguments[0].value = '2024-06-30';", end_year_input)
+
+        # Submit the form to update the session
+        update_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Session")]')
+        update_button.click()
+
+        # Click on Session Expandable
+        session_menu = self.browser.find_element(By.XPATH, "//a[@class='nav-link']//p[contains(text(), 'Session')]")
+        session_menu.click()
+
+        # Click on the "Manage Session" link again
+        manage_session_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/session/manage/']"))
+        )
+        manage_session_link.click()
+
+        # Get the updated last row of the table
+        sessions_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        last_row = sessions_table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the updated start and end year
+        self.assertEqual(cells[1].text, 'July 1, 2023')
+        self.assertEqual(cells[2].text, 'June 30, 2024')
+
+        # Click on the Delete button for the last session
+        delete_link = last_row.find_element(By.CSS_SELECTOR, 'a.btn-danger')
+        self.browser.execute_script("arguments[0].click();", delete_link)
+
+        # Handle the confirm dialog
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+    def tearDown(self):
+        logout_url = self.live_server_url + '/logout_user/'
+        self.browser.get(logout_url)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.quit()
+        super().tearDownClass()
