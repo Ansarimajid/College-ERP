@@ -296,7 +296,6 @@ class StaffLoginTest(TestCase):
         alert.accept()
         self.assertIn('Updated', alert_text)
         
-    
     def test_staff_view_notifications(self):
         # Navigate to the staff home page
         staff_home_url = self.live_server_url + 'staff/home/'
