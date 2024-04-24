@@ -1070,8 +1070,6 @@ class AdminGUITest(TestCase):
         # Check if the alert text contains "Reply Sent"
         self.assertIn('Leave Response Has Been Saved!', alert_text)
 
-    
-
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
         self.browser.get(logout_url)
