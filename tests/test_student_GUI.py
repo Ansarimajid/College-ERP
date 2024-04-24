@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from django.test import TestCase
 import os
 
-class StaffGUITest(TestCase):
+class StudentGUITest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -13,7 +13,7 @@ class StaffGUITest(TestCase):
         # self.browser.implicitly_wait(10)  # Set an implicit wait for elements to be present
         cls.live_server_url = 'http://127.0.0.1:8000/'
 
-        # Log in as a superuser to add a temporary staff member
+        # Log in as a superuser to add a temporary student member
         cls.browser.get(cls.live_server_url)
         email_input = cls.browser.find_element(By.NAME, 'email')
         password_input = cls.browser.find_element(By.NAME, 'password')
@@ -22,11 +22,11 @@ class StaffGUITest(TestCase):
         password_input.send_keys('superuser')
         login_button.click()
 
-        # Navigate to the staff addition page
-        add_staff_url = cls.live_server_url + 'staff/add'
+        # Navigate to the student addition page
+        add_staff_url = cls.live_server_url + 'student/add'
         cls.browser.get(add_staff_url)
 
-        # Fill in the staff details
+        # Fill in the student details
         first_name_input = cls.browser.find_element(By.NAME, 'first_name')
         last_name_input = cls.browser.find_element(By.NAME, 'last_name')
         address_input = cls.browser.find_element(By.NAME, 'address')
@@ -35,18 +35,20 @@ class StaffGUITest(TestCase):
         password_input = cls.browser.find_element(By.NAME, 'password')
         course_select = cls.browser.find_element(By.NAME, 'course')
         profile_pic_input = cls.browser.find_element(By.NAME, 'profile_pic')
-
-        first_name_input.send_keys('John')
-        last_name_input.send_keys('Doe')
+        session_select = Select(cls.browser.find_element(By.ID, 'id_session'))
+        
+        first_name_input.send_keys('Test')
+        last_name_input.send_keys('Student')
         address_input.send_keys('123 Test Address')
-        email_input.send_keys('staffuser@gmail.com')
+        email_input.send_keys('student@gmail.com')
         gender_select.send_keys('Male')
         password_input.send_keys('testpassword')
         course_select.send_keys('Mechanical Engineering (ME)')
         profile_pic_input.send_keys(os.path.join(os.getcwd(), 'main_app', 'static', 'image', 'favicon1.ico'))
+        session_select.select_by_index(1)
 
-        # Submit the staff addition form
-        submit_button = cls.browser.find_element(By.XPATH, "//button[normalize-space(.)='Add Staff']")
+        # Submit the student addition form
+        submit_button = cls.browser.find_element(By.XPATH, "//button[normalize-space(.)='Add Student']")
         cls.browser.execute_script("arguments[0].click();", submit_button)
 
         # Log out from the superuser account
@@ -59,23 +61,23 @@ class StaffGUITest(TestCase):
         email_input = self.browser.find_element(By.NAME, 'email')
         password_input = self.browser.find_element(By.NAME, 'password')
         login_button = self.browser.find_element(By.XPATH, '//button[text()="Log In"]')
-        email_input.send_keys('staffuser@gmail.com')
+        email_input.send_keys('student@gmail.com')
         password_input.send_keys('testpassword')
         login_button.click()
 
-    def test_staff_login(self):
+    def test_student_login(self):
         # Assert that the staff user is redirected to the staff home page
-        staff_home_url = 'staff/home/'
-        self.assertEqual(self.browser.current_url, self.live_server_url + staff_home_url)
+        student_home_url = 'student/home/'
+        self.assertEqual(self.browser.current_url, self.live_server_url + student_home_url)
 
         # Check for the presence of page heading
         page_heading = self.browser.find_element(By.TAG_NAME, 'h1')
-        self.assertEqual(page_heading.text, 'Staff Panel - John D (Mechanical Engineering (ME))')
+        self.assertEqual(page_heading.text, 'Student Homepage')
 
-    def test_staff_update_profile(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+    def test_student_update_profile(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
 
         # Click on the "Update Profile" link
         update_profile_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Update Profile')
@@ -140,165 +142,58 @@ class StaffGUITest(TestCase):
         gender_select = Select(self.browser.find_element(By.NAME, 'gender'))
         gender_select.select_by_visible_text(original_gender)
 
+        success_message = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+        )
+
         # Submit the form again to revert the changes
         submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Update Profile")]')
         self.browser.execute_script("arguments[0].click();", submit_button)
 
-    def test_staff_add_edit_result(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+    def test_student_view_attendance(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
 
-        # Click on the "Add Result" link
-        add_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Result')
-        add_result_link.click()
+        # Click on the "View Attendance" link
+        view_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View Attendance')
+        view_attendance_link.click()
 
-        # Fill in the form to add a new result
+        # Select a subject
         subject_select = Select(self.browser.find_element(By.ID, 'subject'))
         subject_select.select_by_visible_text('Test Subject')
 
-        session_select = Select(self.browser.find_element(By.ID, 'session'))
-        session_select.select_by_value('1')
+        # Select start date
+        date_input = self.browser.find_element(By.NAME, 'start_date')
+        self.browser.execute_script("arguments[0].value = '2023-06-01';", date_input)
 
-        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
-        fetch_student_button.click()
+        # Select end date
+        date_input = self.browser.find_element(By.NAME, 'end_date')
+        self.browser.execute_script("arguments[0].value = '2023-06-01';", date_input)
 
-        # Wait for the test score input field to be present
-        test_score_input = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.NAME, 'test'))
+        # Submit the form
+        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Fetch Attendance Data")]')
+        submit_button.click()
+
+        # Wait for the attendance data to be loaded
+        attendance_data = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, 'attendance_data'))
         )
 
-        test_score_input = self.browser.find_element(By.NAME, 'test')
-        test_score_input.send_keys('40')
+        # Get the last attendance block
+        last_block = attendance_data.find_elements(By.CSS_SELECTOR, 'div.col-lg-3')[-1]
 
-        exam_score_input = self.browser.find_element(By.NAME, 'exam')
-        exam_score_input.send_keys('60')
+        # Check the contents of the last attendance block
+        date_element = last_block.find_element(By.TAG_NAME, 'b')
+        self.assertEqual(date_element.text, '2023-06-01')
 
-        save_button = self.browser.find_element(By.ID, 'save_attendance')
-        save_button.click()
-
-        # Wait for the success message
-        success_message = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
-        )
-        self.assertIn('Scores Updated', success_message.text)
-
-        # Click on the "Edit Result" link
-        edit_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Edit Result')
-        edit_result_link.click()
-
-        # Fill in the form to edit the result
-        session_select = Select(self.browser.find_element(By.ID, 'id_session_year'))
-        session_select.select_by_index(1)
-
-        subject_select = Select(self.browser.find_element(By.ID, 'id_subject'))
-        subject_select.select_by_index(1)
-
-        student_select = Select(self.browser.find_element(By.ID, 'id_student'))
-        student_select.select_by_index(1)
-
-        test_score_input = WebDriverWait(self.browser, 10).until(
-            EC.visibility_of_element_located((By.ID, 'id_test'))
-        )
-
-        test_score_input = self.browser.find_element(By.ID, 'id_test')
-        test_score_input.clear()
-        test_score_input.send_keys('90')
-
-        exam_score_input = self.browser.find_element(By.ID, 'id_exam')
-        exam_score_input.clear()
-        exam_score_input.send_keys('95')
-
-        update_button = self.browser.find_element(By.ID, 'update_result')
-        update_button.click()
-
-        # Wait for the success message
-        success_message = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
-        )
-        self.assertIn('Result Updated', success_message.text)
-
-    def test_staff_take_update_attendance(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
-
-        # Click on the "Take Attendance" link
-        take_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Take Attendance')
-        take_attendance_link.click()
-
-        # Fill in the form to take attendance
-        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
-        subject_select.select_by_visible_text('Test Subject')
-
-        session_select = Select(self.browser.find_element(By.ID, 'session'))
-        session_select.select_by_value('1')
-
-        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
-        fetch_student_button.click()
-
-        # Wait for the student data to be loaded
-        student_data_block = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.ID, 'student_data'))
-        )
-
-        attendance_date_input = self.browser.find_element(By.ID, 'attendance_date')
-        self.browser.execute_script("arguments[0].value = '2023-06-01';", attendance_date_input)
-
-        save_attendance_button = self.browser.find_element(By.ID, 'save_attendance')
-        save_attendance_button.click()
-
-        # Wait for the alert to be present and switch to it
-        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
-        alert_text = alert.text
-        alert.accept()
-        self.assertIn('Saved', alert_text)
-
-        # Click on the "View/Update Attendance" link
-        update_attendance_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View/Update Attendance')
-        update_attendance_link.click()
-
-        # Fill in the form to update attendance
-        subject_select = Select(self.browser.find_element(By.ID, 'subject'))
-        subject_select.select_by_visible_text('Test Subject')
-
-        session_select = Select(self.browser.find_element(By.ID, 'session'))
-        session_select.select_by_value('1')
-        
-        fetch_attendance_button = self.browser.find_element(By.ID, 'fetch_attendance')
-        fetch_attendance_button.click()
-
-        # Wait for the attendance dates to be loaded
-        attendance_date_select = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.ID, 'attendance_date'))
-        )
-        attendance_date_select.click()
-
-        fetch_student_button = self.browser.find_element(By.ID, 'fetch_student')
-        fetch_student_button.click()
-
-        # Wait for the student attendance data to be loaded
-        student_data_block = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.ID, 'student_data'))
-        )
-
-        # Update attendance for a student
-        student_label = self.browser.find_element(By.CSS_SELECTOR, "label[for='checkbox21']")
-        student_label.click()
-
-        save_attendance_button = self.browser.find_element(By.ID, 'save_attendance')
-        self.browser.execute_script("arguments[0].click();", save_attendance_button)
-
-        # Wait for the success message
-        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
-        alert_text = alert.text
-        alert.accept()
-        self.assertIn('Updated', alert_text)
-        
-    def test_staff_view_notifications(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+        status_text = last_block.text.split('\n')[-1].strip()
+        self.assertEqual(status_text, 'Present')
+    
+    def test_student_view_notifications(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
 
         # Click on the "View Notifications" link
         view_notifications_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'View Notifications')
@@ -308,46 +203,11 @@ class StaffGUITest(TestCase):
         notifications_table = self.browser.find_element(By.CLASS_NAME, 'table')
         table_rows = notifications_table.find_elements(By.TAG_NAME, 'tr')
         self.assertGreater(len(table_rows), 1)  # Assuming there is at least one notification
-
-    def test_staff_add_books(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
-
-        # Click on the "Add Books To Lib" link
-        add_books_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Add Books To Lib')
-        add_books_link.click()
-
-        # Fill in the form fields
-        name_input = self.browser.find_element(By.NAME, 'name')
-        name_input.send_keys('Test Book')
-
-        author_input = self.browser.find_element(By.NAME, 'author')
-        author_input.send_keys('Test Author')
-
-        isbn_input = self.browser.find_element(By.NAME, 'isbn')
-        isbn_input.send_keys('1234567890')
-
-        category_input = self.browser.find_element(By.NAME, 'category')
-        category_input.send_keys('Test Category')
-
-        # Submit the form
-        submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Book")]')
-        submit_button.click()
-
-        # Wait for the alert to be present (up to 3 seconds)
-        alert = WebDriverWait(self.browser, 3).until(
-            EC.alert_is_present()
-        )
-
-        # Switch to the alert and assert its text
-        alert_text = self.browser.switch_to.alert.text
-        self.assertEqual(alert_text, 'Book is added successfully.')
-
-    def test_staff_apply_leave(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+    
+    def test_student_apply_leave(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
 
         # Click on the "Apply for Leave" link
         apply_leave_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Apply For Leave')
@@ -373,10 +233,10 @@ class StaffGUITest(TestCase):
         table_rows = leave_history_table.find_elements(By.TAG_NAME, 'tr')
         self.assertGreater(len(table_rows), 1)  # Assuming there is at least one leave request in the history
 
-    def test_staff_feedback(self):
-        # Navigate to the staff home page
-        staff_home_url = self.live_server_url + 'staff/home/'
-        self.browser.get(staff_home_url)
+    def test_student_feedback(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
 
         # Click on the "Add Feedback" link
         add_feedback_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Feedback')
@@ -404,6 +264,32 @@ class StaffGUITest(TestCase):
         # Check if the feedback text is present in the table
         feedback_text = self.browser.find_element(By.XPATH, '//td[contains(text(), "This is a test feedback")]')
         self.assertIsNotNone(feedback_text)
+
+    def test_student_library(self):
+        # Navigate to the student home page
+        student_home_url = self.live_server_url + 'student/home/'
+        self.browser.get(student_home_url)
+
+        # Click on the "Available Books in LIB" link
+        library_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Available Books in LIB')
+        library_link.click()
+
+        # Wait for the table to be present
+        table = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'div.form-group.table table'))
+        )
+
+        # Get the last row of the table
+        last_row = table.find_elements(By.CSS_SELECTOR, 'tr')[-1]
+
+        # Get the cells of the last row
+        cells = last_row.find_elements(By.TAG_NAME, 'td')
+
+        # Check the contents of each cell in the last row
+        self.assertEqual(cells[1].text, 'Test Book')
+        self.assertEqual(cells[2].text, 'Test Author')
+        self.assertEqual(cells[3].text, '1234567890')
+        self.assertEqual(cells[4].text, 'Test Category')
 
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
