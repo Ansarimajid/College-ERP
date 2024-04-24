@@ -16,7 +16,6 @@ class EditResultView(View):
 
     def post(self, request, *args, **kwargs):
         form = EditResultForm(request.POST)
-        print(form.errors)
         context = {"form": form, "page_title": "Edit Student's Result"}
         if form.is_valid():
             try:

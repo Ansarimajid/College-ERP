@@ -141,8 +141,6 @@ def student_view_profile(request):
         request.POST or None, request.FILES or None, instance=student
     )
     context = {"form": form, "page_title": "View/Edit Profile"}
-    print("BLHHAA")
-    print(form.errors)
     if request.method == "POST":
         try:
             if form.is_valid():

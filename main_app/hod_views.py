@@ -403,13 +403,10 @@ def edit_session(request, session_id):
     instance = get_object_or_404(Session, id=session_id)
     form = SessionForm(request.POST or None, instance=instance)
     context = {"form": form, "session_id": session_id, "page_title": "Edit Session"}
-    print("bhaaa")
-    print(form.errors)
     if request.method == "POST":
         if form.is_valid():
             try:
                 form.save()
-                print("hererere")
                 messages.success(request, "Session Updated")
                 return redirect(reverse("edit_session", args=[session_id]))
             except Exception as e:
