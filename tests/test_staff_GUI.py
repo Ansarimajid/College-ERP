@@ -3,10 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from django.test import TestCase
-from django.urls import reverse
 import os
 
-class StaffLoginTest(TestCase):
+class StaffGUITest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
