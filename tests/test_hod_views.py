@@ -3,7 +3,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from main_app.models import *
 from django.core.files.uploadedfile import SimpleUploadedFile
-import os
+from unittest.mock import patch
+
 
 small_gif = (
     b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04"
@@ -71,7 +72,6 @@ class ViewsTestCase(TestCase):
         response = self.client.get(reverse("add_staff"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/add_staff_template.html")
-
         # Test POST request with valid data
         data = {
             "first_name": "New",
@@ -91,13 +91,66 @@ class ViewsTestCase(TestCase):
         self.assertEqual(
             CustomUser.objects.filter(email="newstaff@test.com").count(), 1
         )
-
         # Test POST request with invalid data
         data["email"] = "invalidemailformat"
         response = self.client.post(reverse("add_staff"), data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             CustomUser.objects.filter(email="invalidemailformat").count(), 0
+        )
+
+    @patch("main_app.models.CustomUser.objects.create_user")
+    def test_add_staff_with_exception(self, mocked_create_user):
+        # Simulate an exception during user creation
+        mocked_create_user.side_effect = Exception("Database Error")
+        data = {
+            "first_name": "New",
+            "last_name": "Staff",
+            "email": "newstaff@test.com",
+            "password": "newstaffpass",
+            "gender": "M",
+            "course": self.course.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
+
+        response = self.client.post(reverse("add_staff"), data=data)
+        self.assertEqual(response.status_code, 200)
+        # Check for the specific error message displayed in the template
+        self.assertContains(response, "Could Not Add Database Error")
+        self.assertEqual(
+            CustomUser.objects.filter(email="newstaff@test.com").count(), 0
+        )
+
+    @patch("main_app.models.CustomUser.objects.create_user")
+    def test_add_staff_with_exception(self, mocked_create_user):
+        # Simulate an exception during user creation
+        mocked_create_user.side_effect = Exception("Database Error")
+        data = {
+            "first_name": "New",
+            "last_name": "Staff",
+            "email": "newstaff@test.com",
+            "password": "newstaffpass",
+            "gender": "M",
+            "course": self.course.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
+
+        response = self.client.post(reverse("add_staff"), data=data)
+        self.assertEqual(response.status_code, 200)
+        # Check for the specific error message displayed in the template
+        self.assertContains(response, "Could Not Add Database Error")
+        self.assertEqual(
+            CustomUser.objects.filter(email="newstaff@test.com").count(), 0
         )
 
     def test_add_course(self):
@@ -117,6 +170,18 @@ class ViewsTestCase(TestCase):
         response = self.client.post(reverse("add_course"), data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Course.objects.filter(name="").count(), 0)
+
+    @patch("main_app.models.Course.save")
+    def test_add_course_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+
+        # Data to post
+        data = {"name": "New Course"}
+
+        response = self.client.post(reverse("add_course"), data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Add")
+        self.assertEqual(Course.objects.filter(name="New Course").count(), 0)
 
     def test_manage_views(self):
         # Test manage_staff
@@ -516,6 +581,32 @@ class ViewsTestCase(TestCase):
             CustomUser.objects.filter(email="invalidemailformat").count(), 0
         )
 
+    @patch("main_app.models.CustomUser.objects.create_user")
+    def test_add_student_with_exception(self, mocked_create_user):
+        mocked_create_user.side_effect = Exception("Database Error")
+        # Data to post
+        data = {
+            "first_name": "New",
+            "last_name": "Student",
+            "email": "newstudent@test.com",
+            "password": "newstudentpass",
+            "gender": "M",
+            "course": self.course.id,
+            "session": self.session.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
+        response = self.client.post(reverse("add_student"), data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Add: Database Error")
+        self.assertEqual(
+            CustomUser.objects.filter(email="newstudent@test.com").count(), 0
+        )
+
     def test_add_subject(self):
         # Test GET request
         response = self.client.get(reverse("add_subject"))
@@ -537,6 +628,18 @@ class ViewsTestCase(TestCase):
         response = self.client.post(reverse("add_subject"), data=data)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/add_subject_template.html")
+
+    @patch("main_app.models.Subject.save")
+    def test_add_subject_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+
+        # Data to post
+        data = {"name": "New Subject", "course": self.course.id, "staff": self.staff.id}
+
+        response = self.client.post(reverse("add_subject"), data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Add Database Error")
+        self.assertEqual(Subject.objects.filter(name="New Subject").count(), 0)
 
     def test_manage_student(self):
         response = self.client.get(reverse("manage_student"))
@@ -647,3 +750,181 @@ class ViewsTestCase(TestCase):
         response = self.client.get(reverse("delete_subject", args=[self.subject.id]))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Subject.objects.filter(id=self.subject.id).count(), 0)
+
+    @patch("main_app.models.Student.save")
+    def test_edit_student_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {
+            "first_name": "Updated",
+            "last_name": "Student",
+            "email": "student@test.com",
+            "gender": "M",
+            "course": self.course.id,
+            "session": self.session.id,
+            "address": "Update Address",
+            "profile_pic": SimpleUploadedFile(
+                "updated.gif",
+                small_gif,  # Assume small_gif is defined elsewhere in your test class
+                content_type="image/gif",
+            ),
+        }
+        response = self.client.post(
+            reverse("edit_student", args=[self.student.id]), data=data
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Update")
+
+    @patch("main_app.models.Course.save")
+    def test_edit_course_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {"name": "Updated Course"}
+        response = self.client.post(
+            reverse("edit_course", args=[self.course.id]), data=data
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Update")
+
+    @patch("main_app.models.Subject.save")
+    def test_edit_subject_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {
+            "name": "Updated Subject",
+            "course": self.course.id,
+            "staff": self.staff.id,
+        }
+        response = self.client.post(
+            reverse("edit_subject", args=[self.subject.id]), data=data
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Update")
+
+    @patch("main_app.models.Session.save")
+    def test_edit_session_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {"start_year": "2023-01-02", "end_year": "2024-12-31"}
+        response = self.client.post(
+            reverse("edit_session", args=[self.session.id]), data=data
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Session Could Not Be Updated")
+
+    @patch("main_app.models.Session.save")
+    def test_add_session_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {"start_year": "2023-01-02", "end_year": "2024-12-31"}
+        response = self.client.post(reverse("add_session"), data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could Not Add")
+
+    @patch("main_app.models.CustomUser.objects.filter")
+    def test_check_email_availability_with_exception(self, mocked_filter):
+        mocked_filter.side_effect = Exception("Database Error")
+        data = {"email": "existing@email.com"}
+        response = self.client.post(reverse("check_email_availability"), data=data)
+        self.assertEqual(response.content.decode(), "False")
+
+    # @patch("main_app.models.FeedbackStudent.save")
+    # def test_student_feedback_message_with_exception(self, mocked_save):
+    #     mocked_save.side_effect = Exception("Database Error")
+    #     feedback = FeedbackStudent.objects.create(
+    #         student=self.student, feedback="Test feedback"
+    #     )
+    #     data = {"id": feedback.id, "reply": "Reply to Feedback"}
+    #     response = self.client.post(reverse("student_feedback_message"), data=data)
+    #     print(response)
+    #     self.assertEqual(response.content.decode(), "False")
+
+    # @patch("main_app.models.FeedbackStaff.save")
+    # def test_staff_feedback_message_with_exception(self, mocked_save):
+    #     mocked_save.side_effect = Exception("Database Error")
+    #     feedback = FeedbackStaff.objects.create(
+    #         staff=self.staff, feedback="Test feedback"
+    #     )
+    #     data = {"id": feedback.id, "reply": "Reply to Feedback"}
+    #     response = self.client.post(reverse("staff_feedback_message"), data=data)
+    #     self.assertEqual(response.content.decode(), "False")
+
+    # @patch("main_app.models.LeaveReportStaff.save")
+    # def test_view_staff_leave_with_exception(self, mocked_save):
+    #     mocked_save.side_effect = Exception("Database Error")
+    #     leave = LeaveReportStaff.objects.create(
+    #         staff=self.staff, date="2023-07-01", message="Test leave for staff"
+    #     )
+
+    #     data = {"id": leave.id, "status": "1"}
+    #     response = self.client.post(reverse("view_staff_leave"), data=data)
+    #     self.assertEqual(response.content.decode(), "False")
+
+    # @patch("main_app.models.LeaveReportStudent.save")
+    # def test_view_student_leave_with_exception(self, mocked_save):
+    #     mocked_save.side_effect = Exception("Database Error")
+    #     leave = LeaveReportStudent.objects.create(
+    #         student=self.student, date="2023-07-01", message="Test leave for student"
+    #     )
+    #     data = {"id": leave.id, "status": "1"}
+    #     response = self.client.post(reverse("view_student_leave"), data=data)
+    #     self.assertEqual(response.content.decode(), "False")
+
+    @patch("main_app.models.AttendanceReport.objects.filter")
+    def test_get_admin_attendance_with_exception(self, mocked_filter):
+        mocked_filter.side_effect = Exception("Database Error")
+        attendance = Attendance.objects.create(
+            subject=self.subject, session=self.session, date="2023-07-15"
+        )
+        data = {
+            "subject": self.subject.id,
+            "session": self.session.id,
+            "attendance_date_id": attendance.id,
+        }
+        response = self.client.post(reverse("get_admin_attendance"), data=data)
+        self.assertIsNone(response.json())
+
+    @patch("main_app.models.CustomUser.save")
+    def test_admin_view_profile_with_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        data = {
+            "first_name": "Admin",
+            "last_name": "User Updated",
+            "email": "newadmin@test.com",
+            "gender": "M",
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
+        response = self.client.post(
+            reverse("admin_view_profile"), data=data, follow=True
+        )
+        self.assertContains(response, "Error Occured While Updating Profile")
+
+    @patch("requests.post")
+    def test_send_student_notification_with_exception(self, mocked_post):
+        mocked_post.side_effect = Exception("Network Error")
+        data = {"id": self.student.admin.id, "message": "Test Notification"}
+        response = self.client.post(reverse("send_student_notification"), data=data)
+        self.assertEqual(response.content.decode(), "False")
+
+    @patch("requests.post")
+    def test_send_staff_notification_with_exception(self, mocked_post):
+        mocked_post.side_effect = Exception("Network Error")
+        data = {"id": self.staff.admin.id, "message": "Test Notification"}
+        response = self.client.post(reverse("send_staff_notification"), data=data)
+        self.assertEqual(response.content.decode(), "False")
+
+    @patch("main_app.models.Course.delete")
+    def test_delete_course_with_exception(self, mocked_delete):
+        mocked_delete.side_effect = Exception("Database Error")
+        response = self.client.get(
+            reverse("delete_course", args=[self.course.id]), follow=True
+        )
+        self.assertContains(
+            response, "Sorry, some students are assigned to this course already."
+        )
+
+    @patch("main_app.models.Session.delete")
+    def test_delete_session_with_exception(self, mocked_delete):
+        mocked_delete.side_effect = Exception("Database Error")
+        response = self.client.get(reverse("delete_session", args=[self.session.id]))
+        self.assertContains(response, "There are students assigned to this session.")
