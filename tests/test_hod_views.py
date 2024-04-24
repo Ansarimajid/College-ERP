@@ -1,3 +1,4 @@
+import json
 from django.test import TestCase, Client
 from django.urls import reverse
 from main_app.models import *
@@ -126,14 +127,37 @@ class ViewsTestCase(TestCase):
         # Test manage_student, manage_course, manage_subject, manage_session
         # Similar to manage_staff
 
-    def test_edit_views(self):
+    def test_edit_staff(self):
         # Test edit_staff with GET
         response = self.client.get(reverse("edit_staff", args=[self.staff.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_staff_template.html")
 
-        # Test edit_staff with POST and valid data
+        # Test edit_staff with POST and password exists
         data = {
+            "first_name": "New Staff",
+            "last_name": "User",
+            "email": "staff@test.com",
+            "password": "staffpass",
+            "gender": "M",
+            "course": self.course.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
+        response = self.client.post(
+            reverse("edit_staff", args=[self.staff.id]), data=data
+        )
+        self.assertEqual(response.status_code, 302)
+        self.staff_user.refresh_from_db()
+        self.assertEqual(self.staff_user.first_name, "New Staff")
+        # self.assertEqual(self.staff_user.password, "staffpass")
+
+        # Test edit_staff with POST and password doesn't exist
+        data_without_password = {
             "first_name": "New Staff",
             "last_name": "User",
             "email": "staff@test.com",
@@ -147,7 +171,7 @@ class ViewsTestCase(TestCase):
             ),
         }
         response = self.client.post(
-            reverse("edit_staff", args=[self.staff.id]), data=data
+            reverse("edit_staff", args=[self.staff.id]), data=data_without_password
         )
         self.assertEqual(response.status_code, 302)
         self.staff_user.refresh_from_db()
@@ -325,8 +349,8 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_student_template.html")
 
-        # Test POST request with valid data
-        data = {
+        # Test POST request with valid data and password doesn't exist
+        data_without_password = {
             "first_name": "Updated Student",
             "last_name": "User",
             "email": "student@test.com",
@@ -341,16 +365,39 @@ class ViewsTestCase(TestCase):
             ),
         }
         response = self.client.post(
-            reverse("edit_student", args=[self.student.id]), data=data
+            reverse("edit_student", args=[self.student.id]), data=data_without_password
         )
         self.assertEqual(response.status_code, 302)
         self.student_user.refresh_from_db()
         self.assertEqual(self.student_user.first_name, "Updated Student")
 
-        # Test POST request with invalid email
-        data["email"] = "invalidemail"
+        # Test POST request with valid data and password exists
+        data_with_password = {
+            "first_name": "Updated Student 2",
+            "last_name": "User",
+            "email": "student@test.com",
+            "password": "studentpass",
+            "gender": "M",
+            "course": self.course.id,
+            "session": self.session.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
         response = self.client.post(
-            reverse("edit_student", args=[self.student.id]), data=data
+            reverse("edit_student", args=[self.student.id]), data=data_with_password
+        )
+        self.assertEqual(response.status_code, 302)
+        self.student_user.refresh_from_db()
+        self.assertEqual(self.student_user.first_name, "Updated Student 2")
+
+        # Test POST request with invalid email
+        data_with_password["email"] = "invalidemail"
+        response = self.client.post(
+            reverse("edit_student", args=[self.student.id]), data=data_with_password
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_student_template.html")
@@ -533,3 +580,70 @@ class ViewsTestCase(TestCase):
         response = self.client.get(reverse("manage_session"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/manage_session.html")
+
+    def test_staff_feedback_message(self):
+        # Test GET request for viewing staff feedback
+        response = self.client.get(reverse("staff_feedback_message"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "hod_template/staff_feedback_template.html")
+
+        # Test POST request for replying to staff feedback
+        feedback = FeedbackStaff.objects.create(
+            staff=self.staff, feedback="Staff test feedback"
+        )
+        data = {"id": feedback.id, "reply": "Reply to staff feedback"}
+        response = self.client.post(reverse("staff_feedback_message"), data=data)
+        self.assertEqual(response.content, b"True")
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.reply, "Reply to staff feedback")
+
+    def test_view_staff_leave(self):
+        # Test GET request for viewing staff leave applications
+        response = self.client.get(reverse("view_staff_leave"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "hod_template/staff_leave_view.html")
+
+        # Test POST request to approve staff leave
+        leave = LeaveReportStaff.objects.create(
+            staff=self.staff, date="2023-07-01", message="Test leave for staff"
+        )
+        data = {"id": leave.id, "status": "1"}
+        response = self.client.post(reverse("view_staff_leave"), data=data)
+        self.assertEqual(response.content, b"True")
+        leave.refresh_from_db()
+        self.assertEqual(leave.status, 1)
+
+        # Test POST request to disapprove staff leave
+        data = {"id": leave.id, "status": "2"}
+        response = self.client.post(reverse("view_staff_leave"), data=data)
+        self.assertEqual(response.content, b"True")
+        leave.refresh_from_db()
+        self.assertEqual(leave.status, -1)
+
+    def test_get_admin_attendance(self):
+        # Setting up attendance records
+        attendance = Attendance.objects.create(
+            subject=self.subject, session=self.session, date="2023-07-15"
+        )
+        AttendanceReport.objects.create(
+            attendance=attendance, student=self.student, status=True
+        )
+
+        # Test POST request to fetch attendance data
+        data = {
+            "subject": self.subject.id,
+            "session": self.session.id,
+            "attendance_date_id": attendance.id,
+        }
+        response = self.client.post(reverse("get_admin_attendance"), data=data)
+        response_list = json.loads(response.json())
+        self.assertIsInstance(response_list, list)
+        self.assertEqual(len(response_list), 1)
+        self.assertEqual(response_list[0]["status"], "True")
+        self.assertEqual(response_list[0]["name"], str(self.student))
+
+    def test_delete_subject(self):
+        # Test GET request to delete a subject
+        response = self.client.get(reverse("delete_subject", args=[self.subject.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Subject.objects.filter(id=self.subject.id).count(), 0)
