@@ -581,6 +581,101 @@ class AdminGUITest(TestCase):
         alert = self.browser.switch_to.alert
         alert.accept()
 
+    def test_admin_send_notification_to_staff(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Notify Staff" link
+        notify_staff_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/admin_notify_staff']"))
+        )
+        notify_staff_link.click()
+
+        # Get the row for John Doe
+        staff_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        staff_rows = staff_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+        john_doe_row = None
+        for row in staff_rows:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'Doe, John':
+                john_doe_row = row
+                break
+
+        self.assertIsNotNone(john_doe_row, "John Doe row not found in the staff table")
+
+        # Click on the "Send Notification" button for John Doe
+        send_notification_button = john_doe_row.find_element(By.CSS_SELECTOR, 'button.show_notification')
+        self.browser.execute_script("arguments[0].click();", send_notification_button)
+
+        modal_dialog = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'myModal'))
+        )
+
+        # Enter the notification message
+        notification_message_input = modal_dialog.find_element(By.ID, 'message')
+        notification_message_input.send_keys('Test Notification')
+
+        # Click the "Send Notification" button
+        send_notification_button = modal_dialog.find_element(By.ID, 'send')
+        send_notification_button.click()
+
+        # Wait for and accept alert
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Notification Sent"
+        self.assertIn('Notification Sent', alert_text)
+
+    def test_admin_send_notification_to_student(self):
+        # Navigate to the admin home page
+        admin_home_url = self.live_server_url + 'admin/home/'
+        self.browser.get(admin_home_url)
+
+        # Click on the "Notify Student" link
+        notify_student_link = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@href='/admin_notify_student']"))
+        )
+        notify_student_link.click()
+
+        # Get the row for the first student
+        student_table = self.browser.find_element(By.CLASS_NAME, 'table')
+        student_rows = student_table.find_elements(By.CSS_SELECTOR, 'tbody > tr')
+        test_student_row = None
+        for row in student_rows:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'Student, Test':
+                test_student_row = row
+                break
+
+        self.assertIsNotNone(test_student_row, "Test Student row not found in the student table")
+
+        # Click on the "Send Notification" button for the student
+        send_notification_button = test_student_row.find_element(By.CSS_SELECTOR, 'button.show_notification')
+        self.browser.execute_script("arguments[0].click();", send_notification_button)
+
+        # Wait for the modal dialog to be visible
+        modal_dialog = WebDriverWait(self.browser, 10).until(
+            EC.visibility_of_element_located((By.ID, 'myModal'))
+        )
+
+        # Enter the notification message
+        notification_message_input = modal_dialog.find_element(By.ID, 'message')
+        notification_message_input.send_keys('Test Notification')
+
+        # Click the "Send Notification" button
+        send_notification_button = modal_dialog.find_element(By.ID, 'send')
+        send_notification_button.click()
+
+        # Wait for and accept alert
+        alert = WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        alert_text = alert.text
+        alert.accept()
+
+        # Check if the alert text contains "Notification Sent"
+        self.assertIn('Notification Sent', alert_text)
+
     def tearDown(self):
         logout_url = self.live_server_url + '/logout_user/'
         self.browser.get(logout_url)
