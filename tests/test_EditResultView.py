@@ -1,9 +1,18 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from main_app.models import CustomUser, Staff, Student, Subject, StudentResult, Course
+from main_app.models import (
+    CustomUser,
+    Staff,
+    Student,
+    Subject,
+    StudentResult,
+    Course,
+    Session,
+)
 from main_app.forms import EditResultForm
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import patch
 
 
 class EditResultViewTestCase(TestCase):
@@ -48,23 +57,51 @@ class EditResultViewTestCase(TestCase):
 
     def test_edit_result_post_valid(self):
         self.client.force_login(self.staff_user)
+        Session.objects.create(start_year="2023-01-01", end_year="2023-12-31")
+        StudentResult.objects.create(
+            student=self.student,
+            subject=self.subject,
+        )
         data = {
             "student": self.student.id,
             "subject": self.subject.id,
             "test": 80,
             "exam": 90,
-            "session_year": "2020-03-02",
+            "session_year": "1",  # The first session is selected by its id which is 1
         }
         response = self.client.post(
             reverse("edit_student_result"), data=data, follow=True
         )
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(StudentResult.objects.count(), 1)
-        result = StudentResult.objects.first()
+        self.assertEqual(response.status_code, 200)
+        result = StudentResult.objects.get(student=self.student, subject=self.subject)
         self.assertEqual(result.student, self.student)
         self.assertEqual(result.subject, self.subject)
         self.assertEqual(result.test, 80)
         self.assertEqual(result.exam, 90)
+
+    @patch("main_app.models.StudentResult.save")
+    def test_edit_result_post_exception(self, mocked_save):
+        mocked_save.side_effect = Exception("Database Error")
+        self.client.force_login(self.staff_user)
+        Session.objects.create(start_year="2023-01-01", end_year="2023-12-31")
+        StudentResult.objects.create(
+            student=self.student,
+            subject=self.subject,
+        )
+        data = {
+            "student": self.student.id,
+            "subject": self.subject.id,
+            "test": 80,
+            "exam": 90,
+            "session_year": "1",  # The first session is selected by its id which is 1
+        }
+        response = self.client.post(
+            reverse("edit_student_result"), data=data, follow=True
+        )
+        messages = list(response.context.get("messages"))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), "Result Could Not Be Updated")
 
     def test_edit_result_post_invalid(self):
         self.client.force_login(self.staff_user)

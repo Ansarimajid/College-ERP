@@ -229,3 +229,9 @@ coverage run manage.py test -v=2 tests
 # branch coverage
 
 coverage run --branch manage.py test -v=2 tests
+
+# Errors
+
+If you get the error "error: externally-managed-environment" when running pip3 install-" when trying to run the serve
+Run
+`export PATH=".:/Library/Frameworks/Python.framework/Versions/3.12/bin:/usr/local/bin:${PATH}"`
