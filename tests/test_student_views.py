@@ -184,6 +184,12 @@ class StudentViewsTestCase(TestCase):
             FeedbackStudent.objects.filter(student=self.student).count(), 1
         )
 
+    def test_student_feedback_invalid(self):
+        self.client.force_login(self.student_user)
+        data = {"feedback": ""}
+        response = self.client.post(reverse("student_feedback"), data=data)
+        self.assertContains(response, "Form has errors!")
+
     def test_student_view_profile(self):
         self.client.force_login(self.student_user)
         response = self.client.get(reverse("student_view_profile"))
@@ -206,6 +212,21 @@ class StudentViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.student_user.refresh_from_db()
         self.assertEqual(self.student_user.first_name, "Updated Student")
+
+    def test_student_view_profile_post_invalid(self):
+        self.client.force_login(self.student_user)
+        data = {
+            "email": "",  # invalid because email is blank
+            "first_name": "Updated Student",
+            "last_name": "User",
+            "password": "newpassword",
+            "address": "Updated Address",
+            "gender": "F",
+        }
+        response = self.client.post(
+            reverse("student_view_profile"), data=data, follow=True
+        )
+        self.assertContains(response, "Invalid Data Provided")
 
     def test_student_view_profile_post_profile_pic(self):
         self.client.force_login(self.student_user)
