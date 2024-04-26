@@ -109,7 +109,6 @@ class StaffViewsTest(TestCase):
         self.attendance_report = AttendanceReport.objects.create(
             student=self.student, attendance=self.attendance, status=False
         )
-        
 
         super().setUp()
 
@@ -132,73 +131,87 @@ class StaffViewsTest(TestCase):
         )  # Assuming redirection to a success or listing page
         self.assertTrue(Book.objects.filter(name="New Book").exists())
 
-    # FAULT: issue_book.html doesn't exist
+    # Fault: issue_book.html doesn't exist
     def test_issue_book_post_valid_form(self):
         # Create a book and a student for the test
         book = Book.objects.create(isbn="1234567890", name="Test Book")
         student = Student.objects.get(admin=self.student_user)
 
         form_data = {
-            'name2': student.id,
-            'isbn2': book.isbn,
+            "name2": student.id,
+            "isbn2": book.isbn,
         }
         try:
-            response = self.client.post(reverse('issue_book'), data=form_data)
+            response = self.client.post(reverse("issue_book"), data=form_data)
 
             self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, 'staff_template/issue_book.html')
-            self.assertTrue(response.context['alert'])
-            self.assertEqual(response.context['obj'].student_id, str(student.id))
-            self.assertEqual(response.context['obj'].isbn, book.isbn)
-            self.assertTrue(IssuedBook.objects.filter(student_id=str(student.id), isbn=book.isbn).exists())
+            self.assertTemplateUsed(response, "staff_template/issue_book.html")
+            self.assertTrue(response.context["alert"])
+            self.assertEqual(response.context["obj"].student_id, str(student.id))
+            self.assertEqual(response.context["obj"].isbn, book.isbn)
+            self.assertTrue(
+                IssuedBook.objects.filter(
+                    student_id=str(student.id), isbn=book.isbn
+                ).exists()
+            )
         except Exception as e:
             self.fail(f"Template not found: {str(e)}")
 
-
     def test_save_attendance(self):
         student_data = [
-            {'id': self.student.id, 'status': True},
+            {"id": self.student.id, "status": True},
         ]
-        response = self.client.post(reverse('save_attendance'), {
-            'student_ids': json.dumps(student_data),
-            'date': '2023-04-01',
-            'subject': self.subject.id,
-            'session': self.session.id
-        })
+        response = self.client.post(
+            reverse("save_attendance"),
+            {
+                "student_ids": json.dumps(student_data),
+                "date": "2023-04-01",
+                "subject": self.subject.id,
+                "session": self.session.id,
+            },
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b'OK')
-        attendance = Attendance.objects.filter(subject=self.subject, date='2023-04-01').first()
+        self.assertEqual(response.content, b"OK")
+        attendance = Attendance.objects.filter(
+            subject=self.subject, date="2023-04-01"
+        ).first()
         self.assertIsNotNone(attendance)
         attendance_reports = AttendanceReport.objects.filter(attendance=attendance)
         self.assertEqual(attendance_reports.count(), 1)
         # self.assertTrue(Attendance.objects.filter(subject=self.subject, session=self.session, date='2023-06-10').exists())
-    
+
     def test_save_attendance_failure(self):
         student_data = [
-            {'id': self.student.id, 'status': True},
-            {'id': 999, 'status': False}  # Using an invalid student ID
+            {"id": self.student.id, "status": True},
+            {"id": 999, "status": False},  # Using an invalid student ID
         ]
         try:
-            response = self.client.post(reverse('save_attendance'), {
-                'student_ids': json.dumps(student_data),
-                'date': '2023-04-01',
-                'subject': self.subject.id,
-                'session': self.session.id
-            })
+            response = self.client.post(
+                reverse("save_attendance"),
+                {
+                    "student_ids": json.dumps(student_data),
+                    "date": "2023-04-01",
+                    "subject": self.subject.id,
+                    "session": self.session.id,
+                },
+            )
         except ValueError as e:
-            self.assertEqual(str(e), "The view main_app.staff_views.save_attendance didn't return an HttpResponse object. It returned None instead.")
+            self.assertEqual(
+                str(e),
+                "The view main_app.staff_views.save_attendance didn't return an HttpResponse object. It returned None instead.",
+            )
         else:
             self.fail("Expected ValueError was not raised.")
-        
+
         # self.assertEqual(response.status_code, 200)
         # self.assertEqual(response.content, b'OK')
         # attendance = Attendance.objects.filter(subject=self.subject, date='2023-04-01').first()
         # self.assertIsNotNone(attendance)
         # attendance_reports = AttendanceReport.objects.filter(attendance=attendance)
-        # self.assertEqual(attendance_reports.count(), 1) 
+        # self.assertEqual(attendance_reports.count(), 1)
 
     def test_get_students_success(self):
-    # Create a student associated with the course and session
+        # Create a student associated with the course and session
         student_user2 = CustomUser.objects.create_user(
             email="student2@test.com",
             password="studentpass2",
@@ -214,12 +227,12 @@ class StaffViewsTest(TestCase):
         student2.session = self.session
         student2.save()
 
-        response = self.client.post(reverse('get_students'), {
-            'subject': self.subject.id,
-            'session': self.session.id
-        })
+        response = self.client.post(
+            reverse("get_students"),
+            {"subject": self.subject.id, "session": self.session.id},
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['content-type'], 'application/json')
+        self.assertEqual(response["content-type"], "application/json")
 
     def test_staff_update_attendance(self):
         response = self.client.get(reverse("staff_update_attendance"))
@@ -230,11 +243,11 @@ class StaffViewsTest(TestCase):
 
     def test_get_students_invalid_subject(self):
         try:
-            response = self.client.post(reverse('get_students'), {
-                'subject': 999,  # Invalid subject ID
-                'session': self.session.id
-            })
-            self.fail('Expected exception was not raised.')
+            response = self.client.post(
+                reverse("get_students"),
+                {"subject": 999, "session": self.session.id},  # Invalid subject ID
+            )
+            self.fail("Expected exception was not raised.")
         except Exception as e:
             self.assertEqual(str(e), "'Http404' object has no attribute 'get'")
 
@@ -259,7 +272,6 @@ class StaffViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "staff_template/home_content.html")
 
-
     def test_staff_add_results(self):
         response = self.client.get(reverse("staff_add_result"))
         self.assertEqual(response.status_code, 200)
@@ -271,7 +283,7 @@ class StaffViewsTest(TestCase):
         self.assertTemplateUsed(response, "staff_template/staff_add_result.html")
         self.assertIn("subjects", response.context)
         self.assertIn("sessions", response.context)
-        
+
     def test_post_add_result_success(self):
         data = {
             "student_list": self.student.id,
@@ -405,24 +417,37 @@ class StaffViewsTest(TestCase):
         with self.assertRaises(Exception):
             self.client.get(reverse("delete_book", args=(1,)))
 
-    # def test_view_issued_book(self):
-    #     response = self.client.get(reverse("view_issued_book"))
-    #     self.assertEqual(response.status_code, 200)
-    #     # self.assertTemplateUsed(response, 'staff_template/view_issued_book.html')
-
-
+    # Fault: template 'view_issued_book.html' doesn't exist
     def test_view_issued_book_with_fine(self):
         try:
-            response = self.client.get(reverse('view_issued_book'))
+            response = self.client.get(reverse("view_issued_book"))
             self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, 'staff_template/view_issued_book.html')
-            self.assertEqual(len(response.context['issuedBooks']), 2)
-            self.assertEqual(len(response.context['details']), 2)
-            self.assertEqual(response.context['details'][0], (self.book.name, self.book.isbn, date(2023, 3, 31), date(2023, 4, 30), 75))
-            self.assertEqual(response.context['details'][1], (self.book.name, self.book.isbn, date(2023, 3, 31), date(2023, 4, 30), 75))
+            self.assertTemplateUsed(response, "staff_template/view_issued_book.html")
+            self.assertEqual(len(response.context["issuedBooks"]), 2)
+            self.assertEqual(len(response.context["details"]), 2)
+            self.assertEqual(
+                response.context["details"][0],
+                (
+                    self.book.name,
+                    self.book.isbn,
+                    date(2023, 3, 31),
+                    date(2023, 4, 30),
+                    75,
+                ),
+            )
+            self.assertEqual(
+                response.context["details"][1],
+                (
+                    self.book.name,
+                    self.book.isbn,
+                    date(2023, 3, 31),
+                    date(2023, 4, 30),
+                    75,
+                ),
+            )
         except Exception as e:
             self.fail(f"Template not found: {str(e)}")
-        
+
     def test_fetch_student_result_success(self):
         data = {"student": "1", "subject": "Test Subject"}
         response = self.client.post(reverse("fetch_student_result"), data)
@@ -459,7 +484,6 @@ class StaffViewsTest(TestCase):
             response.context["notifications"][0].message, "Test Notification"
         )
 
-    
     @csrf_exempt
     def test_update_attendance(self):
         attendance = Attendance.objects.create(

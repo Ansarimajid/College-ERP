@@ -184,10 +184,7 @@ class ViewsTestCase(TestCase):
     @patch("main_app.models.Course.save")
     def test_add_course_with_exception(self, mocked_save):
         mocked_save.side_effect = Exception("Database Error")
-
-        # Data to post
         data = {"name": "New Course"}
-
         response = self.client.post(reverse("add_course"), data=data)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Could Not Add")
@@ -199,16 +196,12 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/manage_staff.html")
 
-        # Test manage_student, manage_course, manage_subject, manage_session
-        # Similar to manage_staff
-
-    def test_edit_staff(self):
-        # Test edit_staff with GET
+    def test_edit_staff_get(self):
         response = self.client.get(reverse("edit_staff", args=[self.staff.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_staff_template.html")
 
-        # Test edit_staff with POST and password exists
+    def test_edit_staff_post_with_password(self):
         data = {
             "first_name": "New Staff",
             "last_name": "User",
@@ -229,9 +222,8 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.staff_user.refresh_from_db()
         self.assertEqual(self.staff_user.first_name, "New Staff")
-        # self.assertEqual(self.staff_user.password, "staffpass")
 
-        # Test edit_staff with POST and password doesn't exist
+    def test_edit_staff_post_without_password(self):
         data_without_password = {
             "first_name": "New Staff",
             "last_name": "User",
@@ -252,17 +244,29 @@ class ViewsTestCase(TestCase):
         self.staff_user.refresh_from_db()
         self.assertEqual(self.staff_user.first_name, "New Staff")
 
-        # Test edit_staff with POST and invalid email
-        data["email"] = "invalidemail"
+    # Fault: no validation to enforce that start date is before end date
+    def test_edit_staff_post_invalid_email(self):
+        data = {
+            "first_name": "New Staff",
+            "last_name": "User",
+            "email": "invalidemail",
+            "password": "staffpass",
+            "gender": "M",
+            "course": self.course.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
         response = self.client.post(
             reverse("edit_staff", args=[self.staff.id]), data=data
         )
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_staff_template.html")
         self.assertFormError(response, "form", "email", "Enter a valid email address.")
 
-        # Check if the error message is displayed
         messages = list(response.context.get("messages"))
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), "Please fill form properly")
@@ -294,9 +298,6 @@ class ViewsTestCase(TestCase):
         feedback.refresh_from_db()
         self.assertEqual(feedback.reply, "Test reply")
 
-        # Test staff_feedback_message
-        # Similar to student_feedback_message
-
     def test_leave_views(self):
         # Test view_student_leave GET
         response = self.client.get(reverse("view_student_leave"))
@@ -319,9 +320,6 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.content, b"True")
         leave.refresh_from_db()
         self.assertEqual(leave.status, -1)
-
-        # Test view_staff_leave
-        # Similar to view_student_leave
 
     def test_admin_view_attendance(self):
         response = self.client.get(reverse("admin_view_attendance"))
@@ -406,25 +404,18 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Course.objects.filter(id=self.course.id).count(), 0)
 
-        # TODO: Fix. doesn't work
-        # Test delete_subject.
-        # self.assertEqual(Subject.objects.filter(id=self.subject.id).count(), 1)
-        # response = self.client.get(reverse("delete_subject", args=[self.subject.id]))
-        # self.assertEqual(Subject.objects.filter(id=self.subject.id).count(), 0)
-
         # Test delete_session
         self.assertEqual(Session.objects.filter(id=self.session.id).count(), 1)
         response = self.client.get(reverse("delete_session", args=[self.session.id]))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Session.objects.filter(id=self.session.id).count(), 0)
 
-    def test_edit_student(self):
-        # Test GET request
+    def test_edit_student_get(self):
         response = self.client.get(reverse("edit_student", args=[self.student.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_student_template.html")
 
-        # Test POST request with valid data and password doesn't exist
+    def test_edit_student_post_without_password(self):
         data_without_password = {
             "first_name": "Updated Student",
             "last_name": "User",
@@ -446,7 +437,7 @@ class ViewsTestCase(TestCase):
         self.student_user.refresh_from_db()
         self.assertEqual(self.student_user.first_name, "Updated Student")
 
-        # Test POST request with valid data and password exists
+    def test_edit_student_post_with_password(self):
         data_with_password = {
             "first_name": "Updated Student 2",
             "last_name": "User",
@@ -469,8 +460,23 @@ class ViewsTestCase(TestCase):
         self.student_user.refresh_from_db()
         self.assertEqual(self.student_user.first_name, "Updated Student 2")
 
-        # Test POST request with invalid email
-        data_with_password["email"] = "invalidemail"
+    # Fault: no validation to enforce that start date is before end date
+    def test_edit_student_post_invalid_email(self):
+        data_with_password = {
+            "first_name": "Updated Student 2",
+            "last_name": "User",
+            "email": "invalidemail",
+            "password": "studentpass",
+            "gender": "M",
+            "course": self.course.id,
+            "session": self.session.id,
+            "address": "moon",
+            "profile_pic": SimpleUploadedFile(
+                "small.gif",
+                small_gif,
+                content_type="image/gif",
+            ),
+        }
         response = self.client.post(
             reverse("edit_student", args=[self.student.id]), data=data_with_password
         )
@@ -529,13 +535,12 @@ class ViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "hod_template/edit_subject_template.html")
         self.assertFormError(response, "form", "name", "This field is required.")
 
-    def test_edit_session(self):
-        # Test GET request
+    def test_edit_session_get_request(self):
         response = self.client.get(reverse("edit_session", args=[self.session.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "hod_template/edit_session_template.html")
 
-        # Test POST request with valid data
+    def test_edit_session_post_request_with_valid_data(self):
         data = {"start_year": "2023-01-01", "end_year": "2024-12-31"}
         response = self.client.post(
             reverse("edit_session", args=[self.session.id]), data=data
@@ -545,7 +550,8 @@ class ViewsTestCase(TestCase):
         self.assertEqual(str(self.session.start_year), "2023-01-01")
         self.assertEqual(str(self.session.end_year), "2024-12-31")
 
-        # Test POST request with invalid data
+    # Fault: no validation to enforce that start date is before end date
+    def test_edit_session_post_request_with_invalid_data(self):
         data = {"start_year": "2024-01-01", "end_year": "2023-12-31"}
         response = self.client.post(
             reverse("edit_session", args=[self.session.id]), data=data, follow=True
@@ -761,6 +767,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Subject.objects.filter(id=self.subject.id).count(), 0)
 
+    # Fault: no HttpResponse returned for an exception
     @patch("main_app.models.Student.save")
     def test_edit_student_with_exception(self, mocked_save):
         mocked_save.side_effect = Exception("Database Error")
@@ -794,6 +801,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Could Not Update")
 
+    # Fault: Exception not propagated
     @patch("main_app.models.Subject.save")
     def test_edit_subject_with_exception(self, mocked_save):
         mocked_save.side_effect = Exception("Database Error")
@@ -806,6 +814,7 @@ class ViewsTestCase(TestCase):
             reverse("edit_subject", args=[self.subject.id]), data=data
         )
         self.assertEqual(response.status_code, 200)
+        print(response)
         self.assertContains(response, "Could Not Update")
 
     @patch("main_app.models.Session.save")
@@ -833,6 +842,7 @@ class ViewsTestCase(TestCase):
         response = self.client.post(reverse("check_email_availability"), data=data)
         self.assertEqual(response.content.decode(), "False")
 
+    # Fault: no HttpResponse returned for an Exception
     @patch("main_app.models.AttendanceReport.objects.filter")
     def test_get_admin_attendance_with_exception(self, mocked_filter):
         mocked_filter.side_effect = Exception("Database Error")
@@ -894,5 +904,7 @@ class ViewsTestCase(TestCase):
     @patch("main_app.models.Session.delete")
     def test_delete_session_with_exception(self, mocked_delete):
         mocked_delete.side_effect = Exception("Database Error")
-        response = self.client.get(reverse("delete_session", args=[self.session.id]))
+        response = self.client.get(
+            reverse("delete_session", args=[self.session.id]), follow=True
+        )
         self.assertContains(response, "There are students assigned to this session.")

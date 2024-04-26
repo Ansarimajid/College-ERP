@@ -30,11 +30,13 @@ class CustomUserManagerTestCase(TestCase):
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
 
+    # Fault: no validation error raised
     def test_create_user_without_email(self):
         User = get_user_model()
         with self.assertRaises(ValidationError):
             User.objects.create_user(email="", password="testpassword")
 
+    # Fault: no validation error raised
     def test_create_user_with_invalid_email(self):
         User = get_user_model()
         with self.assertRaises(ValidationError):
@@ -63,6 +65,7 @@ class SessionModelTestCase(TestCase):
         self.assertEqual(session.start_year, date(2023, 1, 1))
         self.assertEqual(session.end_year, date(2023, 12, 31))
 
+    # Fault: no validation error raised
     def test_create_session_with_invalid_dates(self):
         with self.assertRaises(ValidationError):
             Session.objects.create(
@@ -165,6 +168,7 @@ class CustomUserModelTestCase(TestCase):
         admin_profile = Admin.objects.get(admin=user)
         self.assertEqual(admin_profile.admin.first_name, "Updated")
 
+    # Fault: no validation error raised
     def test_create_user_with_invalid_email(self):
         with self.assertRaises(ValidationError):
             CustomUser.objects.create_user(
@@ -172,6 +176,7 @@ class CustomUserModelTestCase(TestCase):
                 password="testpass123",
             )
 
+    # Fault: no validation error raised
     def test_create_user_with_empty_email(self):
         with self.assertRaises(ValidationError):
             CustomUser.objects.create_user(
@@ -179,6 +184,7 @@ class CustomUserModelTestCase(TestCase):
                 password="testpass123",
             )
 
+    # Fault: no validation error raised
     def test_create_user_with_invalid_user_type(self):
         with self.assertRaises(ValidationError):
             CustomUser.objects.create_user(
@@ -187,6 +193,7 @@ class CustomUserModelTestCase(TestCase):
                 user_type=4,
             )
 
+    # Fault: no validation error raised
     def test_create_user_with_invalid_gender(self):
         with self.assertRaises(ValidationError):
             CustomUser.objects.create_user(
@@ -216,6 +223,7 @@ class CustomUserModelTestCase(TestCase):
         self.assertFalse(hasattr(user, "staff"))
         self.assertFalse(hasattr(user, "student"))
 
+    # Fault: no validation error raised
     def test_update_user_profile_with_invalid_user_type(self):
         user = CustomUser.objects.create_user(
             email="user@example.com",
