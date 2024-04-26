@@ -65,8 +65,18 @@ class ViewsTestCase(TestCase):
         self.client.force_login(self.user)
 
     def test_admin_home(self):
+        self.client.force_login(self.admin_user)
         response = self.client.get(reverse("admin_home"))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "hod_template/home_content.html")
+
+    def test_admin_home_student(self):
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse("admin_home"), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "student_template/home_content.html"
+        )  # student should get redirected to student_home if they try to go to admin_home
 
     def test_add_staff(self):
         response = self.client.get(reverse("add_staff"))
