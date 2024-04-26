@@ -142,6 +142,7 @@ class ViewsTestCase(TestCase):
         self.assertEqual(data[0]["attendance_date"], str(attendance.date))
         self.assertEqual(data[0]["session"], self.session.id)
 
+    # Fault: no HttpResponse returned for an Exception
     @patch("main_app.views.get_object_or_404")
     def test_get_attendance_exception(self, mock_get_object_or_404):
         self.client.force_login(self.student_user)
