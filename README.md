@@ -244,6 +244,7 @@ python3 manage.py runserver
 Set up for GUI testing
 
 ```
+brew install chromedriver
 brew upgrade chromedriver
 xattr -d com.apple.quarantine $(which chromedriver)
 python3 tests/GUI_setup.py
