@@ -1,4 +1,5 @@
-# Ignore all Markdown files
-
+*.pyc
 README.md
-
+.coverage
+*.gif
+venv
