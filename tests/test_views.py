@@ -20,7 +20,7 @@ class ViewsTestCase(TestCase):
         self.client = Client()
         self.admin_user = CustomUser.objects.create_user(
             email="admin@test.com",
-            password="Admin",
+            password="adminpass",
             user_type=1,
             first_name="John",
             last_name="Doe",
@@ -88,7 +88,7 @@ class ViewsTestCase(TestCase):
             reverse("user_login"), {"email": "admin@test.com", "password": "adminpass"}
         )
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("login_page"))
+        self.assertRedirects(response, reverse("admin_home"))
 
     def test_doLogin_invalid_request_method(self):
         response = self.client.get(reverse("user_login"))
@@ -157,3 +157,9 @@ class ViewsTestCase(TestCase):
     def test_showFirebaseJS(self):
         response = self.client.get(reverse("showFirebaseJS"), follow=True)
         self.assertEqual(response.status_code, 200)
+
+    def test_showFirebaseJS(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("showFirebaseJS"), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/javascript")

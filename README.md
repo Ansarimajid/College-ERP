@@ -230,6 +230,8 @@ coverage run manage.py test -v=2 tests
 
 coverage run --branch manage.py test -v=2 tests
 
+To see the coverage, run `coverage report`. Some non-logic files are excluded. See what those are in setup.cfg
+
 # Errors
 
 If you get the error "error: externally-managed-environment" when running pip3 install-" when trying to run the serve
