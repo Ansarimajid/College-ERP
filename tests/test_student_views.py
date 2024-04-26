@@ -15,6 +15,16 @@ small_gif = (
 class StudentViewsTestCase(TestCase):
     def setUp(self):
         self.client = Client()
+        self.admin_user = CustomUser.objects.create_user(
+            email="admin@test.com",
+            password="Admin",
+            user_type=1,
+            first_name="John",
+            last_name="Doe",
+            gender="M",
+            profile_pic="path/to/profile/pic.jpg",
+            address="Admin Address",
+        )
         self.student_user = CustomUser.objects.create_user(
             email="student@test.com",
             password="studentpass",
@@ -52,6 +62,20 @@ class StudentViewsTestCase(TestCase):
         response = self.client.get(reverse("student_home"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "student_template/home_content.html")
+
+    def test_student_home_staff(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.get(reverse("student_home"), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "staff_template/home_content.html"
+        )  # should get redirected to staff home
+
+    def test_student_home_admin(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse("student_home"), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "hod_template/home_content.html")
 
     def test_student_home_with_attendance(self):
         self.client.force_login(self.student_user)
