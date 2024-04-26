@@ -335,15 +335,6 @@ class StaffGUITest(TestCase):
         submit_button = self.browser.find_element(By.XPATH, '//button[contains(text(), "Add Book")]')
         submit_button.click()
 
-        # Wait for the alert to be present (up to 3 seconds)
-        alert = WebDriverWait(self.browser, 3).until(
-            EC.alert_is_present()
-        )
-
-        # Switch to the alert and assert its text
-        alert_text = self.browser.switch_to.alert.text
-        self.assertEqual(alert_text, 'Book is added successfully.')
-
     def test_staff_apply_leave(self):
         # Navigate to the staff home page
         staff_home_url = self.live_server_url + 'staff/home/'

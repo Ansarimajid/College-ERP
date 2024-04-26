@@ -748,9 +748,13 @@ class AdminGUITest(TestCase):
         # Check if there are at least 1 feedback row
         self.assertGreaterEqual(len(feedback_rows), 1)
 
-        # Check the contents of the nth feedback row
-        n = 2
-        first_row_cells = feedback_rows[n].find_elements(By.TAG_NAME, 'td')
+        # Check the contents of the feedback row
+        first_row_cells = None
+        for row in feedback_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'Student, Test' and cells[6].text == 'Reply':
+                first_row_cells = cells
+                break
         self.assertEqual(first_row_cells[1].text, 'Student, Test')
         self.assertEqual(first_row_cells[2].text, 'From 2022-08-19 to 2022-08-27')
         self.assertEqual(first_row_cells[3].text, 'This is a test feedback')
@@ -804,9 +808,13 @@ class AdminGUITest(TestCase):
         # Check if there are at least 1 feedback row
         self.assertGreaterEqual(len(feedback_rows), 1)
 
-        # Check the contents of the nth feedback row
-        n = 1
-        first_row_cells = feedback_rows[n].find_elements(By.TAG_NAME, 'td')
+        # Check the contents of the feedback row
+        first_row_cells = None
+        for row in feedback_rows[1:]:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if cells[1].text == 'John Doe' and cells[6].text == 'Reply':
+                first_row_cells = cells
+                break
         self.assertEqual(first_row_cells[1].text, 'John Doe')
         self.assertEqual(first_row_cells[2].text, 'Mechanical Engineering (ME)')
         self.assertEqual(first_row_cells[3].text, 'This is a test feedback')
@@ -882,7 +890,7 @@ class AdminGUITest(TestCase):
 
         # Enter a reply message
         reply_message_input = Select(reply_modal.find_element(By.ID, 'reply_leave_status'))
-        reply_message_input.select_by_visible_text('Accept')
+        reply_message_input.select_by_visible_text('Approve')
 
         # Click the "Submit" button in the modal
         reply_button = reply_modal.find_element(By.ID, 'reply_btn')
