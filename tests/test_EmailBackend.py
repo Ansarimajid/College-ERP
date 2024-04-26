@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from main_app.models import CustomUser
 from main_app.EmailBackend import EmailBackend
 

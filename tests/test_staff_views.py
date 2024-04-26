@@ -5,7 +5,6 @@ from main_app.models import *
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
-import os
 
 small_gif = (
     b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04"

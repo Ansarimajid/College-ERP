@@ -15,13 +15,11 @@ from main_app.forms import (
     StaffEditForm,
     EditResultForm,
     IssueBookForm,
-    FormSettings,
 )
 from main_app.models import *
 from main_app.forms import *
-from django.db import models
 
-from django.test import TestCase, SimpleTestCase
+from django.test import TestCase
 
 
 class CustomUserFormTestCase(TestCase):
