@@ -84,6 +84,7 @@ def student_view_attendance(request):
                 json_data.append(data)
             return JsonResponse(json.dumps(json_data), safe=False)
         except Exception as e:
+            print("EXCEPTIONNNN")
             return None
 
 
@@ -97,6 +98,7 @@ def student_apply_leave(request):
     }
     if request.method == "POST":
         if form.is_valid():
+            print("blahahhh")
             try:
                 obj = form.save(commit=False)
                 obj.student = student
@@ -108,6 +110,7 @@ def student_apply_leave(request):
             except Exception:
                 messages.error(request, "Could not submit")
         else:
+            print("YAAAYY")
             messages.error(request, "Form has errors!")
     return render(request, "student_template/student_apply_leave.html", context)
 
@@ -141,9 +144,11 @@ def student_view_profile(request):
         request.POST or None, request.FILES or None, instance=student
     )
     context = {"form": form, "page_title": "View/Edit Profile"}
+    print(form.errors)
     if request.method == "POST":
         try:
             if form.is_valid():
+                print("VALIDDD")
                 first_name = form.cleaned_data.get("first_name")
                 last_name = form.cleaned_data.get("last_name")
                 password = form.cleaned_data.get("password") or None
