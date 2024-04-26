@@ -222,8 +222,14 @@ $  python3 manage.py createsuperuser
 
 ### Run tests
 
-Create a superuser with the following specifications
+Set up virtual environmment and install requirements
+```
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
 
+Create a superuser with the following specifications
 ```
 python3 manage.py createsuperuser
 $ Email: superuser@gmail.com
@@ -232,28 +238,23 @@ $ Password (again): superuser
 $ Bypass password validation and create user anyway? [y/N]: y
 ```
 
-Start running server in another terminal:
-
+Run server
 ```
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
 python3 manage.py runserver
 ```
 
-Set up for GUI testing
-
+Run tests in another terminal:
+Set up for GUI testing 
 ```
+source venv/bin/activate
 brew install chromedriver
 brew upgrade chromedriver
 xattr -d com.apple.quarantine $(which chromedriver)
 python3 tests/GUI_setup.py
 ```
-
 Notes
-
-- Make sure to have [homebrew](https://docs.brew.sh/Installation) installed
 - If the second command prints "No such xattr: com.apple.quarantine", ignore it and move on to the next command
+- Make sure to have [homebrew](https://docs.brew.sh/Installation) installed
 
 # statement coverage
 
