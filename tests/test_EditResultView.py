@@ -80,7 +80,7 @@ class EditResultViewTestCase(TestCase):
         self.assertEqual(result.test, 80)
         self.assertEqual(result.exam, 90)
 
-    @patch("main_app.models.StudentResult.save")
+    @patch("main_app.models.StudentResult.objects.get")
     def test_edit_result_post_exception(self, mocked_save):
         mocked_save.side_effect = Exception("Database Error")
         self.client.force_login(self.staff_user)
