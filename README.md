@@ -249,6 +249,11 @@ xattr -d com.apple.quarantine $(which chromedriver)
 python3 tests/GUI_setup.py
 ```
 
+Notes
+
+- Make sure to have [homebrew](https://docs.brew.sh/Installation) installed
+- If the second command prints "No such xattr: com.apple.quarantine", ignore it and move on to the next command
+
 # statement coverage
 
 ```
