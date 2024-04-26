@@ -223,6 +223,7 @@ $  python3 manage.py createsuperuser
 ### Run tests
 
 Create a superuser with the following specifications
+
 ```
 python3 manage.py createsuperuser
 $ Email: superuser@gmail.com
@@ -232,13 +233,19 @@ $ Bypass password validation and create user anyway? [y/N]: y
 ```
 
 Start running server in another terminal:
+
 ```
+python3 -m venv venv
 source venv/bin/activate
+pip3 install -r requirements.txt
 python3 manage.py runserver
 ```
 
 Set up for GUI testing
+
 ```
+brew upgrade chromedriver
+xattr -d com.apple.quarantine $(which chromedriver)
 python3 tests/GUI_setup.py
 ```
 
@@ -254,10 +261,14 @@ coverage run manage.py test -v=2 tests
 coverage run --branch manage.py test -v=2 tests
 ```
 
-To see the coverage, run `coverage report`. Some non-logic files are excluded. See what those are in setup.cfg
+# Check coverage
+
+`coverage report`: see coverage in terminal
+`coverage html`: see coverage in browser
+
+Some non-logic files are excluded. See what those are in setup.cfg
 
 # Errors
 
-If you get the error "error: externally-managed-environment" when running pip3 install-" when trying to run the serve
-Run
+If you get the error "error: externally-managed-environment" when running pip3 install-" when trying to run the server, try the following:
 `export PATH=".:/Library/Frameworks/Python.framework/Versions/3.12/bin:/usr/local/bin:${PATH}"`
