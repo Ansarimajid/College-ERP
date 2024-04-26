@@ -833,48 +833,6 @@ class ViewsTestCase(TestCase):
         response = self.client.post(reverse("check_email_availability"), data=data)
         self.assertEqual(response.content.decode(), "False")
 
-    # @patch("main_app.models.FeedbackStudent.save")
-    # def test_student_feedback_message_with_exception(self, mocked_save):
-    #     mocked_save.side_effect = Exception("Database Error")
-    #     feedback = FeedbackStudent.objects.create(
-    #         student=self.student, feedback="Test feedback"
-    #     )
-    #     data = {"id": feedback.id, "reply": "Reply to Feedback"}
-    #     response = self.client.post(reverse("student_feedback_message"), data=data)
-    #     print(response)
-    #     self.assertEqual(response.content.decode(), "False")
-
-    # @patch("main_app.models.FeedbackStaff.save")
-    # def test_staff_feedback_message_with_exception(self, mocked_save):
-    #     mocked_save.side_effect = Exception("Database Error")
-    #     feedback = FeedbackStaff.objects.create(
-    #         staff=self.staff, feedback="Test feedback"
-    #     )
-    #     data = {"id": feedback.id, "reply": "Reply to Feedback"}
-    #     response = self.client.post(reverse("staff_feedback_message"), data=data)
-    #     self.assertEqual(response.content.decode(), "False")
-
-    # @patch("main_app.models.LeaveReportStaff.save")
-    # def test_view_staff_leave_with_exception(self, mocked_save):
-    #     mocked_save.side_effect = Exception("Database Error")
-    #     leave = LeaveReportStaff.objects.create(
-    #         staff=self.staff, date="2023-07-01", message="Test leave for staff"
-    #     )
-
-    #     data = {"id": leave.id, "status": "1"}
-    #     response = self.client.post(reverse("view_staff_leave"), data=data)
-    #     self.assertEqual(response.content.decode(), "False")
-
-    # @patch("main_app.models.LeaveReportStudent.save")
-    # def test_view_student_leave_with_exception(self, mocked_save):
-    #     mocked_save.side_effect = Exception("Database Error")
-    #     leave = LeaveReportStudent.objects.create(
-    #         student=self.student, date="2023-07-01", message="Test leave for student"
-    #     )
-    #     data = {"id": leave.id, "status": "1"}
-    #     response = self.client.post(reverse("view_student_leave"), data=data)
-    #     self.assertEqual(response.content.decode(), "False")
-
     @patch("main_app.models.AttendanceReport.objects.filter")
     def test_get_admin_attendance_with_exception(self, mocked_filter):
         mocked_filter.side_effect = Exception("Database Error")

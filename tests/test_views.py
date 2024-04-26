@@ -163,3 +163,18 @@ class ViewsTestCase(TestCase):
         response = self.client.get(reverse("showFirebaseJS"), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/javascript")
+
+    def test_login_when_invalid_user(self):
+        invalid_user = CustomUser.objects.create_user(
+            email="invalid@test.com",
+            password="studentpass",
+            user_type=4,  # invalid
+            first_name="Student",
+            last_name="User",
+            gender="M",
+            profile_pic="path/to/profile/pic.jpg",
+            address="Student Address",
+        )
+        self.client.force_login(invalid_user)
+        response = self.client.get(reverse("admin_home"))
+        self.assertEqual(response.status_code, 302)
