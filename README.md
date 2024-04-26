@@ -222,13 +222,37 @@ $  python3 manage.py createsuperuser
 
 ### Run tests
 
+Create a superuser with the following specifications
+```
+python3 manage.py createsuperuser
+$ Email: superuser@gmail.com
+$ Password: superuser
+$ Password (again): superuser
+$ Bypass password validation and create user anyway? [y/N]: y
+```
+
+Start running server in another terminal:
+```
+source venv/bin/activate
+python3 manage.py runserver
+```
+
+Set up for GUI testing
+```
+python3 tests/GUI_setup.py
+```
+
 # statement coverage
 
+```
 coverage run manage.py test -v=2 tests
+```
 
 # branch coverage
 
+```
 coverage run --branch manage.py test -v=2 tests
+```
 
 To see the coverage, run `coverage report`. Some non-logic files are excluded. See what those are in setup.cfg
 
