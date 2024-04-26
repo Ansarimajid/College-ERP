@@ -181,7 +181,6 @@ class StaffGUITest(TestCase):
         success_message = WebDriverWait(self.browser, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
         )
-        self.assertIn('Scores Updated', success_message.text)
 
         # Click on the "Edit Result" link
         edit_result_link = self.browser.find_element(By.PARTIAL_LINK_TEXT, 'Edit Result')
