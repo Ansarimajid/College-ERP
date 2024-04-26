@@ -32,6 +32,7 @@ class AdminGUITest(TestCase):
         page_heading = self.browser.find_element(By.TAG_NAME, 'h1')
         self.assertEqual(page_heading.text, 'Administrative Dashboard')
 
+    # ERROR: Does not update address for admin correctly
     def test_admin_update_profile(self):
         # Navigate to the admin home page
         admin_home_url = self.live_server_url + 'admin/home/'
@@ -394,6 +395,7 @@ class AdminGUITest(TestCase):
         alert = self.browser.switch_to.alert
         alert.accept()
 
+    # ERROR: Throws error when trying to edit staff
     def test_admin_add_manage_staff(self):
         # Navigate to the admin home page
         admin_home_url = self.live_server_url + 'admin/home/'

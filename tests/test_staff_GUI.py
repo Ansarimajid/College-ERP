@@ -217,6 +217,7 @@ class StaffGUITest(TestCase):
         )
         self.assertIn('Result Updated', success_message.text)
 
+    # ERROR: cannot remove attendance from classes
     def test_staff_take_update_attendance(self):
         # Navigate to the staff home page
         staff_home_url = self.live_server_url + 'staff/home/'
