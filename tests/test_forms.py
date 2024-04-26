@@ -54,6 +54,24 @@ class CustomUserFormTestCase(TestCase):
         form = CustomUserForm(instance=user, data={"email": "updated@example.com"})
         self.assertTrue(form.is_valid())
 
+    def test_clean_email_duplicate_email(self):
+        CustomUser.objects.create(email="existing@example.com")
+        form = CustomUserForm(
+            data={
+                "email": "existing@example.com",
+                "gender": "M",
+                "first_name": "John",
+                "last_name": "Doe",
+                "address": "123 Main St",
+                "password": "password123",
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
+        self.assertEqual(
+            form.errors["email"][0], "The given email is already registered"
+        )
+
 
 class StudentFormTestCase(TestCase):
     def test_meta_model(self):
