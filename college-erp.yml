@@ -1,0 +1,37 @@
+name: Django-env
+channels:
+  - defaults
+dependencies:
+  - ca-certificates=2024.9.24=haa95532_0
+  - certifi=2022.12.7=py37haa95532_0
+  - openssl=1.1.1w=h2bbff1b_0
+  - pip=22.3.1=py37haa95532_0
+  - python=3.7.16=h6244533_0
+  - setuptools=65.6.3=py37haa95532_0
+  - sqlite=3.45.3=h2bbff1b_0
+  - vc=14.40=h2eaa2aa_1
+  - vs2015_runtime=14.40.33807=h98bb1dd_1
+  - wheel=0.38.4=py37haa95532_0
+  - wincertstore=0.2=py37haa95532_2
+  - pip:
+      - appdirs==1.4.4
+      - asgiref==3.2.10
+      - charset-normalizer==3.4.0
+      - distlib==0.3.9
+      - dj-database-url==0.5.0
+      - django==3.1.1
+      - filelock==3.12.2
+      - gunicorn==20.0.4
+      - idna==3.10
+      - importlib-metadata==1.7.0
+      - mysql-connector==2.2.9
+      - pillow==9.5.0
+      - pytz==2024.2
+      - requests==2.31.0
+      - six==1.16.0
+      - sqlparse==0.4.4
+      - urllib3==2.0.7
+      - virtualenv==20.0.31
+      - whitenoise==5.2.0
+      - zipp==3.15.0
+prefix: C:\Users\ansma\anaconda3\envs\Django-env

@@ -66,7 +66,17 @@ Password : `staff@erp`
 
 **2. Create a Virtual Environment and Activate**
 
-Install Virtual Environment First
+If you have conda installed in your system
+```
+$  conda env create -f college-erp.yml
+```
+
+Activate created conda environment
+```
+$  conda activate Django-env
+```
+
+Else Install Virtual Environment First
 ```
 $  pip install virtualenv
 ```
