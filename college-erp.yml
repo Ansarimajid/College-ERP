@@ -34,4 +34,4 @@ dependencies:
       - virtualenv==20.0.31
       - whitenoise==5.2.0
       - zipp==3.15.0
-prefix: C:\Users\ansma\anaconda3\envs\Django-env
+prefix: Django-env
