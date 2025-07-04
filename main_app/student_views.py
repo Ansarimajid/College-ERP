@@ -49,7 +49,7 @@ def student_home(request):
         'page_title': 'Student Homepage'
 
     }
-    return render(request, 'student_template/home_content.html', context)
+    return render(request, 'student_template/erpnext_student_home.html', context)
 
 
 @ csrf_exempt
