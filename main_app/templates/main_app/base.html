@@ -39,8 +39,17 @@
         </div>
         
         <div class="navbar-user">
+            <!-- Dark Mode Toggle -->
+            <label class="theme-toggle" for="theme-switch">
+                <input type="checkbox" id="theme-switch" />
+                <span class="slider">
+                    <i class="fas fa-sun icon-light"></i>
+                    <i class="fas fa-moon icon-dark"></i>
+                </span>
+            </label>
+            
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}/static/dist/img/default-avatar.png{% endif %}" alt="User Avatar" class="user-avatar">
+            <img src="{{ user.profile_pic.url|default:'/static/dist/img/default-avatar.png' }}" alt="User Avatar" class="user-avatar">
         </div>
     </nav>
 
@@ -88,76 +97,85 @@
             {% block content %}{% endblock content %}
         </div>
     </main>
+   
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
     
     <script>
         // Sidebar toggle functionality
-        let sidebarCollapsed = false;
-        
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
+        let isSidebarOpen = false;
         
         function toggleSidebar() {
             const body = document.body;
-            
-            if (isMobile()) {
-                // On mobile, toggle sidebar-open class
-                body.classList.toggle('sidebar-open');
-            } else {
-                // On desktop, toggle sidebar-collapsed class
-                sidebarCollapsed = !sidebarCollapsed;
-                
-                if (sidebarCollapsed) {
+            if (window.innerWidth <= 768) {
+                // On mobile, toggle 'sidebar-open'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-open');
+                    body.classList.remove('sidebar-collapsed');
+                } else {
+                    body.classList.remove('sidebar-open');
                     body.classList.add('sidebar-collapsed');
+                }
+            } else {
+                // On desktop, toggle 'sidebar-collapsed'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
                 } else {
                     body.classList.remove('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
                 }
-                
-                // Store state in localStorage for desktop
-                localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
             }
+            // Store state in localStorage
+            localStorage.setItem('sidebarOpen', isSidebarOpen);
         }
         
-        // Initialize sidebar state on page load
+        // Restore sidebar state on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const body = document.body;
-            
-            if (isMobile()) {
-                // On mobile, sidebar is hidden by default
-                body.classList.remove('sidebar-open');
-                body.classList.remove('sidebar-collapsed');
-            } else {
-                // On desktop, restore saved state
-                const stored = localStorage.getItem('sidebarCollapsed');
+            const stored = localStorage.getItem('sidebarOpen');
+            if (window.innerWidth <= 768) {
                 if (stored === 'true') {
-                    sidebarCollapsed = true;
-                    body.classList.add('sidebar-collapsed');
+                    document.body.classList.add('sidebar-open');
+                    document.body.classList.remove('sidebar-collapsed');
+                    isSidebarOpen = true;
                 } else {
-                    body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    document.body.classList.add('sidebar-collapsed');
+                    isSidebarOpen = false;
                 }
-                body.classList.remove('sidebar-open');
+            } else {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = false;
+                }
             }
         });
         
-        // Handle window resize - reinitialize sidebar state
+        // Handle window resize
         window.addEventListener('resize', function() {
-            const body = document.body;
-            
-            if (isMobile()) {
-                // Switch to mobile mode
-                body.classList.remove('sidebar-collapsed');
-                body.classList.remove('sidebar-open');
-            } else {
-                // Switch to desktop mode
-                body.classList.remove('sidebar-open');
-                const stored = localStorage.getItem('sidebarCollapsed');
-                if (stored === 'true') {
-                    body.classList.add('sidebar-collapsed');
+            if (window.innerWidth <= 768) {
+                if (!isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
                 } else {
-                    body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.add('sidebar-open');
+                }
+            } else {
+                if (isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
                 }
             }
         });
@@ -200,9 +218,37 @@
                 }, 5000);
             });
         });
+        
+        // Dark mode toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-switch');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply saved theme
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.checked = true;
+            } else {
+                body.classList.remove('dark-mode');
+                themeToggle.checked = false;
+            }
+            
+            // Toggle theme on switch change
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        });
     </script>
     
     {% block custom_js %}{% endblock custom_js %}
 </body>
-
 </html>
