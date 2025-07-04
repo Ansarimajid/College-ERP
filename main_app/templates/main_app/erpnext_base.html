@@ -50,7 +50,7 @@
             <p>gygy</p>
             
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            <img src="{{ user.profile_pic.url|default:'/static/dist/img/default-avatar.png' }}" alt="User Avatar" class="user-avatar">
+            <img src="{{ user.profile_pic.url }}" alt="User Avatar" class="user-avatar">
         </div>
     </nav>
 
