@@ -80,6 +80,18 @@
 {% block custom_js %}
 <script>
 $(document).ready(function(){
+    // ERPNext Theme Colors
+    var colors = {
+        primary: '#5e64ff',
+        success: '#28a745',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8',
+        light: '#f8f9fa',
+        dark: '#343a40',
+        purple: '#6f42c1'
+    };
+
     //Dataset
     var subjects = {{data_name|safe}}
     var data_present = {{data_present}}
@@ -95,13 +107,28 @@ $(document).ready(function(){
       datasets: [
         {
           data: [{{percent_present}}, {{percent_absent}}],
-          backgroundColor : ['#00a65a','#f56954'],
+          backgroundColor : [colors.success, colors.danger],
+          borderColor: [colors.success, colors.danger],
+          borderWidth: 2
         }
       ]
     }
     var donutOptions = {
       maintainAspectRatio : false,
       responsive : true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: {
+              size: 12
+            }
+          }
+        }
+      }
     }
     var attendanceData = new Chart(attendanceDataCanvas, {
       type: 'doughnut',
@@ -116,25 +143,25 @@ $(document).ready(function(){
         datasets: [
         {
             label               : 'Present In Class',
-            backgroundColor     : 'rgba(60,141,188,0.9)',
-            borderColor         : 'rgba(60,141,188,0.8)',
+            backgroundColor     : colors.success,
+            borderColor         : colors.success,
             pointRadius          : false,
-            pointColor          : '#3b8bba',
-            pointStrokeColor    : 'rgba(60,141,188,1)',
+            pointColor          : colors.success,
+            pointStrokeColor    : colors.success,
             pointHighlightFill  : '#fff',
-            pointHighlightStroke: 'rgba(60,141,188,1)',
+            pointHighlightStroke: colors.success,
             data                : data_present
           },
 
           {
             label               : 'Absent In Class',
-            backgroundColor     : 'rgba(210, 214, 222, 1)',
-            borderColor         : 'rgba(210, 214, 222, 1)',
+            backgroundColor     : colors.danger,
+            borderColor         : colors.danger,
             pointRadius         : false,
-            pointColor          : 'rgba(210, 214, 222, 1)',
-            pointStrokeColor    : '#c1c7d1',
+            pointColor          : colors.danger,
+            pointStrokeColor    : colors.danger,
             pointHighlightFill  : '#fff',
-            pointHighlightStroke: 'rgba(220,220,220,1)',
+            pointHighlightStroke: colors.danger,
             data                : data_absent
           },
         ]

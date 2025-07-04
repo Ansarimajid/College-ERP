@@ -38,6 +38,15 @@
         </div>
         
         <div class="navbar-user">
+            <!-- Dark Mode Toggle -->
+            <label class="theme-toggle" for="theme-switch">
+                <input type="checkbox" id="theme-switch" />
+                <span class="slider">
+                    <i class="fas fa-sun icon-light"></i>
+                    <i class="fas fa-moon icon-dark"></i>
+                </span>
+            </label>
+            
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
             <img src="{{ user.profile_pic.url|default:'/static/dist/img/default-avatar.png' }}" alt="User Avatar" class="user-avatar">
         </div>
@@ -206,6 +215,35 @@
                         closeBtn.click();
                     }
                 }, 5000);
+            });
+        });
+        
+        // Dark mode toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-switch');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply saved theme
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.checked = true;
+            } else {
+                body.classList.remove('dark-mode');
+                themeToggle.checked = false;
+            }
+            
+            // Toggle theme on switch change
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                }
             });
         });
     </script>

@@ -177,15 +177,15 @@
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
         Chart.defaults.color = '#262626';
         
-        // ERPNext-style color palette
+        // ERPNext-style color palette using CSS variables
         const colors = {
-            primary: '#5e64ff',
-            success: '#28a745',
-            warning: '#ffc107',
-            danger: '#dc3545',
-            info: '#17a2b8',
-            light: '#f8f9fc',
-            dark: '#262626'
+            primary: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#5e64ff',
+            success: getComputedStyle(document.documentElement).getPropertyValue('--success-color').trim() || '#28a745',
+            warning: getComputedStyle(document.documentElement).getPropertyValue('--warning-color').trim() || '#ffc107',
+            danger: getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim() || '#dc3545',
+            info: getComputedStyle(document.documentElement).getPropertyValue('--info-color').trim() || '#17a2b8',
+            light: getComputedStyle(document.documentElement).getPropertyValue('--light-color').trim() || '#f8f9fc',
+            dark: getComputedStyle(document.documentElement).getPropertyValue('--dark-color').trim() || '#262626'
         };
 
         // Attendance vs Leave Pie Chart

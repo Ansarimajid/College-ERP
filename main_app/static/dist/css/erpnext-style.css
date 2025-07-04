@@ -489,6 +489,41 @@ body {
   margin: 5px 0 0;
 }
 
+/* reCAPTCHA Responsive Styles */
+.form-group .g-recaptcha {
+  transform-origin: top left;
+}
+
+/* For mobile screens, scale down the reCAPTCHA */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 20px;
+    max-width: 100%;
+  }
+  
+  .form-group .g-recaptcha {
+    transform: scale(0.75);
+    -webkit-transform: scale(0.75);
+    transform-origin: top left;
+    -webkit-transform-origin: top left;
+    width: 302px; /* default width of recaptcha */
+    height: 78px; /* default height */
+    overflow: hidden;
+  }
+}
+
+/* For very small screens, scale down further */
+@media (max-width: 350px) {
+  .login-card {
+    padding: 20px 15px;
+  }
+  
+  .form-group .g-recaptcha {
+    transform: scale(0.65);
+    -webkit-transform: scale(0.65);
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .erpnext-sidebar {
@@ -526,6 +561,195 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Dark Mode Styles */
+.dark-mode {
+  --bg-color: #1a1a1a;
+  --navbar-bg: #2d2d2d;
+  --sidebar-bg: #2d2d2d;
+  --card-bg: #2d2d2d;
+  --text-color: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --dark-color: #e0e0e0;
+  --border-color: #404040;
+  --primary-color: #5e64ff;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+  --light-color: #404040;
+  --secondary-color: #6c757d;
+}
+
+.dark-mode body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.dark-mode .erpnext-navbar {
+  background-color: var(--navbar-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .erpnext-sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+}
+
+.dark-mode .nav-link {
+  color: var(--text-color);
+}
+
+.dark-mode .nav-link:hover {
+  color: var(--primary-color);
+  background-color: rgba(94, 100, 255, 0.1);
+}
+
+.dark-mode .nav-link.active {
+  color: var(--primary-color);
+  background-color: rgba(94, 100, 255, 0.15);
+}
+
+.dark-mode .card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .erpnext-main {
+  background-color: var(--bg-color);
+}
+
+.dark-mode .page-header {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .page-title {
+  color: var(--text-color);
+}
+
+.dark-mode .breadcrumb {
+  background-color: transparent;
+}
+
+.dark-mode .breadcrumb-item {
+  color: var(--text-muted);
+}
+
+.dark-mode .breadcrumb-item.active {
+  color: var(--text-color);
+}
+
+.dark-mode .stat-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .table-responsive {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .table th {
+  background-color: var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .table td {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .form-control {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .form-control:focus {
+  background-color: var(--card-bg);
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+.dark-mode .form-label {
+  color: var(--text-color);
+}
+
+.dark-mode .login-card {
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.dark-mode .login-title {
+  color: var(--text-color);
+}
+
+.dark-mode .login-subtitle {
+  color: var(--text-muted);
+}
+
+/* Dark Mode Toggle Button */
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 15px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.theme-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.theme-toggle input:checked + .theme-toggle-slider {
+  background-color: var(--primary-color);
+}
+
+.theme-toggle input:checked + .theme-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.theme-toggle-slider:after {
+  content: '☀️';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  font-size: 16px;
+  transition: .4s;
+}
+
+.theme-toggle input:checked + .theme-toggle-slider:after {
+  content: '🌙';
+  left: 8px;
 }
 
 /* Utility classes */
