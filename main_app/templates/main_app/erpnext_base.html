@@ -1,12 +1,11 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{% block title %}College ERP - Dashboard{% endblock title %}</title>
+    <title>{% block title %}College ERP - {% block page_title %}Dashboard{% endblock page_title %}{% endblock title %}</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{% static '/image/favicon1.ico' %}">
@@ -40,7 +39,7 @@
         
         <div class="navbar-user">
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}/static/dist/img/default-avatar.png{% endif %}" alt="User Avatar" class="user-avatar">
+            <img src="{{ user.profile_pic.url|default:'/static/dist/img/default-avatar.png' }}" alt="User Avatar" class="user-avatar">
         </div>
     </nav>
 
@@ -88,6 +87,7 @@
             {% block content %}{% endblock content %}
         </div>
     </main>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
@@ -175,5 +175,4 @@
     
     {% block custom_js %}{% endblock custom_js %}
 </body>
-
 </html>

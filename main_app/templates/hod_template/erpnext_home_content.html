@@ -1,4 +1,4 @@
-{% extends 'main_app/base.html' %}
+{% extends 'main_app/erpnext_base.html' %}
 {% load static %}
 
 {% block page_title %}Dashboard{% endblock page_title %}
@@ -14,7 +14,7 @@
             <div class="stat-icon primary">
                 <i class="fas fa-user-graduate"></i>
             </div>
-            <div class="stat-number" style="color: var(--primary-color);">{{ total_students }}</div>
+            <div class="stat-number primary">{{ total_students }}</div>
             <p class="stat-label">Total Students</p>
             <a href="{% url 'manage_student' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -25,7 +25,7 @@
             <div class="stat-icon success">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="stat-number" style="color: var(--success-color);">{{ total_staff }}</div>
+            <div class="stat-number success">{{ total_staff }}</div>
             <p class="stat-label">Total Staff</p>
             <a href="{% url 'manage_staff' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -36,7 +36,7 @@
             <div class="stat-icon warning">
                 <i class="fas fa-graduation-cap"></i>
             </div>
-            <div class="stat-number" style="color: var(--warning-color);">{{ total_course }}</div>
+            <div class="stat-number warning">{{ total_course }}</div>
             <p class="stat-label">Total Courses</p>
             <a href="{% url 'manage_course' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -47,7 +47,7 @@
             <div class="stat-icon danger">
                 <i class="fas fa-book"></i>
             </div>
-            <div class="stat-number" style="color: var(--danger-color);">{{ total_subject }}</div>
+            <div class="stat-number danger">{{ total_subject }}</div>
             <p class="stat-label">Total Subjects</p>
             <a href="{% url 'manage_subject' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
