@@ -94,42 +94,79 @@
     
     <script>
         // Sidebar toggle functionality
-        let sidebarCollapsed = false;
+        let isSidebarOpen = false;
         
         function toggleSidebar() {
             const body = document.body;
-            sidebarCollapsed = !sidebarCollapsed;
-            
-            if (sidebarCollapsed) {
-                body.classList.add('sidebar-collapsed');
+            if (window.innerWidth <= 768) {
+                // On mobile, toggle 'sidebar-open'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-open');
+                    body.classList.remove('sidebar-collapsed');
+                } else {
+                    body.classList.remove('sidebar-open');
+                    body.classList.add('sidebar-collapsed');
+                }
             } else {
-                body.classList.remove('sidebar-collapsed');
+                // On desktop, toggle 'sidebar-collapsed'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                } else {
+                    body.classList.remove('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                }
             }
-            
             // Store state in localStorage
-            localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+            localStorage.setItem('sidebarOpen', isSidebarOpen);
         }
         
         // Restore sidebar state on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const stored = localStorage.getItem('sidebarCollapsed');
-            if (stored === 'true') {
-                sidebarCollapsed = true;
-                document.body.classList.add('sidebar-collapsed');
-            }
-            
-            // Handle mobile responsiveness
+            const stored = localStorage.getItem('sidebarOpen');
             if (window.innerWidth <= 768) {
-                document.body.classList.add('sidebar-collapsed');
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-open');
+                    document.body.classList.remove('sidebar-collapsed');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-open');
+                    document.body.classList.add('sidebar-collapsed');
+                    isSidebarOpen = false;
+                }
+            } else {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = false;
+                }
             }
         });
         
         // Handle window resize
         window.addEventListener('resize', function() {
             if (window.innerWidth <= 768) {
-                document.body.classList.add('sidebar-collapsed');
-            } else if (localStorage.getItem('sidebarCollapsed') !== 'true') {
-                document.body.classList.remove('sidebar-collapsed');
+                if (!isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.add('sidebar-open');
+                }
+            } else {
+                if (isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                }
             }
         });
         
