@@ -611,6 +611,27 @@ body {
   background-color: transparent;
 }
 
+/* Remove borders from tables for cleaner look */
+.table-bordered {
+  border: none !important;
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+.table-bordered tbody td {
+  border-bottom: 1px solid #f1f3f4 !important;
+}
+
+.table-bordered thead th {
+  border-bottom: 2px solid #e9ecef !important;
+}
+
 /* Alerts */
 .alert {
   padding: 12px 16px;
@@ -880,6 +901,27 @@ body {
   background-color: transparent !important;
 }
 
+/* Dark mode borderless table styling */
+.dark-mode .table-bordered {
+  border: none !important;
+}
+
+.dark-mode .table-bordered th,
+.dark-mode .table-bordered td {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+.dark-mode .table-bordered tbody td {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .table-bordered thead th {
+  border-bottom: 2px solid var(--border-color) !important;
+}
+
 .dark-mode .form-control {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -913,7 +955,7 @@ body {
 }
 
 .dark-mode .card-header {
-  background: linear-gradient(135deg, var(--border-color) 0%, var(--card-bg) 100%);
+  background: linear-gradient(135deg, var(--card-bg) 100%, var(--card-bg) 100%);
   border-bottom: 1px solid var(--border-color);
 }
 
