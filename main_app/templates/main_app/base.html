@@ -207,6 +207,23 @@
                     });
                 }
             });
+            
+            // Auto-close sidebar on mobile when clicking navigation links
+            const sidebarLinks = document.querySelectorAll('.erpnext-sidebar a[href]:not([href="#"]):not([href="javascript:void(0)"])');
+            
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Check if we're on mobile (768px or less)
+                    if (window.innerWidth <= 768) {
+                        // Close the sidebar
+                        const body = document.body;
+                        body.classList.remove('sidebar-open');
+                        body.classList.add('sidebar-collapsed');
+                        isSidebarOpen = false;
+                        localStorage.setItem('sidebarOpen', false);
+                    }
+                });
+            });
         });
         
         // Auto-hide alerts after 5 seconds
