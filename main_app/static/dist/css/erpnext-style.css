@@ -1289,6 +1289,29 @@ body {
   color: var(--text-color) !important;
 }
 
+/* Dark mode modal styles */
+.dark-mode .modal-content {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .modal-header {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.dark-mode .modal-body {
+  color: var(--text-color) !important;
+}
+
+.dark-mode .modal-footer {
+  border-top: 1px solid var(--border-color) !important;
+}
+
 /* Force all text elements in canvas containers to use proper colors */
 .dark-mode .chart-container,
 .dark-mode [id*="Chart"],
