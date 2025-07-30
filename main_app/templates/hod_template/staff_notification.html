@@ -42,7 +42,7 @@
                                             src="{{staff.profile_pic}}" alt="">
                                         {% endif %}
                                     </td>
-                                    <td><button data-toggle = "modal" data-target = "#myModal"class="btn btn-primary show_notification" value="{{staff.id}}">Send Notification</button> 
+                                    <td><button data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-primary show_notification" value="{{staff.id}}">Send Notification</button> 
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -61,8 +61,7 @@
       <div class = "modal-content">
          
          <div class = "modal-header">Send Notification
-            <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">
-                  &times;
+            <button type = "button" class = "btn-close" data-bs-dismiss = "modal" aria-hidden = "true">
             </button>
             
            
@@ -76,7 +75,7 @@
          </div>
          
          <div class = "modal-footer">
-            <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+            <button type = "button" class = "btn btn-danger" data-bs-dismiss = "modal">
                Close
             </button>
             
@@ -92,18 +91,41 @@
 {% endblock content %}
 {% block custom_js %}
   <script>
+      // Get CSRF token
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+      const csrftoken = getCookie('csrftoken');
       $(".show_notification").click(function(){
           $("#staff_id").val($(this).val())
       })
       $(".send_notification").click(function(){
           var id = $("#staff_id").val()
           var message = $("#message").val()
+          if (message.trim() === '') {
+              alert("Please enter a message before sending.");
+              return;
+          }
           sendNotification(id,message);
       })
     function sendNotification(id,message){
         $.ajax({
             url: "{% url 'send_staff_notification' %}",
             type: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
             data: {
                 id: id,
                 message:message
@@ -118,7 +140,7 @@
           }
            
         }).fail(function (response) {
-            alert("Error in saving token")
+            alert("Error in sending notification")
         })
 
     }
