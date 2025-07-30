@@ -78,7 +78,7 @@
 
                 <div class="form-group">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="remember">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
                         <label class="form-check-label" for="remember">
                             Remember me
                         </label>
@@ -141,6 +141,24 @@
             // Animate login card on load
             const loginCard = document.querySelector('.login-card');
             loginCard.style.animation = 'fadeIn 0.6s ease';
+            
+            // Remember Me functionality
+            const rememberCheckbox = document.getElementById('remember');
+            
+            // Load saved remember me state
+            if (localStorage.getItem('rememberMe') === 'true') {
+                rememberCheckbox.checked = true;
+            }
+            
+            // Save remember me state when checkbox changes
+            rememberCheckbox.addEventListener('change', function() {
+                localStorage.setItem('rememberMe', this.checked);
+            });
+            
+            // Show tooltip on remember me checkbox hover
+            rememberCheckbox.addEventListener('mouseenter', function() {
+                this.title = 'Keep me logged in for 30 days';
+            });
         });
     </script>
 </body>
