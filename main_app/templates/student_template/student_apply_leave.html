@@ -19,9 +19,9 @@
                 <!-- /.card -->
 <div class="card card-dark">
     <div class="card-header"><h3 class="card-title">Leave History</h3></div>
-   <div class="table">
+   <div class="table" style="overflow-x: auto; overflow-y: auto; max-height: 500px;">
 
-       <table class="table table-bordered">
+       <table class="table table-bordered" style="min-width: 600px;">
            <tr>
                <th>ID</th>
                <th>Date</th>
@@ -32,7 +32,7 @@
         <tr>
             <td>{{forloop.counter}}</td>
             <td>{{leave.date}}</td>
-              <td>{{leave.message}}</td>
+              <td style="word-wrap: break-word; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{leave.message}}</td>
               <td>
                   
                   {% if leave.status == 0 %}

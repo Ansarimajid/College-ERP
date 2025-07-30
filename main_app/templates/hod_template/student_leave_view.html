@@ -14,8 +14,8 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    <div class="table card-body">
-                        <table class="table table-bordered table-hover">
+                    <div class="table card-body" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
+                        <table class="table table-bordered table-hover" style="min-width: 800px;">
                             <tr>
                                 <th>#</th>
                                 <th>Student</th>
@@ -31,7 +31,7 @@
                                   <td>{{forloop.counter}}</td>
                                   <td>{{leave.student}}</td>
                                   <td>{{leave.student.course}}</td>
-                                  <td>{{leave.message}}</td>
+                                  <td style="word-wrap: break-word; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{leave.message}}</td>
                                   <td>{{leave.date}}</td>
                                   <td>{{leave.created_at}}</td>
                                  
