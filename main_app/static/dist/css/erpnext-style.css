@@ -674,6 +674,43 @@ body {
   color: var(--text-color);
 }
 
+.dark-mode .card-body label,
+.dark-mode .card label,
+.dark-mode label {
+  color: var(--text-color) !important;
+}
+
+.dark-mode .erpnext-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .card-header {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .card-title {
+  color: var(--text-color);
+}
+
+.dark-mode .form-group label,
+.dark-mode .form-group .form-label,
+.dark-mode .control-label,
+.dark-mode p,
+.dark-mode span,
+.dark-mode .text-muted {
+  color: var(--text-color) !important;
+}
+
+.dark-mode .nav-section-title {
+  color: var(--text-muted);
+}
+
+.dark-mode .user-name {
+  color: var(--text-color);
+}
+
 .dark-mode .login-card {
   background: var(--card-bg);
   color: var(--text-color);
