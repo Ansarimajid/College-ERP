@@ -78,11 +78,52 @@ body {
   gap: 15px;
 }
 
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
+/* Logout Button Styling */
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+}
+
+.logout-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(94, 100, 255, 0.3);
+}
+
+.logout-btn i {
+  font-size: 12px;
+}
+
+.logout-text {
+  font-weight: 500;
+}
+
+/* Responsive logout button */
+@media (max-width: 768px) {
+  .logout-text {
+    display: none;
+  }
+  
+  .logout-btn {
+    padding: 8px;
+    min-width: auto;
+  }
+  
+  .logout-btn i {
+    font-size: 14px;
+  }
 }
 
 /* Sidebar */
@@ -1060,6 +1101,19 @@ body {
 
 .dark-mode .user-name {
   color: var(--text-color);
+}
+
+/* Dark mode logout button */
+.dark-mode .logout-btn {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+}
+
+.dark-mode .logout-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(94, 100, 255, 0.4);
 }
 
 .dark-mode .login-card {
