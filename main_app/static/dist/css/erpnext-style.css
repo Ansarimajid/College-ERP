@@ -611,6 +611,24 @@ body {
   background-color: rgba(94, 100, 255, 0.15);
 }
 
+.dark-mode .nav-submenu {
+  background-color: var(--border-color);
+}
+
+.dark-mode .nav-submenu .nav-link {
+  color: var(--text-color);
+  background-color: transparent;
+}
+
+.dark-mode .nav-submenu .nav-link:hover {
+  background-color: rgba(94, 100, 255, 0.1);
+  color: var(--primary-color);
+}
+
+.dark-mode .nav-item {
+  background-color: transparent;
+}
+
 .dark-mode .card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
