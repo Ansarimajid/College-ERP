@@ -620,10 +620,6 @@ body {
   background-color: var(--bg-color);
 }
 
-.dark-mode .page-header {
-  background-color: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-}
 
 .dark-mode .page-title {
   color: var(--text-color);
@@ -691,11 +687,11 @@ body {
   color: var(--text-muted);
 }
 
-/* Dark Mode Toggle Button */
+/* Dark Mode Toggle Button - Capsule Slider */
 .theme-toggle {
   position: relative;
   display: inline-block;
-  width: 60px;
+  width: 70px; /* Increased width for capsule shape */
   height: 34px;
   margin-left: 15px;
 }
@@ -706,7 +702,7 @@ body {
   height: 0;
 }
 
-.theme-toggle-slider {
+.theme-toggle .slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -715,10 +711,10 @@ body {
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
-  border-radius: 34px;
+  border-radius: 34px; /* This makes it a capsule */
 }
 
-.theme-toggle-slider:before {
+.theme-toggle .slider:before {
   position: absolute;
   content: "";
   height: 26px;
@@ -728,28 +724,102 @@ body {
   background-color: white;
   transition: .4s;
   border-radius: 50%;
+  z-index: 1;
 }
 
-.theme-toggle input:checked + .theme-toggle-slider {
+.theme-toggle input:checked + .slider {
   background-color: var(--primary-color);
 }
 
-.theme-toggle input:checked + .theme-toggle-slider:before {
-  transform: translateX(26px);
+.theme-toggle input:checked + .slider:before {
+  transform: translateX(36px); /* Adjusted for wider capsule */
 }
 
-.theme-toggle-slider:after {
-  content: '☀️';
+/* Icons inside the slider */
+.theme-toggle .slider .icon-light,
+.theme-toggle .slider .icon-dark {
   position: absolute;
-  left: 8px;
-  top: 6px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 16px;
-  transition: .4s;
+  color: #fff;
+  z-index: 0;
+  transition: opacity 0.4s;
 }
 
-.theme-toggle input:checked + .theme-toggle-slider:after {
-  content: '🌙';
+.theme-toggle .slider .icon-light {
   left: 8px;
+  opacity: 1;
+  color: #333; /* Color for sun icon */
+}
+
+.theme-toggle .slider .icon-dark {
+  right: 8px;
+  opacity: 0;
+}
+
+.theme-toggle input:checked + .slider .icon-light {
+  opacity: 0;
+}
+
+.theme-toggle input:checked + .slider .icon-dark {
+  opacity: 1;
+  color: #fff;
+}
+
+/* Hover effects for the capsule slider */
+.theme-toggle:hover .slider {
+  box-shadow: 0 0 10px rgba(94, 100, 255, 0.3);
+}
+
+.theme-toggle:hover .slider:before {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode styling for the toggle itself */
+.dark-mode .theme-toggle .slider {
+  background-color: #404040;
+}
+
+.dark-mode .theme-toggle input:checked + .slider {
+  background-color: var(--primary-color);
+}
+
+.dark-mode .theme-toggle .slider .icon-light {
+  color: #ffd700; /* Golden sun color in dark mode */
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 60px;
+    height: 30px;
+    margin-left: 10px;
+  }
+  
+  .theme-toggle .slider:before {
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+  }
+  
+  .theme-toggle input:checked + .slider:before {
+    transform: translateX(30px);
+  }
+  
+  .theme-toggle .slider .icon-light,
+  .theme-toggle .slider .icon-dark {
+    font-size: 14px;
+  }
+  
+  .theme-toggle .slider .icon-light {
+    left: 6px;
+  }
+  
+  .theme-toggle .slider .icon-dark {
+    right: 6px;
+  }
 }
 
 /* Utility classes */
