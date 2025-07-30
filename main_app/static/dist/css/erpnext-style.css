@@ -162,6 +162,19 @@ body {
   object-fit: cover;
 }
 
+.sidebar-default-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 2px solid #e9ecef;
+}
+
 .sidebar-user-info h6 {
   margin: 0;
   font-weight: 600;
@@ -214,6 +227,34 @@ body {
 
 .dark-mode .nav-submenu {
   background-color: #374151;
+}
+
+/* Dark mode support for default avatar */
+.dark-mode .sidebar-default-avatar {
+  color: #a0aec0;
+  background-color: #4a5568;
+  border-color: #718096;
+}
+
+/* AdminLTE default avatar styling */
+.adminlte-default-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 35px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 2px solid #e9ecef;
+}
+
+/* Dark mode support for AdminLTE default avatar */
+.dark-mode .adminlte-default-avatar {
+  color: #a0aec0;
+  background-color: #4a5568;
+  border-color: #718096;
 }
 
 /* Navigation Menu */

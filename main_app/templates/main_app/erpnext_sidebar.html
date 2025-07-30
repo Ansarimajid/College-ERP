@@ -3,7 +3,8 @@
 <!-- Sidebar Header -->
 <div class="sidebar-header">
     <div class="sidebar-user">
-        <img src="{{ request.user.profile_pic}}" alt="User Avatar" class="sidebar-user-avatar">
+        <img src="{{ request.user.profile_pic}}" alt="User Avatar" class="sidebar-user-avatar" id="sidebar-avatar" onerror="showDefaultAvatar()">
+        <i class="fas fa-user-circle sidebar-default-avatar" id="default-avatar" style="display: none;"></i>
         <div class="sidebar-user-info">
             <h6>{{ user.get_full_name|default:user.username }}</h6>
             <small>
@@ -36,7 +37,7 @@
         <div class="nav-item">
             {% url 'admin_view_profile' as admin_view_profile %}
             <a href="{{ admin_view_profile }}" class="nav-link {% if admin_view_profile == request.path %}active{% endif %}">
-                <i class="nav-icon fas fa-user-circle"></i>
+                <i class="fas fa-user-circle"></i>
                 <span class="nav-text">Profile</span>
             </a>
         </div>
@@ -220,7 +221,7 @@
         <div class="nav-item">
             {% url 'staff_view_profile' as staff_view_profile %}
             <a href="{{ staff_view_profile }}" class="nav-link {% if staff_view_profile == request.path %}active{% endif %}">
-                <i class="nav-icon fas fa-user-circle"></i>
+                <i class="fas fa-user-circle"></i>
                 <span class="nav-text">Profile</span>
             </a>
         </div>
@@ -312,7 +313,7 @@
         <div class="nav-item">
             {% url 'student_view_profile' as student_view_profile %}
             <a href="{{ student_view_profile }}" class="nav-link {% if student_view_profile == request.path %}active{% endif %}">
-                <i class="nav-icon fas fa-user-circle"></i>
+                <i class="fas fa-user-circle"></i>
                 <span class="nav-text">Profile</span>
             </a>
         </div>
@@ -372,3 +373,24 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+function showDefaultAvatar() {
+    // Hide the broken image
+    document.getElementById('sidebar-avatar').style.display = 'none';
+    // Show the default FontAwesome icon
+    document.getElementById('default-avatar').style.display = 'inline-block';
+}
+
+// Also check if profile_pic is empty or null and show default avatar
+document.addEventListener('DOMContentLoaded', function() {
+    const avatar = document.getElementById('sidebar-avatar');
+    const defaultAvatar = document.getElementById('default-avatar');
+    
+    // Check if src is empty, null, or just whitespace
+    if (!avatar.src || avatar.src.trim() === '' || avatar.src === window.location.href) {
+        avatar.style.display = 'none';
+        defaultAvatar.style.display = 'inline-block';
+    }
+});
+</script>

@@ -13,7 +13,8 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2" alt="User Image">
+                <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2" alt="User Image" id="sidebar-avatar-adminlte" onerror="showDefaultAvatarAdminLTE()">
+                <i class="nav-icon fas fa-user-circle adminlte-default-avatar" id="default-avatar-adminlte" style="display: none;"></i>
             </div>
             <div class="info">
                 <a href="#" class="d-block">{{user}}</a>
@@ -451,7 +452,8 @@
                                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                                     <div class="image">
                                         <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2"
-                                            alt="User Image">
+                                            alt="User Image" id="sidebar-avatar-student" onerror="showDefaultAvatarStudent()">
+                                        <i class="nav-icon fas fa-user-circle adminlte-default-avatar" id="default-avatar-student" style="display: none;"></i>
                                     </div>
                                     <div class="info">
                                         <a href="#" class="d-block">{{user}}</a>
@@ -552,3 +554,40 @@
                             </div>
                             <!-- /.sidebar -->
 </aside>
+
+<script>
+function showDefaultAvatarAdminLTE() {
+    // Hide the broken image
+    document.getElementById('sidebar-avatar-adminlte').style.display = 'none';
+    // Show the default FontAwesome icon
+    document.getElementById('default-avatar-adminlte').style.display = 'inline-block';
+}
+
+function showDefaultAvatarStudent() {
+    // Hide the broken image
+    document.getElementById('sidebar-avatar-student').style.display = 'none';
+    // Show the default FontAwesome icon
+    document.getElementById('default-avatar-student').style.display = 'inline-block';
+}
+
+// Also check if profile_pic is empty or null and show default avatar
+document.addEventListener('DOMContentLoaded', function() {
+    // Check AdminLTE avatar
+    const avatarAdminLTE = document.getElementById('sidebar-avatar-adminlte');
+    const defaultAvatarAdminLTE = document.getElementById('default-avatar-adminlte');
+    
+    if (avatarAdminLTE && (!avatarAdminLTE.src || avatarAdminLTE.src.trim() === '' || avatarAdminLTE.src === window.location.href)) {
+        avatarAdminLTE.style.display = 'none';
+        defaultAvatarAdminLTE.style.display = 'inline-block';
+    }
+    
+    // Check Student avatar
+    const avatarStudent = document.getElementById('sidebar-avatar-student');
+    const defaultAvatarStudent = document.getElementById('default-avatar-student');
+    
+    if (avatarStudent && (!avatarStudent.src || avatarStudent.src.trim() === '' || avatarStudent.src === window.location.href)) {
+        avatarStudent.style.display = 'none';
+        defaultAvatarStudent.style.display = 'inline-block';
+    }
+});
+</script>
