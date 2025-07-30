@@ -1418,6 +1418,131 @@ body {
   color: #fff !important;
 }
 
+/* Mobile responsive styles for card content overflow */
+@media (max-width: 768px) {
+  .card {
+    margin: 0.5rem !important;
+    border-radius: 8px !important;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .table-responsive {
+    border: none !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .table {
+    margin-bottom: 0 !important;
+    font-size: 0.875rem !important;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem !important;
+    white-space: nowrap !important;
+    min-width: 120px !important;
+  }
+  
+  /* Ensure containers don't overflow */
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    overflow-x: hidden !important;
+  }
+  
+  .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .col-md-12 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Make buttons stack better on mobile */
+  .btn {
+    font-size: 0.875rem !important;
+    padding: 0.375rem 0.75rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Modal improvements for mobile */
+  .modal-dialog {
+    margin: 1rem !important;
+    max-width: calc(100% - 2rem) !important;
+  }
+  
+  .modal-body {
+    padding: 1rem !important;
+  }
+  
+  /* Form controls on mobile */
+  .form-control,
+  .form-select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+  
+  /* Navbar adjustments for mobile */
+  .erpnext-navbar {
+    padding: 0 1rem !important;
+  }
+  
+  .erpnext-main {
+    padding-top: calc(var(--navbar-height) + 1rem) !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Page header responsive */
+  .page-header {
+    margin-bottom: 1rem !important;
+    padding: 0 !important;
+  }
+  
+  .page-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Breadcrumb mobile */
+  .breadcrumb {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 0 !important;
+    margin-bottom: 0 !important;
+    background: transparent !important;
+  }
+  
+  /* Badge mobile sizing */
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.25em 0.5em !important;
+  }
+}
+
+/* Additional mobile table scrolling */
+@media (max-width: 576px) {
+  .table th,
+  .table td {
+    min-width: 100px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .card-body {
+    padding: 0.75rem !important;
+  }
+  
+  .btn {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
+
 /* Utility classes */
 .text-center { text-align: center; }
 .text-right { text-align: right; }
