@@ -3,7 +3,7 @@
 <!-- Sidebar Header -->
 <div class="sidebar-header">
     <div class="sidebar-user">
-        <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}/static/dist/img/default-avatar.png{% endif %}" alt="User Avatar" class="sidebar-user-avatar">
+        <img src="{{ request.user.profile_pic}}" alt="User Avatar" class="sidebar-user-avatar">
         <div class="sidebar-user-info">
             <h6>{{ user.get_full_name|default:user.username }}</h6>
             <small>

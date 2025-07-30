@@ -49,7 +49,7 @@
             </label>
             
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            <img src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}/static/dist/img/default-avatar.png{% endif %}" alt="User Avatar" class="user-avatar">
+            <img src="{{ request.user.profile_pic}}" alt="User Avatar" class="user-avatar">
         </div>
     </nav>
 
