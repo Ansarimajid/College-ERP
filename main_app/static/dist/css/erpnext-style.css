@@ -602,6 +602,15 @@ body {
   border-bottom: 1px solid #f1f3f4;
 }
 
+.table tbody tr:hover {
+  background-color: rgba(94, 100, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.table tr:hover td {
+  background-color: transparent;
+}
+
 /* Alerts */
 .alert {
   padding: 12px 16px;
@@ -850,6 +859,25 @@ body {
 .dark-mode .table td {
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
+}
+
+.dark-mode .table tbody tr:hover {
+  background-color: rgba(94, 100, 255, 0.1) !important;
+  color: var(--text-color) !important;
+}
+
+.dark-mode .table tbody tr:hover td {
+  background-color: transparent !important;
+  color: var(--text-color) !important;
+}
+
+.dark-mode .table tr:hover {
+  background-color: rgba(94, 100, 255, 0.1) !important;
+}
+
+.dark-mode .table tr:hover td {
+  color: var(--text-color) !important;
+  background-color: transparent !important;
 }
 
 .dark-mode .form-control {
