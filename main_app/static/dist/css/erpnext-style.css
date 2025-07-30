@@ -166,11 +166,54 @@ body {
   margin: 0;
   font-weight: 600;
   font-size: 14px;
+  color: var(--dark-color);
 }
 
 .sidebar-user-info small {
   color: var(--text-muted);
   font-size: 12px;
+}
+
+/* Dark mode support for sidebar user info */
+.dark-mode .sidebar-user-info h6 {
+  color: #f7fafc;
+}
+
+.dark-mode .sidebar-user-info small {
+  color: #a0aec0;
+}
+
+/* Dark mode support for entire sidebar */
+.dark-mode .erpnext-sidebar {
+  background: #2d3748;
+  border-right-color: #4a5568;
+}
+
+.dark-mode .sidebar-header {
+  border-bottom-color: #4a5568;
+}
+
+.dark-mode .nav-section-title {
+  color: #a0aec0;
+}
+
+.dark-mode .nav-link {
+  color: #e2e8f0;
+}
+
+.dark-mode .nav-link:hover {
+  background-color: #374151;
+  color: #66b3ff;
+}
+
+.dark-mode .nav-link.active {
+  background-color: #1a365d;
+  color: #66b3ff;
+  border-left-color: #66b3ff;
+}
+
+.dark-mode .nav-submenu {
+  background-color: #374151;
 }
 
 /* Navigation Menu */
