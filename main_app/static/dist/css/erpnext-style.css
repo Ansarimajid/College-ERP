@@ -411,6 +411,26 @@ body {
   margin: 0;
 }
 
+/* Dark mode support for stat cards */
+.dark-mode .stat-card {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark-mode .stat-card:hover {
+  background: #374151;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .stat-number {
+  color: #f7fafc;
+}
+
+.dark-mode .stat-label {
+  color: #a0aec0;
+}
+
 .stat-icon {
   font-size: 24px;
   width: 48px;
@@ -440,6 +460,110 @@ body {
 .stat-icon.danger {
   background-color: rgba(220, 53, 69, 0.1);
   color: var(--danger-color);
+}
+
+/* Legacy color classes for backward compatibility */
+.stat-icon.bg-blue {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.stat-icon.bg-green {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--success-color);
+}
+
+.stat-icon.bg-red {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger-color);
+}
+
+.stat-icon.bg-purple {
+  background-color: rgba(111, 66, 193, 0.1);
+  color: #6f42c1;
+}
+
+/* Dark mode support for stat-icon colors */
+.dark-mode .stat-icon.bg-blue {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: #66b3ff;
+}
+
+.dark-mode .stat-icon.bg-green {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #5cbf60;
+}
+
+.dark-mode .stat-icon.bg-red {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff6b6b;
+}
+
+.dark-mode .stat-icon.bg-purple {
+  background-color: rgba(111, 66, 193, 0.2);
+  color: #a28bfa;
+}
+
+.dark-mode .stat-icon.primary {
+  background-color: rgba(94, 100, 255, 0.2);
+  color: #8a92ff;
+}
+
+.dark-mode .stat-icon.success {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #5cbf60;
+}
+
+.dark-mode .stat-icon.warning {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffd93d;
+}
+
+.dark-mode .stat-icon.danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff6b6b;
+}
+
+/* Dark mode support for AdminLTE small-box icons */
+.dark-mode .small-box .icon {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark-mode .small-box.bg-info .icon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark-mode .small-box.bg-success .icon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark-mode .small-box.bg-danger .icon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark-mode .small-box.bg-primary .icon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Light mode adjustments for small-box icons */
+.small-box .icon {
+  transition: color 0.3s ease;
+}
+
+.small-box.bg-info .icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.small-box.bg-success .icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.small-box.bg-danger .icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.small-box.bg-primary .icon {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Buttons - ERPNext Style */
