@@ -37,7 +37,7 @@
                                  
                                       
                                       {% if leave.status == 0 %}
-                                           <td> <button data-toggle = "modal" data-target = "#reply_modal" value="{{leave.id}}" class="btn btn-success reply_open_modal">Reply</button>
+                                           <td> <button data-bs-toggle="modal" data-bs-target="#reply_modal" value="{{leave.id}}" class="btn btn-success reply_open_modal">Reply</button>
 {% elif leave.status == -1 %}
 <td><span  class='badge badge-danger'>Rejected</span></td>
 {% else %}
@@ -66,8 +66,7 @@
       <div class = "modal-content">
          
          <div class = "modal-header">
-            <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">
-                  &times;
+            <button type = "button" class = "btn-close" data-bs-dismiss = "modal" aria-hidden = "true">
             </button>
             
             <h4 class = "modal-title" id = "myModalLabel">
@@ -86,7 +85,7 @@
         </div>
         
         <div class = "modal-footer">
-            <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+            <button type = "button" class = "btn btn-danger" data-bs-dismiss = "modal">
                 Close
             </button>
             
