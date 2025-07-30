@@ -184,9 +184,16 @@
 {% block custom_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chart instances array
+        window.chartInstances = window.chartInstances || [];
+
         // Chart.js Configuration
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
-        Chart.defaults.color = '#262626';
+        
+        // Set initial colors based on current theme
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+        Chart.defaults.color = textColor;
         
         // ERPNext-style color palette
         const colors = {
@@ -201,7 +208,7 @@
 
         // Staff vs Students Pie Chart
         const pieCtx = document.getElementById('pieChart').getContext('2d');
-        new Chart(pieCtx, {
+        const pieChart = new Chart(pieCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Students', 'Staff'],
@@ -220,16 +227,18 @@
                         position: 'bottom',
                         labels: {
                             padding: 20,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart);
 
         // Attendance per Subject Bar Chart
         const barCtx = document.getElementById('barChart').getContext('2d');
-        new Chart(barCtx, {
+        const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: {{ subject_list|safe }},
@@ -253,21 +262,28 @@
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f1f3f4'
+                            color: isDarkMode ? '#404040' : '#f1f3f4'
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(barChart);
 
         // Student Attendance & Leave Overview
         const barCtx2 = document.getElementById('barChart2').getContext('2d');
-        new Chart(barCtx2, {
+        const barChart2 = new Chart(barCtx2, {
             type: 'bar',
             data: {
                 labels: {{ student_name_list|safe }},
@@ -293,7 +309,8 @@
                         position: 'top',
                         labels: {
                             padding: 20,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 },
@@ -301,21 +318,28 @@
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f1f3f4'
+                            color: isDarkMode ? '#404040' : '#f1f3f4'
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(barChart2);
 
         // Students per Course Pie Chart
         const pieCtx2 = document.getElementById('pieChart2').getContext('2d');
-        new Chart(pieCtx2, {
+        const pieChart2 = new Chart(pieCtx2, {
             type: 'doughnut',
             data: {
                 labels: {{ course_name_list|safe }},
@@ -337,16 +361,18 @@
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart2);
 
         // Students per Subject Pie Chart
         const pieCtx3 = document.getElementById('pieChart3').getContext('2d');
-        new Chart(pieCtx3, {
+        const pieChart3 = new Chart(pieCtx3, {
             type: 'doughnut',
             data: {
                 labels: {{ subject_list|safe }},
@@ -368,12 +394,14 @@
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart3);
     });
 </script>
 {% endblock custom_js %}

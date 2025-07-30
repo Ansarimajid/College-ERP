@@ -80,6 +80,13 @@
 {% block custom_js %}
 <script>
 $(document).ready(function(){
+    // Initialize chart instances array
+    window.chartInstances = window.chartInstances || [];
+
+    // Set initial colors based on current theme
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+
     // ERPNext Theme Colors
     var colors = {
         primary: '#5e64ff',
@@ -116,25 +123,27 @@ $(document).ready(function(){
     var donutOptions = {
       maintainAspectRatio : false,
       responsive : true,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-            font: {
-              size: 12
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              color: textColor,
+              font: {
+                size: 12
+              }
             }
           }
         }
-      }
     }
     var attendanceData = new Chart(attendanceDataCanvas, {
       type: 'doughnut',
       data: donutData,
       options: donutOptions      
     });
+    window.chartInstances.push(attendanceData);
 
     //attendanceStatistics
     //Bar Chart
@@ -173,7 +182,32 @@ $(document).ready(function(){
     var barChartOptions = {
       responsive              : true,
       maintainAspectRatio     : false,
-      datasetFill             : false
+      datasetFill             : false,
+      plugins: {
+        legend: {
+          labels: {
+            color: textColor
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: textColor
+          },
+          grid: {
+            color: isDarkMode ? '#404040' : '#f1f3f4'
+          }
+        },
+        x: {
+          ticks: {
+            color: textColor
+          },
+          grid: {
+            color: isDarkMode ? '#404040' : '#f1f3f4'
+          }
+        }
+      }
     }
 
     var barChart = new Chart(barChartCanvas, {
@@ -181,6 +215,7 @@ $(document).ready(function(){
       data: barChartData,
       options: barChartOptions
     })
+    window.chartInstances.push(barChart);
 })
 </script>
 

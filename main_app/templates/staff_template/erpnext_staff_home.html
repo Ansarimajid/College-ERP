@@ -173,9 +173,17 @@
 {% block custom_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chart instances and creators arrays
+        window.chartInstances = window.chartInstances || [];
+        window.chartCreators = window.chartCreators || [];
+
         // Chart.js Configuration
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
-        Chart.defaults.color = '#262626';
+        
+        // Set initial colors based on current theme
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+        Chart.defaults.color = textColor;
         
         // ERPNext-style color palette using CSS variables
         const colors = {
@@ -188,71 +196,103 @@
             dark: getComputedStyle(document.documentElement).getPropertyValue('--dark-color').trim() || '#262626'
         };
 
-        // Attendance vs Leave Pie Chart
-        const pieCtx = document.getElementById('pieChart').getContext('2d');
-        new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Attendance', 'Leave'],
-                datasets: [{
-                    data: [{{ total_attendance }}, {{ total_leave }}],
-                    backgroundColor: [colors.success, colors.warning],
-                    borderWidth: 0,
-                    cutout: '60%'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
+        // Pie Chart Creator Function
+        function createPieChart() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+            
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Attendance', 'Leave'],
+                    datasets: [{
+                        data: [{{ total_attendance }}, {{ total_leave }}],
+                        backgroundColor: [colors.success, colors.warning],
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                color: textColor
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+            window.chartInstances.push(pieChart);
+            return pieChart;
+        }
+        
+        // Create initial pie chart
+        createPieChart();
+        window.chartCreators.push(createPieChart);
+        console.log('Registered pie chart creator, total creators:', window.chartCreators.length);
 
-        // Subject-wise Attendance Bar Chart
-        const barCtx = document.getElementById('barChart').getContext('2d');
-        new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ subject_list|safe }},
-                datasets: [{
-                    label: 'Attendance Count',
-                    data: {{ attendance_list }},
-                    backgroundColor: colors.info,
-                    borderRadius: 4,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+        // Bar Chart Creator Function
+        function createBarChart() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+            const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+            
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ subject_list|safe }},
+                    datasets: [{
+                        label: 'Attendance Count',
+                        data: {{ attendance_list }},
+                        backgroundColor: colors.info,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f1f3f4'
-                        }
-                    },
-                    x: {
-                        grid: {
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                             display: false
                         }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
                     }
                 }
-            }
-        });
+            });
+            window.chartInstances.push(barChart);
+            return barChart;
+        }
+
+        // Create initial bar chart
+        createBarChart();
+        window.chartCreators.push(createBarChart);
+        console.log('Registered bar chart creator, total creators:', window.chartCreators.length);
     });
 </script>
 

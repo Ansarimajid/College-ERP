@@ -224,6 +224,143 @@
             const themeToggle = document.getElementById('theme-switch');
             const body = document.body;
             
+            // Initialize global chart arrays
+            window.chartInstances = window.chartInstances || [];
+            window.chartCreators = window.chartCreators || [];
+            console.log('Base template initialized chart arrays');
+            
+            // Simple function to register chart recreation callback
+            window.registerChartRecreation = function(callback) {
+                console.log('Registering chart recreation callback');
+                window.chartCreators.push(callback);
+            };
+            
+            // Global function to recreate all charts with new theme colors
+            window.recreateAllCharts = function() {
+                console.log('Recreating all charts with new theme colors');
+                console.log('Chart instances:', window.chartInstances ? window.chartInstances.length : 'undefined');
+                console.log('Chart creators:', window.chartCreators ? window.chartCreators.length : 'undefined');
+                
+                if (window.chartInstances) {
+                    console.log('Destroying', window.chartInstances.length, 'existing charts');
+                    // Destroy existing charts
+                    window.chartInstances.forEach((chart, index) => {
+                        if (chart && chart.destroy) {
+                            console.log('Destroying chart', index);
+                            chart.destroy();
+                        }
+                    });
+                    
+                    // Clear the instances array
+                    window.chartInstances = [];
+                }
+                
+                if (window.chartCreators) {
+                    console.log('Recreating', window.chartCreators.length, 'charts');
+                    // Recreate charts using stored creators
+                    window.chartCreators.forEach((creator, index) => {
+                        try {
+                            console.log('Calling chart creator', index);
+                            creator();
+                        } catch (error) {
+                            console.error('Error recreating chart', index, ':', error);
+                        }
+                    });
+                } else {
+                    console.warn('No chart creators found - charts cannot be recreated');
+                }
+            };
+
+            // Function to update chart colors based on theme
+            function updateChartColors() {
+                if (typeof Chart !== 'undefined') {
+                    const isDarkMode = body.classList.contains('dark-mode');
+                    const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+                    const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+                    
+                    Chart.defaults.color = textColor;
+                    Chart.defaults.borderColor = isDarkMode ? '#404040' : '#d1d8dd';
+                    Chart.defaults.backgroundColor = isDarkMode ? '#2d2d2d' : '#ffffff';
+                    
+                    // Update global legend defaults
+                    Chart.defaults.plugins = Chart.defaults.plugins || {};
+                    Chart.defaults.plugins.legend = Chart.defaults.plugins.legend || {};
+                    Chart.defaults.plugins.legend.labels = Chart.defaults.plugins.legend.labels || {};
+                    Chart.defaults.plugins.legend.labels.color = textColor;
+                    
+                    // Update grid colors
+                    if (Chart.defaults.scales) {
+                        Chart.defaults.scales.linear = Chart.defaults.scales.linear || {};
+                        Chart.defaults.scales.linear.grid = Chart.defaults.scales.linear.grid || {};
+                        Chart.defaults.scales.linear.grid.color = gridColor;
+                        Chart.defaults.scales.linear.ticks = Chart.defaults.scales.linear.ticks || {};
+                        Chart.defaults.scales.linear.ticks.color = textColor;
+                        
+                        Chart.defaults.scales.category = Chart.defaults.scales.category || {};
+                        Chart.defaults.scales.category.grid = Chart.defaults.scales.category.grid || {};
+                        Chart.defaults.scales.category.grid.color = gridColor;
+                        Chart.defaults.scales.category.ticks = Chart.defaults.scales.category.ticks || {};
+                        Chart.defaults.scales.category.ticks.color = textColor;
+                    }
+                    
+                    // Trigger chart updates if any charts exist
+                    if (window.chartInstances) {
+                        console.log('Updating', window.chartInstances.length, 'chart instances for theme change');
+                        window.chartInstances.forEach((chart, index) => {
+                            if (chart && typeof chart.update === 'function') {
+                                try {
+                                    console.log('Updating chart', index, 'with legend color:', textColor);
+                                    
+                                    // Ensure plugins object structure exists
+                                    chart.options.plugins = chart.options.plugins || {};
+                                    chart.options.plugins.legend = chart.options.plugins.legend || {};
+                                    chart.options.plugins.legend.labels = chart.options.plugins.legend.labels || {};
+                                    
+                                    // Update legend label colors
+                                    chart.options.plugins.legend.labels.color = textColor;
+                                    
+                                    // Update scales if they exist
+                                    if (chart.options.scales) {
+                                        Object.keys(chart.options.scales).forEach(scaleKey => {
+                                            const scale = chart.options.scales[scaleKey];
+                                            if (scale) {
+                                                // Update grid colors
+                                                scale.grid = scale.grid || {};
+                                                scale.grid.color = gridColor;
+                                                // Update tick colors
+                                                scale.ticks = scale.ticks || {};
+                                                scale.ticks.color = textColor;
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Force immediate update with resize to ensure legend redraws
+                                    chart.update('resize');
+                                    
+                                    // Additional forced redraw after a small delay
+                                    setTimeout(() => {
+                                        if (chart && !chart.destroyed) {
+                                            chart.resize();
+                                            chart.update('active');
+                                        }
+                                    }, 100);
+                                    
+                                    // Final update to ensure everything is rendered
+                                    setTimeout(() => {
+                                        if (chart && !chart.destroyed) {
+                                            chart.render();
+                                        }
+                                    }, 200);
+                                    
+                                } catch (error) {
+                                    console.warn('Error updating chart:', error);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+            
             // Check for saved theme preference or default to light mode
             const savedTheme = localStorage.getItem('theme') || 'light';
             
@@ -236,14 +373,88 @@
                 themeToggle.checked = false;
             }
             
+            // Initialize chart colors
+            updateChartColors();
+            
             // Toggle theme on switch change
             themeToggle.addEventListener('change', function() {
+                console.log('Theme toggle clicked, checked:', this.checked);
+                
                 if (this.checked) {
                     body.classList.add('dark-mode');
                     localStorage.setItem('theme', 'dark');
+                    console.log('Switched to dark mode');
                 } else {
                     body.classList.remove('dark-mode');
                     localStorage.setItem('theme', 'light');
+                    console.log('Switched to light mode');
+                }
+                
+                // Immediate direct chart update
+                const updateChartsDirectly = () => {
+                    console.log('Trying immediate direct chart update');
+                    const canvases = document.querySelectorAll('canvas');
+                    console.log('Found', canvases.length, 'canvas elements');
+                    
+                    let updatedCharts = 0;
+                    canvases.forEach((canvas, index) => {
+                        const chart = Chart.getChart(canvas);
+                        if (chart) {
+                            console.log('Found chart on canvas', index, 'attempting immediate update');
+                            
+                            const isDarkMode = document.body.classList.contains('dark-mode');
+                            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+                            const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+                            
+                            // Update chart options
+                            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                                chart.options.plugins.legend.labels.color = textColor;
+                            }
+                            
+                            if (chart.options.scales) {
+                                Object.keys(chart.options.scales).forEach(scaleKey => {
+                                    const scale = chart.options.scales[scaleKey];
+                                    if (scale) {
+                                        if (scale.grid) scale.grid.color = gridColor;
+                                        if (scale.ticks) scale.ticks.color = textColor;
+                                    }
+                                });
+                            }
+                            
+                            // Force immediate chart update
+                            chart.update('none'); // Use 'none' for immediate update
+                            updatedCharts++;
+                            console.log('Immediately updated chart on canvas', index);
+                        }
+                    });
+                    
+                    return updatedCharts;
+                };
+                
+                // Try immediate update first
+                const immediateUpdates = updateChartsDirectly();
+                
+                // If no charts were updated immediately, try the delayed approaches
+                if (immediateUpdates === 0) {
+                    console.log('No charts updated immediately, trying delayed approaches');
+                    
+                    setTimeout(() => {
+                        console.log('About to update chart colors (delayed)');
+                        updateChartColors();
+                        
+                        // Try direct update again after a short delay
+                        setTimeout(() => {
+                            const delayedUpdates = updateChartsDirectly();
+                            
+                            // If still no luck, try recreation approaches
+                            if (delayedUpdates === 0) {
+                                if (typeof window.recreateAllCharts === 'function') {
+                                    console.log('Trying chart recreation as final backup');
+                                    window.recreateAllCharts();
+                                }
+                            }
+                        }, 100);
+                    }, 50);
                 }
             });
         });
