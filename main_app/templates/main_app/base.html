@@ -1,153 +1,485 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>SIGCE College Portal</title>
-    <!-- Tell the browser to be responsive to screen width -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}College ERP - Dashboard{% endblock title %}</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static '/image/favicon1.ico' %}">
+    
+    <!-- ERPNext Style CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/erpnext-style.css' %}">
+    
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css'%} ">
-    <!-- Ionicons -->
-    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-    <!-- favicon -->
-    <link rel="shortcut icon" href="{%  static '/image/favicon1.ico' %}">
-    <!-- Tempusdominus Bbootstrap 4 -->
-    <link rel="stylesheet"
-        href="{% static 'plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css'%} ">
-    <!-- iCheck -->
-    <link rel="stylesheet" href="{% static 'plugins/icheck-bootstrap/icheck-bootstrap.min.css'%} ">
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
     
-    <!-- Theme style -->
-    <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css'%} ">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="{% static 'plugins/overlayScrollbars/css/OverlayScrollbars.min.css'%} ">
-    <!-- Daterange picker -->
-    <link rel="stylesheet" href="{% static 'plugins/daterangepicker/daterangepicker.css'%} ">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Google Font: Source Sans Pro -->
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
-    {% block custom_css %}
-
-    {% endblock custom_css %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block custom_css %}{% endblock custom_css %}
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed" >
-    <div class="wrapper" >
-
-        <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-light " style="background-color: #343a40;">
-            <!-- Left navbar links -->
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#"><i  style="color: white;" class="fas fa-bars"></i></a>
-                </li>
-
-            </ul>
-
-
-        </nav>
-        <!-- /.navbar -->
-
-        <!-- Main Sidebar Container -->
-          
- 
-        {% include "main_app/sidebar_template.html" with user=user %}
-
-      
-        <div class="content-wrapper">
-
-            <!-- Content Wrapper. Contains page content -->
-            <!-- Content Header (Page header) -->
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1 class="m-0 text-dark">{% block page_title %}{% endblock page_title %}</h1>
-                        </div><!-- /.col -->
-                        <div class="col-sm-6">
-                            
-                            <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                                <li class="breadcrumb-item active">{{ page_title }}</li>
-                            </ol>
-                        </div><!-- /.col -->
-                    </div><!-- /.row -->
-                </div><!-- /.container-fluid -->
-            </div>
-            <!-- /.content-header -->
-
-            <!-- Main content -->
-            
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-            <div class="form-group">
-                {% if messages %}
-                {% for message in messages  %}
-    
-                {% if message.tags == 'success' %}
-                <div class="alert alert-success">
-                    {{message}}
-                </div>
-                {% else %}
-                <div class="alert alert-danger">
-                    {{message}}
-                </div>
-                {% endif %}
-    
-                {% endfor %}
-                {% endif %}
-            </div>
-            </div></div></div></section>
-            {% block content %}
-
-            {% endblock content %}
-            <!-- /.content -->
+<body>
+    <!-- Navigation Bar -->
+    <nav class="erpnext-navbar">
+        <div class="navbar-left">
+            <button class="navbar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% if user.user_type == '1' %}{% url 'admin_home' %}{% elif user.user_type == '2' %}{% url 'staff_home' %}{% else %}{% url 'student_home' %}{% endif %}" class="navbar-brand">
+                College ERP
+            </a>
         </div>
-        <!-- /.content-wrapper -->
-        {% include "main_app/footer.html" %}
+        
+        <div class="navbar-user">
+            <!-- Dark Mode Toggle -->
+            <label class="theme-toggle" for="theme-switch">
+                <input type="checkbox" id="theme-switch" />
+                <span class="slider">
+                    <i class="fas fa-sun icon-light"></i>
+                    <i class="fas fa-moon icon-dark"></i>
+                </span>
+            </label>
+            
+            <!-- Logout Button -->
+            <a href="{% url 'user_logout' %}" class="btn btn-outline-primary btn-sm logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="logout-text">Logout</span>
+            </a>
+        </div>
+    </nav>
 
+    <!-- Sidebar -->
+    <aside class="erpnext-sidebar">
+        {% include "main_app/erpnext_sidebar.html" %}
+    </aside>
 
-    </div>
-    <!-- ./wrapper -->
-    <!-- jQuery -->
-    <script src="{% static 'plugins/jquery/jquery.min.js'%} "></script>
-    <!-- jQuery UI 1.11.4 -->
-    <script src="{% static 'plugins/jquery-ui/jquery-ui.min.js'%} "></script>
-    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <!-- Main Content -->
+    <main class="erpnext-main" id="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock page_title %}</h1>
+            {% if page_subtitle %}
+                <p class="page-subtitle">{{ page_subtitle }}</p>
+            {% endif %}
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% if user.user_type == '1' %}{% url 'admin_home' %}{% elif user.user_type == '2' %}{% url 'staff_home' %}{% else %}{% url 'student_home' %}{% endif %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    {% block breadcrumb %}{% endblock breadcrumb %}
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <div class="content-area fade-in">
+            {% block content %}{% endblock content %}
+        </div>
+    </main>
+   
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    
     <script>
-        $.widget.bridge('uibutton', $.ui.button)
+        // Sidebar toggle functionality
+        let isSidebarOpen = false;
+        
+        function toggleSidebar() {
+            const body = document.body;
+            if (window.innerWidth <= 768) {
+                // On mobile, toggle 'sidebar-open'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-open');
+                    body.classList.remove('sidebar-collapsed');
+                } else {
+                    body.classList.remove('sidebar-open');
+                    body.classList.add('sidebar-collapsed');
+                }
+            } else {
+                // On desktop, toggle 'sidebar-collapsed'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                } else {
+                    body.classList.remove('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                }
+            }
+            // Store state in localStorage
+            localStorage.setItem('sidebarOpen', isSidebarOpen);
+        }
+        
+        // Restore sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const stored = localStorage.getItem('sidebarOpen');
+            if (window.innerWidth <= 768) {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-open');
+                    document.body.classList.remove('sidebar-collapsed');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-open');
+                    document.body.classList.add('sidebar-collapsed');
+                    isSidebarOpen = false;
+                }
+            } else {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = false;
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                if (!isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.add('sidebar-open');
+                }
+            } else {
+                if (isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                }
+            }
+        });
+        
+        // Navigation menu toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item.has-submenu');
+            
+            navItems.forEach(item => {
+                const link = item.querySelector('.nav-link');
+                const submenu = item.querySelector('.nav-submenu');
+                
+                if (link && submenu) {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Toggle current item
+                        item.classList.toggle('open');
+                        
+                        // Close other open items
+                        navItems.forEach(otherItem => {
+                            if (otherItem !== item && otherItem.classList.contains('open')) {
+                                otherItem.classList.remove('open');
+                            }
+                        });
+                    });
+                }
+            });
+            
+            // Auto-close sidebar on mobile when clicking navigation links
+            const sidebarLinks = document.querySelectorAll('.erpnext-sidebar a[href]:not([href="#"]):not([href="javascript:void(0)"])');
+            
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Check if we're on mobile (768px or less)
+                    if (window.innerWidth <= 768) {
+                        // Close the sidebar
+                        const body = document.body;
+                        body.classList.remove('sidebar-open');
+                        body.classList.add('sidebar-collapsed');
+                        isSidebarOpen = false;
+                        localStorage.setItem('sidebarOpen', false);
+                    }
+                });
+            });
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const closeBtn = alert.querySelector('.btn-close');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                }, 5000);
+            });
+        });
+        
+        // Dark mode toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-switch');
+            const body = document.body;
+            
+            // Initialize global chart arrays
+            window.chartInstances = window.chartInstances || [];
+            window.chartCreators = window.chartCreators || [];
+            console.log('Base template initialized chart arrays');
+            
+            // Simple function to register chart recreation callback
+            window.registerChartRecreation = function(callback) {
+                console.log('Registering chart recreation callback');
+                window.chartCreators.push(callback);
+            };
+            
+            // Global function to recreate all charts with new theme colors
+            window.recreateAllCharts = function() {
+                console.log('Recreating all charts with new theme colors');
+                console.log('Chart instances:', window.chartInstances ? window.chartInstances.length : 'undefined');
+                console.log('Chart creators:', window.chartCreators ? window.chartCreators.length : 'undefined');
+                
+                if (window.chartInstances) {
+                    console.log('Destroying', window.chartInstances.length, 'existing charts');
+                    // Destroy existing charts
+                    window.chartInstances.forEach((chart, index) => {
+                        if (chart && chart.destroy) {
+                            console.log('Destroying chart', index);
+                            chart.destroy();
+                        }
+                    });
+                    
+                    // Clear the instances array
+                    window.chartInstances = [];
+                }
+                
+                if (window.chartCreators) {
+                    console.log('Recreating', window.chartCreators.length, 'charts');
+                    // Recreate charts using stored creators
+                    window.chartCreators.forEach((creator, index) => {
+                        try {
+                            console.log('Calling chart creator', index);
+                            creator();
+                        } catch (error) {
+                            console.error('Error recreating chart', index, ':', error);
+                        }
+                    });
+                } else {
+                    console.warn('No chart creators found - charts cannot be recreated');
+                }
+            };
+
+            // Function to update chart colors based on theme
+            function updateChartColors() {
+                if (typeof Chart !== 'undefined') {
+                    const isDarkMode = body.classList.contains('dark-mode');
+                    const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+                    const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+                    
+                    Chart.defaults.color = textColor;
+                    Chart.defaults.borderColor = isDarkMode ? '#404040' : '#d1d8dd';
+                    Chart.defaults.backgroundColor = isDarkMode ? '#2d2d2d' : '#ffffff';
+                    
+                    // Update global legend defaults
+                    Chart.defaults.plugins = Chart.defaults.plugins || {};
+                    Chart.defaults.plugins.legend = Chart.defaults.plugins.legend || {};
+                    Chart.defaults.plugins.legend.labels = Chart.defaults.plugins.legend.labels || {};
+                    Chart.defaults.plugins.legend.labels.color = textColor;
+                    
+                    // Update grid colors
+                    if (Chart.defaults.scales) {
+                        Chart.defaults.scales.linear = Chart.defaults.scales.linear || {};
+                        Chart.defaults.scales.linear.grid = Chart.defaults.scales.linear.grid || {};
+                        Chart.defaults.scales.linear.grid.color = gridColor;
+                        Chart.defaults.scales.linear.ticks = Chart.defaults.scales.linear.ticks || {};
+                        Chart.defaults.scales.linear.ticks.color = textColor;
+                        
+                        Chart.defaults.scales.category = Chart.defaults.scales.category || {};
+                        Chart.defaults.scales.category.grid = Chart.defaults.scales.category.grid || {};
+                        Chart.defaults.scales.category.grid.color = gridColor;
+                        Chart.defaults.scales.category.ticks = Chart.defaults.scales.category.ticks || {};
+                        Chart.defaults.scales.category.ticks.color = textColor;
+                    }
+                    
+                    // Trigger chart updates if any charts exist
+                    if (window.chartInstances) {
+                        console.log('Updating', window.chartInstances.length, 'chart instances for theme change');
+                        window.chartInstances.forEach((chart, index) => {
+                            if (chart && typeof chart.update === 'function') {
+                                try {
+                                    console.log('Updating chart', index, 'with legend color:', textColor);
+                                    
+                                    // Ensure plugins object structure exists
+                                    chart.options.plugins = chart.options.plugins || {};
+                                    chart.options.plugins.legend = chart.options.plugins.legend || {};
+                                    chart.options.plugins.legend.labels = chart.options.plugins.legend.labels || {};
+                                    
+                                    // Update legend label colors
+                                    chart.options.plugins.legend.labels.color = textColor;
+                                    
+                                    // Update scales if they exist
+                                    if (chart.options.scales) {
+                                        Object.keys(chart.options.scales).forEach(scaleKey => {
+                                            const scale = chart.options.scales[scaleKey];
+                                            if (scale) {
+                                                // Update grid colors
+                                                scale.grid = scale.grid || {};
+                                                scale.grid.color = gridColor;
+                                                // Update tick colors
+                                                scale.ticks = scale.ticks || {};
+                                                scale.ticks.color = textColor;
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Force immediate update with resize to ensure legend redraws
+                                    chart.update('resize');
+                                    
+                                    // Additional forced redraw after a small delay
+                                    setTimeout(() => {
+                                        if (chart && !chart.destroyed) {
+                                            chart.resize();
+                                            chart.update('active');
+                                        }
+                                    }, 100);
+                                    
+                                    // Final update to ensure everything is rendered
+                                    setTimeout(() => {
+                                        if (chart && !chart.destroyed) {
+                                            chart.render();
+                                        }
+                                    }, 200);
+                                    
+                                } catch (error) {
+                                    console.warn('Error updating chart:', error);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply saved theme
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.checked = true;
+            } else {
+                body.classList.remove('dark-mode');
+                themeToggle.checked = false;
+            }
+            
+            // Initialize chart colors
+            updateChartColors();
+            
+            // Toggle theme on switch change
+            themeToggle.addEventListener('change', function() {
+                console.log('Theme toggle clicked, checked:', this.checked);
+                
+                if (this.checked) {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                    console.log('Switched to dark mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                    console.log('Switched to light mode');
+                }
+                
+                // Immediate direct chart update
+                const updateChartsDirectly = () => {
+                    console.log('Trying immediate direct chart update');
+                    const canvases = document.querySelectorAll('canvas');
+                    console.log('Found', canvases.length, 'canvas elements');
+                    
+                    let updatedCharts = 0;
+                    canvases.forEach((canvas, index) => {
+                        const chart = Chart.getChart(canvas);
+                        if (chart) {
+                            console.log('Found chart on canvas', index, 'attempting immediate update');
+                            
+                            const isDarkMode = document.body.classList.contains('dark-mode');
+                            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+                            const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+                            
+                            // Update chart options
+                            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                                chart.options.plugins.legend.labels.color = textColor;
+                            }
+                            
+                            if (chart.options.scales) {
+                                Object.keys(chart.options.scales).forEach(scaleKey => {
+                                    const scale = chart.options.scales[scaleKey];
+                                    if (scale) {
+                                        if (scale.grid) scale.grid.color = gridColor;
+                                        if (scale.ticks) scale.ticks.color = textColor;
+                                    }
+                                });
+                            }
+                            
+                            // Force immediate chart update
+                            chart.update('none'); // Use 'none' for immediate update
+                            updatedCharts++;
+                            console.log('Immediately updated chart on canvas', index);
+                        }
+                    });
+                    
+                    return updatedCharts;
+                };
+                
+                // Try immediate update first
+                const immediateUpdates = updateChartsDirectly();
+                
+                // If no charts were updated immediately, try the delayed approaches
+                if (immediateUpdates === 0) {
+                    console.log('No charts updated immediately, trying delayed approaches');
+                    
+                    setTimeout(() => {
+                        console.log('About to update chart colors (delayed)');
+                        updateChartColors();
+                        
+                        // Try direct update again after a short delay
+                        setTimeout(() => {
+                            const delayedUpdates = updateChartsDirectly();
+                            
+                            // If still no luck, try recreation approaches
+                            if (delayedUpdates === 0) {
+                                if (typeof window.recreateAllCharts === 'function') {
+                                    console.log('Trying chart recreation as final backup');
+                                    window.recreateAllCharts();
+                                }
+                            }
+                        }, 100);
+                    }, 50);
+                }
+            });
+        });
     </script>
-    <!-- Bootstrap 4 -->
-    <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js'%} "></script>
-    <!-- ChartJS -->
-    <script src="{% static 'plugins/chart.js/Chart.min.js'%} "></script>
-    <!-- Sparkline -->
-    <script src="{% static 'plugins/sparklines/sparkline.js'%} "></script>
- 
-    <!-- jQuery Knob Chart -->
-    <script src="{% static 'plugins/jquery-knob/jquery.knob.min.js'%} "></script>
-    <!-- daterangepicker -->
-    <script src="{% static 'plugins/moment/moment.min.js'%} "></script>
-    <script src="{% static 'plugins/daterangepicker/daterangepicker.js'%} "></script>
-    <!-- Tempusdominus Bootstrap 4 -->
-    <script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'%} "></script>
-
-    <!-- overlayScrollbars -->
-    <script src="{% static 'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js'%} "></script>
-    <!-- AdminLTE App -->
-    <script src="{% static 'dist/js/adminlte.js'%} "></script>
-    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-    <script src="{% static 'dist/js/pages/dashboard.js'%} "></script>
-    <!-- AdminLTE for demo purposes -->
-    <script src="{% static 'dist/js/demo.js'%} "></script>
-    {% block custom_js %}
-
-    {% endblock custom_js %}
+    
+    {% block custom_js %}{% endblock custom_js %}
 </body>
-
 </html>

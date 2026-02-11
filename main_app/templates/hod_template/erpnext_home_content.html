@@ -1,4 +1,4 @@
-{% extends 'main_app/base.html' %}
+{% extends 'main_app/erpnext_base.html' %}
 {% load static %}
 
 {% block page_title %}Dashboard{% endblock page_title %}
@@ -14,7 +14,7 @@
             <div class="stat-icon primary">
                 <i class="fas fa-user-graduate"></i>
             </div>
-            <div class="stat-number" style="color: var(--primary-color);">{{ total_students }}</div>
+            <div class="stat-number primary">{{ total_students }}</div>
             <p class="stat-label">Total Students</p>
             <a href="{% url 'manage_student' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -25,7 +25,7 @@
             <div class="stat-icon success">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="stat-number" style="color: var(--success-color);">{{ total_staff }}</div>
+            <div class="stat-number success">{{ total_staff }}</div>
             <p class="stat-label">Total Staff</p>
             <a href="{% url 'manage_staff' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -36,7 +36,7 @@
             <div class="stat-icon warning">
                 <i class="fas fa-graduation-cap"></i>
             </div>
-            <div class="stat-number" style="color: var(--warning-color);">{{ total_course }}</div>
+            <div class="stat-number warning">{{ total_course }}</div>
             <p class="stat-label">Total Courses</p>
             <a href="{% url 'manage_course' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -47,7 +47,7 @@
             <div class="stat-icon danger">
                 <i class="fas fa-book"></i>
             </div>
-            <div class="stat-number" style="color: var(--danger-color);">{{ total_subject }}</div>
+            <div class="stat-number danger">{{ total_subject }}</div>
             <p class="stat-label">Total Subjects</p>
             <a href="{% url 'manage_subject' %}" class="btn btn-primary btn-sm mt-2">
                 <i class="fas fa-eye"></i> View All
@@ -151,25 +151,25 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'add_student' %}" class="btn btn-primary w-100">
+                            <a href="{% url 'add_student' %}" class="btn btn-primary btn-sm mt-2 w-100">
                                 <i class="fas fa-user-plus mb-2"></i><br>
                                 Add Student
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'add_staff' %}" class="btn btn-primary w-100">
+                            <a href="{% url 'add_staff' %}" class="btn btn-success btn-sm mt-2 w-100">
                                 <i class="fas fa-user-tie mb-2"></i><br>
                                 Add Staff
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'add_course' %}" class="btn btn-primary w-100">
+                            <a href="{% url 'add_course' %}" class="btn btn-warning btn-sm mt-2 w-100">
                                 <i class="fas fa-graduation-cap mb-2"></i><br>
                                 Add Course
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'add_subject' %}" class="btn btn-primary w-100">
+                            <a href="{% url 'add_subject' %}" class="btn btn-danger btn-sm mt-2 w-100">
                                 <i class="fas fa-book-open mb-2"></i><br>
                                 Add Subject
                             </a>
@@ -184,9 +184,16 @@
 {% block custom_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chart instances array
+        window.chartInstances = window.chartInstances || [];
+
         // Chart.js Configuration
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
-        Chart.defaults.color = '#262626';
+        
+        // Set initial colors based on current theme
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+        Chart.defaults.color = textColor;
         
         // ERPNext-style color palette
         const colors = {
@@ -201,7 +208,7 @@
 
         // Staff vs Students Pie Chart
         const pieCtx = document.getElementById('pieChart').getContext('2d');
-        new Chart(pieCtx, {
+        const pieChart = new Chart(pieCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Students', 'Staff'],
@@ -220,16 +227,18 @@
                         position: 'bottom',
                         labels: {
                             padding: 20,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart);
 
         // Attendance per Subject Bar Chart
         const barCtx = document.getElementById('barChart').getContext('2d');
-        new Chart(barCtx, {
+        const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: {{ subject_list|safe }},
@@ -253,21 +262,28 @@
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f1f3f4'
+                            color: isDarkMode ? '#404040' : '#f1f3f4'
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(barChart);
 
         // Student Attendance & Leave Overview
         const barCtx2 = document.getElementById('barChart2').getContext('2d');
-        new Chart(barCtx2, {
+        const barChart2 = new Chart(barCtx2, {
             type: 'bar',
             data: {
                 labels: {{ student_name_list|safe }},
@@ -293,7 +309,8 @@
                         position: 'top',
                         labels: {
                             padding: 20,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 },
@@ -301,21 +318,28 @@
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f1f3f4'
+                            color: isDarkMode ? '#404040' : '#f1f3f4'
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(barChart2);
 
         // Students per Course Pie Chart
         const pieCtx2 = document.getElementById('pieChart2').getContext('2d');
-        new Chart(pieCtx2, {
+        const pieChart2 = new Chart(pieCtx2, {
             type: 'doughnut',
             data: {
                 labels: {{ course_name_list|safe }},
@@ -337,16 +361,18 @@
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart2);
 
         // Students per Subject Pie Chart
         const pieCtx3 = document.getElementById('pieChart3').getContext('2d');
-        new Chart(pieCtx3, {
+        const pieChart3 = new Chart(pieCtx3, {
             type: 'doughnut',
             data: {
                 labels: {{ subject_list|safe }},
@@ -368,12 +394,14 @@
                         position: 'bottom',
                         labels: {
                             padding: 15,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            color: textColor
                         }
                     }
                 }
             }
         });
+        window.chartInstances.push(pieChart3);
     });
 </script>
 {% endblock custom_js %}

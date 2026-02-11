@@ -35,7 +35,7 @@ def staff_home(request):
         'subject_list': subject_list,
         'attendance_list': attendance_list
     }
-    return render(request, 'staff_template/home_content.html', context)
+    return render(request, "staff_template/erpnext_staff_home.html", context)
 
 
 def staff_take_attendance(request):

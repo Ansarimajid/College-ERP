@@ -1,0 +1,304 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+<div class="page-container">
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{total_attendance}}</div>
+                <div class="stat-label">Total Attendance</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon bg-green">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{percent_present}}<span class="stat-unit">%</span></div>
+                <div class="stat-label">Percentage Present</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon bg-red">
+                <i class="fas fa-calendar-minus"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{percent_absent}}<span class="stat-unit">%</span></div>
+                <div class="stat-label">Percentage Absent</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon bg-purple">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{total_subject}}</div>
+                <div class="stat-label">Total Subjects</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h5 class="card-title">Attendance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceData" style="height: 300px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h5 class="card-title">Subject-wise Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceStatistics" style="height: 300px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block custom_js %}
+<script>
+$(document).ready(function(){
+    // Initialize chart instances array
+    window.chartInstances = window.chartInstances || [];
+
+    // Set initial colors based on current theme
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+
+    // ERPNext Theme Colors
+    var colors = {
+        primary: '#5e64ff',
+        success: '#28a745',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8',
+        light: '#f8f9fa',
+        dark: '#343a40',
+        purple: '#6f42c1'
+    };
+
+    //Dataset
+    var subjects = {{data_name|safe}}
+    var data_present = {{data_present}}
+    var data_absent = {{data_absent}}
+
+    //-------------
+    //- DONUT CHART -
+    var attendanceDataCanvas = $('#attendanceData').get(0).getContext('2d')
+    var donutData = {
+      labels: [
+         'Present', 'Absent'
+      ],
+      datasets: [
+        {
+          data: [{{percent_present}}, {{percent_absent}}],
+          backgroundColor : [colors.success, colors.danger],
+          borderColor: [colors.success, colors.danger],
+          borderWidth: 2
+        }
+      ]
+    }
+    var donutOptions = {
+      maintainAspectRatio : false,
+      responsive : true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              color: textColor,
+              font: {
+                size: 12
+              }
+            }
+          }
+        }
+    }
+    var attendanceData = new Chart(attendanceDataCanvas, {
+      type: 'doughnut',
+      data: donutData,
+      options: donutOptions      
+    });
+    window.chartInstances.push(attendanceData);
+
+    //attendanceStatistics
+    //Bar Chart
+    var areaChartData = {
+        labels  : subjects,
+        datasets: [
+        {
+            label               : 'Present In Class',
+            backgroundColor     : colors.success,
+            borderColor         : colors.success,
+            pointRadius          : false,
+            pointColor          : colors.success,
+            pointStrokeColor    : colors.success,
+            pointHighlightFill  : '#fff',
+            pointHighlightStroke: colors.success,
+            data                : data_present
+          },
+
+          {
+            label               : 'Absent In Class',
+            backgroundColor     : colors.danger,
+            borderColor         : colors.danger,
+            pointRadius         : false,
+            pointColor          : colors.danger,
+            pointStrokeColor    : colors.danger,
+            pointHighlightFill  : '#fff',
+            pointHighlightStroke: colors.danger,
+            data                : data_absent
+          },
+        ]
+    }
+    var barChartCanvas = $('#attendanceStatistics').get(0).getContext('2d')
+    var barChartData = jQuery.extend(true, {}, areaChartData)
+    var temp = areaChartData.datasets[0]
+    barChartData.datasets[0] = temp
+    var barChartOptions = {
+      responsive              : true,
+      maintainAspectRatio     : false,
+      datasetFill             : false,
+      plugins: {
+        legend: {
+          labels: {
+            color: textColor
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: textColor
+          },
+          grid: {
+            color: isDarkMode ? '#404040' : '#f1f3f4'
+          }
+        },
+        x: {
+          ticks: {
+            color: textColor
+          },
+          grid: {
+            color: isDarkMode ? '#404040' : '#f1f3f4'
+          }
+        }
+      }
+    }
+
+    var barChart = new Chart(barChartCanvas, {
+      type: 'bar', 
+      data: barChartData,
+      options: barChartOptions
+    })
+    window.chartInstances.push(barChart);
+})
+</script>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-messaging.js"></script>
+
+<script>
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    var firebaseConfig = {
+        apiKey: "AIzaSyBarDWWHTfTMSrtc5Lj3Cdw5dEvjAkFwtM",
+        authDomain: "sms-with-django.firebaseapp.com",
+        databaseURL: "https://sms-with-django.firebaseio.com",
+        projectId: "sms-with-django",
+        storageBucket: "sms-with-django.appspot.com",
+        messagingSenderId: "945324593139",
+        appId: "1:945324593139:web:03fa99a8854bbd38420c86",
+        measurementId: "G-2F2RXTL9GT"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig)
+    const messaging = firebase.messaging();
+    function InitializeFireBaseMessaging() {
+        messaging
+            .requestPermission()
+            .then(function () {
+                console.log("Notification Permission");
+                return messaging.getToken();
+            })
+            .then(function (token) {
+                console.log("Token : " + token);
+                sendToServer(token);
+            })
+            .catch(function (reason) {
+                console.log(reason)
+            })
+    }
+    messaging.onMessage(function (payload) {
+        const notificationOption = {
+            body: payload.notification.body,
+            icon: payload.notification.icon,
+
+        }
+        if (Notification.permission == 'granted') {
+            var notification = new Notification(payload.notification.title, notificationOption);
+            notification.onclick = function (event) {
+                event.preventDefault();
+                window.open(payload.notification.click_action, "_blank");
+                notification.close();
+            }
+        }
+        console.log(payload);
+    });
+    messaging.onTokenRefresh(function () {
+        messaging.getToken()
+            .then(function (newToken) {
+                console.log("New Token : " + newToken);
+                sendToServer(newToken);
+
+            })
+            .catch(function (reason) {
+                console.log(reason)
+            })
+    })
+
+    function sendToServer(token){
+      $.ajax({
+        url: "{% url 'student_fcmtoken' %}",
+        type: 'POST',
+        data: {
+            token: token,
+        }
+    }).done(function (response) {
+       
+
+       
+    }).fail(function (response) {
+    })
+
+    }
+    
+    InitializeFireBaseMessaging();
+</script>
+{% endblock custom_js %}

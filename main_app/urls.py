@@ -106,7 +106,7 @@ urlpatterns = [
          name='get_student_attendance'),
     path("staff/attendance/save/",
          staff_views.save_attendance, name='save_attendance'),
-    path("staff/attendance/update/",
+    path("staff/attendance/update_save/",
          staff_views.update_attendance, name='update_attendance'),
     path("staff/fcmtoken/", staff_views.staff_fcmtoken, name='staff_fcmtoken'),
     path("staff/view/notification/", staff_views.staff_view_notification,

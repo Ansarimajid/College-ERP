@@ -14,8 +14,8 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    <div class="table card-body">
-                        <table class="table table-bordered table-hover">
+                    <div class="table card-body" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
+                        <table class="table table-bordered table-hover" style="min-width: 800px;">
                             <tr>
                                 <th>#</th>
                                 <th>Staff</th>
@@ -31,13 +31,13 @@
                                   <td>{{forloop.counter}}</td>
                                   <td>{{leave.staff}}</td>
                                   <td>{{leave.staff.course}}</td>
-                                  <td>{{leave.message}}</td>
+                                  <td style="word-wrap: break-word; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{leave.message}}</td>
                                   <td>{{leave.date}}</td>
                                   <td>{{leave.created_at}}</td>
                                  
                                       
                                       {% if leave.status == 0 %}
-                                           <td> <button data-toggle = "modal" data-target = "#reply_modal" value="{{leave.id}}" class="btn btn-success reply_open_modal">Reply</button>
+                                           <td> <button data-bs-toggle="modal" data-bs-target="#reply_modal" value="{{leave.id}}" class="btn btn-success reply_open_modal">Reply</button>
 {% elif leave.status == -1 %}
 <td><span  class='badge badge-danger'>Rejected</span></td>
 {% else %}
@@ -66,8 +66,7 @@
       <div class = "modal-content">
          
          <div class = "modal-header">
-            <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">
-                  &times;
+            <button type = "button" class = "btn-close" data-bs-dismiss = "modal" aria-hidden = "true">
             </button>
             
             <h4 class = "modal-title" id = "myModalLabel">
@@ -86,7 +85,7 @@
         </div>
         
         <div class = "modal-footer">
-            <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+            <button type = "button" class = "btn btn-danger" data-bs-dismiss = "modal">
                 Close
             </button>
             
@@ -101,6 +100,23 @@
 {% endblock content %}
 {% block custom_js %}
   <script>
+      // Get CSRF token
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+      const csrftoken = getCookie('csrftoken');
+      
       $(document).ready(function(){
           $(".reply_open_modal").click(function(){
               var id = $(this).val()
@@ -119,6 +135,9 @@
     $.ajax({
         url: "{% url 'view_staff_leave' %}",
         type:'POST',
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
         data:{
               id:id,
               status:status

@@ -1,212 +1,309 @@
-# College Enterprise Resource Planner
-This is a College Enterprise Resource Planner Developed by me and my project partners for my college.
-We use Python/Django Framwork for building an fully functional web application. (If facing problem!! : put discussion)
-## Deployed at <a href="https://syncx.pythonanywhere.com" target="_blank" rel="SIGCE"><span> SIGCE</span></a>   v1.1.0
+<div align="center">
 
-For viewing the home page of student or staff you must have required credentials given below
+# 🎓 College ERP System
 
-For Student login -
-Email : `student@student.com`
-Password : `student@erp`
+### Enterprise Resource Planning Solution for Educational Institutions
 
-For Staff login -
-Email : `staff@staff.com`
-Password : `staff@erp`
+[![Stars](https://img.shields.io/github/stars/Ansarimajid/College-ERP?style=for-the-badge&logo=github)](https://github.com/Ansarimajid/College-ERP)
+[![Python](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-Framework-green?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-## Features of this Project
+[Live Demo](https://syncx.pythonanywhere.com) • [Report Bug](https://github.com/Ansarimajid/College-ERP/issues) • [Request Feature](https://github.com/Ansarimajid/College-ERP/issues)
 
+</div>
 
-### A. Admin Users Can
-1. See Overall Summary Charts of Students Performances, Staff Performances, Courses, Subjects, Leave, etc.
-2. Manage Staff (Add, Update and Delete)
-3. Manage Students (Add, Update and Delete)
-4. Manage Course (Add, Update and Delete)
-5. Manage Subjects (Add, Update and Delete)
-6. Manage Sessions (Add, Update and Delete)
-7. View Student Attendance
-8. Review and Reply Student/Staff Feedback
-9. Review (Approve/Reject) Student/Staff Leave
+---
 
-### B. Staff/Teachers Can
-1. See the Overall Summary Charts related to their students, their subjects, leave status, etc.
-2. Take/Update Students Attendance
-3. Add/Update Result
-4. Apply for Leave
-5. Send Feedback to HOD
+## 📋 Table of Contents
 
-### C. Students Can
-1. See the Overall Summary Charts related to their attendance, their subjects, leave status, etc.
-2. View Attendance
-3. View Result
-4. Apply for Leave
-5. Send Feedback to HOD
+- [About](#-about)
+- [Features](#-features)
+- [Demo Credentials](#-demo-credentials)
+- [Technology Stack](#-technology-stack)
+- [Installation](#-installation)
+- [Screenshots](#-screenshots)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [Support](#-support)
 
+---
 
-## Support Developer
-1. Add a Star 🌟  to this 👆 Repository
-2. Follow on Github & LinkedIn 
+## 🎯 About
 
+**College ERP** is a comprehensive Enterprise Resource Planning system designed specifically for educational institutions. Built with Python and Django, this full-stack web application streamlines administrative tasks, student management, and staff operations in one unified platform.
 
-## How to Install and Run this project?
+### ✨ Why Choose This ERP?
 
-### Pre-Requisites:
-1. Install Git Version Control
-[ https://git-scm.com/ ]
+- 🚀 **Modern Tech Stack** - Built with Django for robust performance
+- 📊 **Data-Driven Insights** - Visual dashboards for performance tracking
+- 👥 **Multi-Role Support** - Separate interfaces for Admin, Staff, and Students
+- 🔒 **Secure** - Role-based access control and authentication
+- 📱 **Responsive Design** - Works seamlessly on all devices
 
-2. Install Python Latest Version
-[ https://www.python.org/downloads/ ]
+---
 
-3. Install Pip (Package Manager)
-[ https://pip.pypa.io/en/stable/installing/ ]
+## 🚀 Features
 
-*Alternative to Pip is Homebrew*
+### 👨‍💼 Admin Dashboard
 
-### Installation
-**1. Create a Folder where you want to save the project**
+<details>
+<summary>Click to expand Admin features</summary>
 
-**2. Create a Virtual Environment and Activate**
+- 📈 **Analytics Dashboard** - Overview charts for student/staff performance, courses, and subjects
+- 👥 **Staff Management** - Complete CRUD operations for staff members
+- 🎓 **Student Management** - Add, update, and delete student records
+- 📚 **Course Management** - Organize and manage academic courses
+- 📖 **Subject Management** - Handle subject assignments and details
+- 📅 **Session Management** - Control academic sessions and terms
+- ✅ **Attendance Monitoring** - View and track student attendance
+- 💬 **Feedback System** - Review and respond to feedback from students/staff
+- 🏖️ **Leave Management** - Approve or reject leave applications
 
-If you have conda installed in your system
+</details>
+
+### 👨‍🏫 Staff Portal
+
+<details>
+<summary>Click to expand Staff features</summary>
+
+- 📊 **Performance Dashboard** - Track student progress and subject analytics
+- ✏️ **Attendance Management** - Mark and update student attendance
+- 📝 **Result Entry** - Add and modify student examination results
+- 🏖️ **Leave Applications** - Apply for personal leave
+- 💭 **Feedback Channel** - Send feedback to administration
+
+</details>
+
+### 🎓 Student Portal
+
+<details>
+<summary>Click to expand Student features</summary>
+
+- 📊 **Personal Dashboard** - View attendance, results, and leave status
+- 📅 **Attendance Tracking** - Monitor class attendance records
+- 🎯 **Result Portal** - Access examination results and grades
+- 🏖️ **Leave Requests** - Submit leave applications
+- 💬 **Feedback System** - Provide feedback to HOD
+
+</details>
+
+---
+
+## 🔑 Demo Credentials
+
+### 🌐 Live Demo
+Visit: **[https://syncx.pythonanywhere.com](https://syncx.pythonanywhere.com)** (v1.1.0- older UI)
+
+### Login Details
+
+| Role | Email | Password |
+|------|-------|----------|
+| 👨‍🎓 **Student** | `studentone@student.com` | `studentone` |
+| 👨‍🏫 **Staff** | `staffone@staff.com` | `staffone` |
+
+---
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+|----------|-------------|
+| **Backend** | Python, Django Framework |
+| **Frontend** | HTML5, CSS3, JavaScript, Bootstrap |
+| **Database** | SQLite (Development), PostgreSQL (Production Ready) |
+| **Authentication** | Django Auth, Google reCAPTCHA |
+| **Deployment** | PythonAnywhere |
+
+---
+
+## 📥 Installation
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- ✅ [Git](https://git-scm.com/) - Version control
+- ✅ [Python 3.x](https://www.python.org/downloads/) - Programming language
+- ✅ [pip](https://pip.pypa.io/en/stable/installing/) - Package manager
+
+### Step-by-Step Setup
+
+#### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/Ansarimajid/College-ERP.git
+cd College-ERP
 ```
-$  conda env create -f college-erp.yml
+
+#### 2️⃣ Create Virtual Environment
+
+**Option A: Using Conda (Recommended)**
+```bash
+conda env create -f college-erp.yml
+conda activate Django-env
 ```
 
-Activate created conda environment
+**Option B: Using venv**
+
+<details>
+<summary>Windows</summary>
+
+```bash
+python -m venv venv
+source venv/scripts/activate
 ```
-$  conda activate Django-env
+</details>
+
+<details>
+<summary>macOS</summary>
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+</details>
+
+<details>
+<summary>Linux</summary>
+
+```bash
+virtualenv .
+source bin/activate
+```
+</details>
+
+#### 3️⃣ Install Dependencies
+
+```bash
+pip install -r requirements.txt
 ```
 
-Else Install Virtual Environment First
-```
-$  pip install virtualenv
-```
+#### 4️⃣ Configure Settings
 
-Create Virtual Environment
+Open `settings.py` and update:
 
-For Windows
-```
-$  python -m venv venv
-```
-For Mac
-```
-$  python3 -m venv venv
-```
-For Linux
-```
-$  virtualenv .
-```
-
-Activate Virtual Environment
-
-For Windows
-```
-$  source venv/scripts/activate
-```
-
-For Mac
-```
-$  source venv/bin/activate
-```
-
-For Linux
-```
-$  source bin/activate
-```
-
-**3. Clone this project**
-```
-$  git clone https://github.com/Ansarimajid/College-ERP.git
-```
-
-Then, Enter the project
-```
-$  cd College-ERP
-```
-
-**4. Install Requirements from 'requirements.txt'**
 ```python
-$  pip3 install -r requirements.txt
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 ```
 
-**5. Add the hosts**
+> ⚠️ **Security Note:** Never use `ALLOWED_HOSTS = ['*']` in production!
 
-- Got to settings.py file 
-- Then, On allowed hosts, Use **[]** as your host. 
-```python
-ALLOWED_HOSTS = []
-```
-*Do not use the fault allowed settings in this repo. It has security risk!*
+#### 5️⃣ Database Setup
 
-
-**6. Now Run Server**
-
-Command for PC:
-```python
-$ python manage.py runserver
+```bash
+python manage.py migrate
+python manage.py createsuperuser
 ```
 
-Command for Mac:
-```python
-$ python3 manage.py runserver
+Follow the prompts to create an admin account.
+
+#### 6️⃣ Run Development Server
+
+```bash
+# Windows
+python manage.py runserver
+
+# macOS/Linux
+python3 manage.py runserver
 ```
 
-Command for Linux:
-```python
-$ python3 manage.py runserver
-```
+🎉 **Success!** Visit `http://127.0.0.1:8000` in your browser
 
-**7. Login Credentials**
+---
 
-Create Super User (HOD)
-Command for PC:
-```
-$  python manage.py createsuperuser
-```
+## 📸 Screenshots
 
-Command for Mac:
-```
-$  python3 manage.py createsuperuser
-```
-
-Command for Linux:
-```
-$  python3 manage.py createsuperuser
-```
+![Demo Screenshot](Showcase/Screenshot_04.png)
+![Demo Screenshot](Showcase/Screenshot_03.png)
+![Demo Screenshot](Showcase/Screenshot_01.png)
+![Demo Screenshot](Showcase/Screenshot_02.png)
 
 
+---
 
-## Project's Journey
-- [x] Admin/Staff/Student Login
-- [x] Add and Edit Course
-- [x] Add and Edit Staff
-- [x] Add and Edit Student
-- [x] Add and Edit Subject
-- [x] Upload Staff's Picture
-- [x] Upload Student's Picture
-- [x] Sidebar Active Status
-- [x] Named URLs
-- [x] Model Forms for adding  student
-- [x] Model Forms for all
-- [x] Views Permission (MiddleWareMixin)
-- [x] Attendance and Update Attendance
-- [x] Password Reset Via Email
-- [x] Apply For Leave
-- [x] Students Can Check Attendance
-- [x] Check Email Availability
-- [x] Reply to Leave Applications
-- [x] Reply to Feedback
-- [x] Admin View Attendance
-- [x] Password Change for Admin, Staff and Students using *set_password()*
-- [x] Admin Profile Edit
-- [x] Staff Profile Edit
-- [x] Student Profile Edit
-- [x] Student Dashboard Fixed
-- [x] Passing Page Title From View  - Improved
-- [x] Staff Dashboard Fixed
-- [x] Admin Dashboard Fixed
-- [x] Staff Add Student's Result
-- [x] Staff Edit Result Using CBVs (Class Based Views)
-- [x] Google CAPTCHA
-- [x] Student View Result
-- [x] Change all links to be dynamic
-- [x] Code Restructure - Very Important
+## 🗺️ Roadmap
+
+### ✅ Completed Features
+
+- [x] Multi-role authentication system
+- [x] Complete CRUD operations for all entities
+- [x] Attendance management system
+- [x] Result management with CBVs
+- [x] Leave application workflow
+- [x] Feedback system
+- [x] Email notifications
+- [x] Google reCAPTCHA integration
+- [x] Profile management for all roles
+- [x] Dynamic dashboard analytics
+- [x] Responsive design
+- [x] Password reset functionality
+
+### 🔜 Upcoming Features
+
+
+- [ ] SMS notifications
+- [ ] Advanced reporting and analytics
+- [ ] Online examination module
+- [ ] Library management system
+- [ ] Fee management integration
+- [ ] Timetable generator
+- [ ] Parent portal
+
+---
+
+## 🤝 Contributing
+
+Contributions make the open-source community an amazing place to learn and create. Any contributions you make are **greatly appreciated**!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 💖 Support the Project
+
+If you find this project helpful, please consider:
+
+- ⭐ **Star this repository** on GitHub
+- 🐛 **Report bugs** to help improve the project
+- 💡 **Suggest new features** via issues
+- 📢 **Share** with fellow developers
+- 👨‍💻 **Contribute** to the codebase
+
+### Connect with the Developer
+
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?style=for-the-badge&logo=github)](https://github.com/Ansarimajid)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/ansmajidali)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📞 Contact & Support
+
+Having issues? Need help?
+
+- 📧 **Email:** [ansmajidali@gmail.com](mailto:ansmajidali@gmail.com)
+- 🐛 **Issues:** [GitHub Issues](https://github.com/Ansarimajid/College-ERP/issues)
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/Ansarimajid/College-ERP/discussions)
+
+---
+
+<div align="center">
+
+### ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Ansarimajid/College-ERP&type=Date)](https://star-history.com/#Ansarimajid/College-ERP&Date)
+
+**Made with ❤️ by [Ansari Majid](https://github.com/Ansarimajid)**
+
+*If this project helped you, consider giving it a star! ⭐*
+
+</div>

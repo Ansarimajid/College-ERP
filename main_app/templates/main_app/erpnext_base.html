@@ -1,0 +1,286 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}College ERP - {% block page_title %}Dashboard{% endblock page_title %}{% endblock title %}</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static '/image/favicon1.ico' %}">
+    
+    <!-- ERPNext Style CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/erpnext-style.css' %}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block custom_css %}{% endblock custom_css %}
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="erpnext-navbar">
+        <div class="navbar-left">
+            <button class="navbar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% if user.user_type == '1' %}{% url 'admin_home' %}{% elif user.user_type == '2' %}{% url 'staff_home' %}{% else %}{% url 'student_home' %}{% endif %}" class="navbar-brand">
+                College ERP
+            </a>
+        </div>
+        
+        <div class="navbar-user">
+            <!-- Dark Mode Toggle -->
+            <label class="theme-toggle" for="theme-switch">
+                <input type="checkbox" id="theme-switch" />
+                <p>jfef</p>
+                <span class="slider">
+                    <i class="fas fa-sun icon-light"></i>
+                    <i class="fas fa-moon icon-dark"></i>
+                </span>
+            </label>
+            <p>gygy</p>
+            
+            <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            <img src="{{ user.profile_pic.url }}" alt="User Avatar" class="user-avatar">
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="erpnext-sidebar">
+        {% include "main_app/erpnext_sidebar.html" %}
+    </aside>
+
+    <!-- Main Content -->
+    <main class="erpnext-main" id="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock page_title %}</h1>
+            {% if page_subtitle %}
+                <p class="page-subtitle">{{ page_subtitle }}</p>
+            {% endif %}
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% if user.user_type == '1' %}{% url 'admin_home' %}{% elif user.user_type == '2' %}{% url 'staff_home' %}{% else %}{% url 'student_home' %}{% endif %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    {% block breadcrumb %}{% endblock breadcrumb %}
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <div class="content-area fade-in">
+            {% block content %}{% endblock content %}
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    
+    <script>
+        // Sidebar toggle functionality
+        let isSidebarOpen = false;
+        
+        function toggleSidebar() {
+            const body = document.body;
+            if (window.innerWidth <= 768) {
+                // On mobile, toggle 'sidebar-open'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-open');
+                    body.classList.remove('sidebar-collapsed');
+                } else {
+                    body.classList.remove('sidebar-open');
+                    body.classList.add('sidebar-collapsed');
+                }
+            } else {
+                // On desktop, toggle 'sidebar-collapsed'
+                isSidebarOpen = !isSidebarOpen;
+                if (isSidebarOpen) {
+                    body.classList.add('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                } else {
+                    body.classList.remove('sidebar-collapsed');
+                    body.classList.remove('sidebar-open');
+                }
+            }
+            // Store state in localStorage
+            localStorage.setItem('sidebarOpen', isSidebarOpen);
+        }
+        
+        // Restore sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const stored = localStorage.getItem('sidebarOpen');
+            if (window.innerWidth <= 768) {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-open');
+                    document.body.classList.remove('sidebar-collapsed');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-open');
+                    document.body.classList.add('sidebar-collapsed');
+                    isSidebarOpen = false;
+                }
+            } else {
+                if (stored === 'true') {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = true;
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                    isSidebarOpen = false;
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                if (!isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.add('sidebar-open');
+                }
+            } else {
+                if (isSidebarOpen) {
+                    document.body.classList.add('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                    document.body.classList.remove('sidebar-open');
+                }
+            }
+        });
+        
+        // Navigation menu toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item.has-submenu');
+            
+            navItems.forEach(item => {
+                const link = item.querySelector('.nav-link');
+                const submenu = item.querySelector('.nav-submenu');
+                
+                if (link && submenu) {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Toggle current item
+                        item.classList.toggle('open');
+                        
+                        // Close other open items
+                        navItems.forEach(otherItem => {
+                            if (otherItem !== item && otherItem.classList.contains('open')) {
+                                otherItem.classList.remove('open');
+                            }
+                        });
+                    });
+                }
+            });
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const closeBtn = alert.querySelector('.btn-close');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                }, 5000);
+            });
+        });
+        
+        // Dark mode toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-switch');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply saved theme
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.checked = true;
+            } else {
+                body.classList.remove('dark-mode');
+                themeToggle.checked = false;
+            }
+            
+            // Toggle theme on switch change
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        });
+    </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-messaging.js"></script>
+    <script src="{% static 'dist/js/notification-manager.js' %}"></script>
+    <script>
+        // Initialize notification manager for all pages
+        document.addEventListener('DOMContentLoaded', function() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBarDWWHTfTMSrtc5Lj3Cdw5dEvjAkFwtM",
+                authDomain: "sms-with-django.firebaseapp.com",
+                databaseURL: "https://sms-with-django.firebaseio.com",
+                projectId: "sms-with-django",
+                storageBucket: "sms-with-django.appspot.com",
+                messagingSenderId: "945324593139",
+                appId: "1:945324593139:web:03fa99a8854bbd38420c86",
+                measurementId: "G-2F2RXTL9GT"
+            };
+            
+            const userType = "{{ request.user.user_type }}";
+            let tokenEndpoint = "";
+            if (userType === "2") {
+                tokenEndpoint = "{% url 'staff_fcmtoken' %}";
+            } else if (userType === "3") {
+                tokenEndpoint = "{% url 'student_fcmtoken' %}";
+            }
+            
+            if (tokenEndpoint) {
+                window.notificationManager = new NotificationManager(firebaseConfig, tokenEndpoint);
+            }
+        });
+    </script>
+    
+    {% block custom_js %}{% endblock custom_js %}
+</body>
+</html>

@@ -36,7 +36,7 @@
                                     {% if feedback.reply == "" %}
                                     <td>{{feedback.created_at}}</td>
                                     <td><span  class='badge badge-warning'>Pending Response</span></td>
-                                         <td> <button data-toggle = "modal" data-target = "#reply_modal" value="{{feedback.id}}" class="btn btn-success reply_open_modal">Reply</button>
+                                         <td> <button data-bs-toggle="modal" data-bs-target="#reply_modal" value="{{feedback.id}}" class="btn btn-success reply_open_modal">Reply</button>
                                         {% else %}
                                         <td>{{feedback.created_at}}</td>
                                         <td>{{feedback.updated_at}}</td>
@@ -62,8 +62,7 @@
       <div class = "modal-content">
          
          <div class = "modal-header">
-            <button type = "button" class = "close" data-dismiss = "modal" aria-hidden = "true">
-                  &times;
+            <button type = "button" class = "btn-close" data-bs-dismiss = "modal" aria-hidden = "true">
             </button>
             
             <h4 class = "modal-title" id = "myModalLabel">
@@ -78,7 +77,7 @@
         </div>
         
         <div class = "modal-footer">
-            <button type = "button" class = "btn btn-danger" data-dismiss = "modal">
+            <button type = "button" class = "btn btn-danger" data-bs-dismiss = "modal">
                 Close
             </button>
             
@@ -93,6 +92,23 @@
 {% endblock content %}
 {% block custom_js %}
   <script>
+      // Get CSRF token
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+      const csrftoken = getCookie('csrftoken');
+      
       $(document).ready(function(){
           $(".reply_open_modal").click(function(){
               var id = $(this).val()
@@ -106,10 +122,17 @@
             $("#reply_btn").on("click", function(){
                 var id = $("#id").val()
                 var reply = $("#reply_message").val()
+                if (reply.trim() === '') {
+                    alert("Please enter a reply message.");
+                    return;
+                }
 
                 $.ajax({
                     url: "{% url 'staff_feedback_message' %}",
                     type:'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
                     data:{
                           id:id,
                           reply:reply

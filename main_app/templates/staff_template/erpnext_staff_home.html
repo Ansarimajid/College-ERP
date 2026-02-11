@@ -1,0 +1,378 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+
+{% block page_title %}Staff Dashboard{% endblock page_title %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">Staff Dashboard</li>
+{% endblock breadcrumb %}
+
+{% block content %}
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-number" style="color: var(--primary-color);">{{ total_students }}</div>
+            <p class="stat-label">Total Students</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-number" style="color: var(--success-color);">{{ total_attendance }}</div>
+            <p class="stat-label">Total Attendance Taken</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <div class="stat-number" style="color: var(--warning-color);">{{ total_leave }}</div>
+            <p class="stat-label">Total Leave Applied</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-number" style="color: var(--danger-color);">{{ total_subject }}</div>
+            <p class="stat-label">Total Subjects</p>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <!-- Attendance vs Leave Chart -->
+        <div class="col-lg-6">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Attendance vs Leave Overview
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="pieChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject-wise Attendance Chart -->
+        <div class="col-lg-6">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Subject-wise Attendance
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'staff_take_attendance' %}" class="btn btn-primary btn-sm mt-2 w-100">
+                                <i class="fas fa-check-circle mb-2"></i><br>
+                                Take Attendance
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'staff_add_result' %}" class="btn btn-success btn-sm mt-2 w-100">
+                                <i class="fas fa-plus-circle mb-2"></i><br>
+                                Add Result
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'staff_apply_leave' %}" class="btn btn-warning btn-sm mt-2 w-100">
+                                <i class="fas fa-calendar-plus mb-2"></i><br>
+                                Apply for Leave
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'add_book' %}" class="btn btn-secondary btn-sm mt-2 w-100">
+                                <i class="fas fa-book-open mb-2"></i><br>
+                                Add Books
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+        <div class="col-12">
+            <div class="erpnext-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clock me-2"></i>
+                        Recent Activities
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stat-icon success me-3">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Attendance Records</h6>
+                                    <small class="text-muted">{{ total_attendance }} records taken</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stat-icon warning me-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Students Managed</h6>
+                                    <small class="text-muted">{{ total_students }} students in classes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stat-icon primary me-3">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Subjects Teaching</h6>
+                                    <small class="text-muted">{{ total_subject }} subjects assigned</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block custom_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chart instances and creators arrays
+        window.chartInstances = window.chartInstances || [];
+        window.chartCreators = window.chartCreators || [];
+
+        // Chart.js Configuration
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
+        
+        // Set initial colors based on current theme
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+        Chart.defaults.color = textColor;
+        
+        // ERPNext-style color palette using CSS variables
+        const colors = {
+            primary: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#5e64ff',
+            success: getComputedStyle(document.documentElement).getPropertyValue('--success-color').trim() || '#28a745',
+            warning: getComputedStyle(document.documentElement).getPropertyValue('--warning-color').trim() || '#ffc107',
+            danger: getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim() || '#dc3545',
+            info: getComputedStyle(document.documentElement).getPropertyValue('--info-color').trim() || '#17a2b8',
+            light: getComputedStyle(document.documentElement).getPropertyValue('--light-color').trim() || '#f8f9fc',
+            dark: getComputedStyle(document.documentElement).getPropertyValue('--dark-color').trim() || '#262626'
+        };
+
+        // Pie Chart Creator Function
+        function createPieChart() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+            
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Attendance', 'Leave'],
+                    datasets: [{
+                        data: [{{ total_attendance }}, {{ total_leave }}],
+                        backgroundColor: [colors.success, colors.warning],
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+            window.chartInstances.push(pieChart);
+            return pieChart;
+        }
+        
+        // Create initial pie chart
+        createPieChart();
+        window.chartCreators.push(createPieChart);
+        console.log('Registered pie chart creator, total creators:', window.chartCreators.length);
+
+        // Bar Chart Creator Function
+        function createBarChart() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#e0e0e0' : '#262626';
+            const gridColor = isDarkMode ? '#404040' : '#f1f3f4';
+            
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ subject_list|safe }},
+                    datasets: [{
+                        label: 'Attendance Count',
+                        data: {{ attendance_list }},
+                        backgroundColor: colors.info,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+            window.chartInstances.push(barChart);
+            return barChart;
+        }
+
+        // Create initial bar chart
+        createBarChart();
+        window.chartCreators.push(createBarChart);
+        console.log('Registered bar chart creator, total creators:', window.chartCreators.length);
+    });
+</script>
+
+<!-- Firebase configuration kept from original -->
+<script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-messaging.js"></script>
+
+<script>
+    // Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyBarDWWHTfTMSrtc5Lj3Cdw5dEvjAkFwtM",
+        authDomain: "sms-with-django.firebaseapp.com",
+        databaseURL: "https://sms-with-django.firebaseio.com",
+        projectId: "sms-with-django",
+        storageBucket: "sms-with-django.appspot.com",
+        messagingSenderId: "945324593139",
+        appId: "1:945324593139:web:03fa99a8854bbd38420c86",
+        measurementId: "G-2F2RXTL9GT"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+    
+    function InitializeFireBaseMessaging() {
+        messaging
+            .requestPermission()
+            .then(function () {
+                console.log("Notification Permission");
+                return messaging.getToken();
+            })
+            .then(function (token) {
+                console.log("Token : " + token);
+                sendToServer(token);
+            })
+            .catch(function (reason) {
+                console.log(reason)
+            })
+    }
+    
+    messaging.onMessage(function (payload) {
+        const notificationOption = {
+            body: payload.notification.body,
+            icon: payload.notification.icon,
+        }
+        if (Notification.permission == 'granted') {
+            var notification = new Notification(payload.notification.title, notificationOption);
+            notification.onclick = function (event) {
+                event.preventDefault();
+                window.open(payload.notification.click_action, "_blank");
+                notification.close();
+            }
+        }
+        console.log(payload);
+    });
+    
+    messaging.onTokenRefresh(function () {
+        messaging.getToken()
+            .then(function (newToken) {
+                console.log("New Token : " + newToken);
+                sendToServer(newToken);
+            })
+            .catch(function (reason) {
+                console.log(reason)
+            })
+    })
+
+    function sendToServer(token){
+        $.ajax({
+            url: "{% url 'staff_fcmtoken' %}",
+            type: 'POST',
+            data: {
+                token: token,
+            }
+        }).done(function (response) {
+        }).fail(function (response) {
+        })
+    }
+    
+    InitializeFireBaseMessaging();
+</script>
+{% endblock custom_js %}

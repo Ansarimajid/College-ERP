@@ -50,6 +50,17 @@ def doLogin(request, **kwargs):
         user = EmailBackend.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
         if user != None:
             login(request, user)
+            
+            # Handle "Remember Me" functionality
+            remember_me = request.POST.get('remember')
+            if remember_me:
+                # Set session to expire when browser closes = False
+                # Session will last for 30 days
+                request.session.set_expiry(30 * 24 * 60 * 60)  # 30 days in seconds
+            else:
+                # Set session to expire when browser closes
+                request.session.set_expiry(0)
+            
             if user.user_type == '1':
                 return redirect(reverse("admin_home"))
             elif user.user_type == '2':

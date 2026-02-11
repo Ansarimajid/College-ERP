@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>College ERP - Password Reset</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static '/image/favicon1.ico' %}">
+
+    <!-- ERPNext Style CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/erpnext-style.css' %}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <h1 class="login-title">College ERP</h1>
+                <p class="login-subtitle">Education Management System</p>
+            </div>
+
+            {% block content %}{% endblock %}
+
+            <!-- Footer -->
+            <div class="login-footer text-center mt-4">
+                <small class="text-muted">
+                    &copy; 2024 College ERP System. All rights reserved.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add 'form-control' class to form inputs for consistent styling
+            var formInputs = document.querySelectorAll('form input[type="text"], form input[type="email"], form input[type="password"]');
+            formInputs.forEach(function (input) {
+                input.classList.add('form-control');
+            });
+        });
+    </script>
+</body>
+
+</html>

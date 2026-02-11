@@ -151,6 +151,11 @@ AUTH_USER_MODEL = 'main_app.CustomUser'
 AUTHENTICATION_BACKENDS = ['main_app.EmailBackend.EmailBackend']
 TIME_ZONE = 'Asia/Kolkata'
 
+# Session Configuration for Remember Me functionality
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds (default)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # This will be overridden by remember me
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request to extend expiry
+
 # EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 # EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
 
