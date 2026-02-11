@@ -93,7 +93,7 @@
 ## 🔑 Demo Credentials
 
 ### 🌐 Live Demo
-Visit: **[https://syncx.pythonanywhere.com](https://syncx.pythonanywhere.com)** (v1.1.0- older UI)
+Visit: **[https://syncx.pythonanywhere.com](https://syncx.pythonanywhere.com)** (v2.0.0)
 
 ### Login Details
 
