@@ -2,9 +2,8 @@ import json
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
-from django.views.decorators.csrf import csrf_exempt
 
 from .EmailBackend import EmailBackend
 from .models import Attendance, Session, Subject 
@@ -80,13 +79,28 @@ def logout_user(request):
     return redirect("/")
 
 
-@csrf_exempt
 def get_attendance(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     subject_id = request.POST.get('subject')
     session_id = request.POST.get('session')
+
+    if not subject_id or not session_id:
+        return JsonResponse({'error': 'Both subject and session are required'}, status=400)
+
     try:
         subject = get_object_or_404(Subject, id=subject_id)
         session = get_object_or_404(Session, id=session_id)
+
+        if request.user.user_type == '2' and subject.staff.admin_id != request.user.id:
+            return HttpResponseForbidden('You are not allowed to access this subject attendance')
+        if request.user.user_type == '3':
+            return HttpResponseForbidden('Students cannot fetch staff attendance data')
+
         attendance = Attendance.objects.filter(subject=subject, session=session)
         attendance_list = []
         for attd in attendance:
@@ -96,9 +110,9 @@ def get_attendance(request):
                     "session": attd.session.id
                     }
             attendance_list.append(data)
-        return JsonResponse(json.dumps(attendance_list), safe=False)
-    except Exception as e:
-        return None
+        return JsonResponse(attendance_list, safe=False)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid request parameters'}, status=400)
 
 
 def showFirebaseJS(request):
@@ -136,4 +150,3 @@ messaging.setBackgroundMessageHandler(function (payload) {
 });
     """
     return HttpResponse(data, content_type='application/javascript')
-
