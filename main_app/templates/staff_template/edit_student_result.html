@@ -75,7 +75,7 @@
                     session:session
                 }
             }).done(function (response) {
-                var json_data = JSON.parse(response)
+                var json_data = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (json_data.length < 1) {
                     alert("No data to display")
                 } else {

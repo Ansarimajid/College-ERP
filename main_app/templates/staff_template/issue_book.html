@@ -1,0 +1,43 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}Issue Book{% endblock page_title %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="card card-dark">
+                        <div class="card-header">
+                            <h3 class="card-title">Issue Book</h3>
+                        </div>
+                        <div class="card-body">
+                            {% if alert %}
+                            <div class="alert alert-success">
+                                Book issued successfully!
+                            </div>
+                            {% endif %}
+                            {% if form %}
+                            <div class="form-group">
+                                <label>Select Student</label>
+                                {{ form.name2 }}
+                            </div>
+                            <div class="form-group">
+                                <label>Select Book (ISBN)</label>
+                                {{ form.isbn2 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Issue Book</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

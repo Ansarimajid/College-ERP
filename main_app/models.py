@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from datetime import datetime,timedelta
+from datetime import date, datetime, timedelta
 
 
 
@@ -86,8 +86,8 @@ class Book(models.Model):
 
 class Student(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
-    session = models.ForeignKey(Session, on_delete=models.DO_NOTHING, null=True)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=False)
+    session = models.ForeignKey(Session, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.admin.last_name + ", " + self.admin.first_name
@@ -99,17 +99,19 @@ class Library(models.Model):
         return str(self.student)
 
 def expiry():
-    return datetime.today() + timedelta(days=14)
+    return date.today() + timedelta(days=14)
+
+
 class IssuedBook(models.Model):
-    student_id = models.CharField(max_length=100, blank=True) 
-    isbn = models.CharField(max_length=13)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, null=True, blank=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
     issued_date = models.DateField(auto_now=True)
     expiry_date = models.DateField(default=expiry)
 
 
 
 class Staff(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.DO_NOTHING, null=True, blank=False)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=False)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -128,15 +130,15 @@ class Subject(models.Model):
 
 
 class Attendance(models.Model):
-    session = models.ForeignKey(Session, on_delete=models.DO_NOTHING)
-    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class AttendanceReport(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -145,7 +147,7 @@ class AttendanceReport(models.Model):
 
 class LeaveReportStudent(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    date = models.CharField(max_length=60)
+    date = models.DateField()
     message = models.TextField()
     status = models.SmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -154,7 +156,7 @@ class LeaveReportStudent(models.Model):
 
 class LeaveReportStaff(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
-    date = models.CharField(max_length=60)
+    date = models.DateField()
     message = models.TextField()
     status = models.SmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -203,21 +205,23 @@ class StudentResult(models.Model):
 @receiver(post_save, sender=CustomUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        if instance.user_type == 1:
+        user_type = str(instance.user_type)
+        if user_type == '1':
             Admin.objects.create(admin=instance)
-        if instance.user_type == 2:
+        if user_type == '2':
             Staff.objects.create(admin=instance)
-        if instance.user_type == 3:
+        if user_type == '3':
             Student.objects.create(admin=instance)
 
 
 @receiver(post_save, sender=CustomUser)
 def save_user_profile(sender, instance, **kwargs):
-    if instance.user_type == 1:
+    user_type = str(instance.user_type)
+    if user_type == '1' and hasattr(instance, 'admin'):
         instance.admin.save()
-    if instance.user_type == 2:
+    if user_type == '2' and hasattr(instance, 'staff'):
         instance.staff.save()
-    if instance.user_type == 3:
+    if user_type == '3' and hasattr(instance, 'student'):
         instance.student.save()
 
 # todos

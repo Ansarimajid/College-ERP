@@ -97,7 +97,7 @@ $(document).ready(function(){
     };
 
     //Dataset
-    var subjects = {{data_name|safe}}
+    var subjects = JSON.parse('{{data_name|escapejs}}')
     var data_present = {{data_present}}
     var data_absent = {{data_absent}}
 

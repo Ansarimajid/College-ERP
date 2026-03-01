@@ -1,17 +1,20 @@
 import json
+import os
 import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import (HttpResponse, HttpResponseRedirect,
                               get_object_or_404, redirect, render)
 from django.templatetags.static import static
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import UpdateView
 
 from .forms import *
 from .models import *
+from .utils import handle_file_upload
 
 
 def admin_home(request):
@@ -73,14 +76,14 @@ def admin_home(request):
         'total_staff': total_staff,
         'total_course': total_course,
         'total_subject': total_subject,
-        'subject_list': subject_list,
+        'subject_list': json.dumps(subject_list),
         'attendance_list': attendance_list,
         'student_attendance_present_list': student_attendance_present_list,
         'student_attendance_leave_list': student_attendance_leave_list,
-        "student_name_list": student_name_list,
+        "student_name_list": json.dumps(student_name_list),
         "student_count_list_in_subject": student_count_list_in_subject,
         "student_count_list_in_course": student_count_list_in_course,
-        "course_name_list": course_name_list,
+        "course_name_list": json.dumps(course_name_list),
 
     }
     return render(request, 'hod_template/home_content.html', context)
@@ -99,9 +102,11 @@ def add_staff(request):
             password = form.cleaned_data.get('password')
             course = form.cleaned_data.get('course')
             passport = request.FILES.get('profile_pic')
-            fs = FileSystemStorage()
-            filename = fs.save(passport.name, passport)
-            passport_url = fs.url(filename)
+            try:
+                passport_url = handle_file_upload(passport)
+            except ValidationError as e:
+                messages.error(request, str(e.message))
+                return render(request, 'hod_template/add_staff_template.html', context)
             try:
                 user = CustomUser.objects.create_user(
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
@@ -134,9 +139,11 @@ def add_student(request):
             course = student_form.cleaned_data.get('course')
             session = student_form.cleaned_data.get('session')
             passport = request.FILES['profile_pic']
-            fs = FileSystemStorage()
-            filename = fs.save(passport.name, passport)
-            passport_url = fs.url(filename)
+            try:
+                passport_url = handle_file_upload(passport)
+            except ValidationError as e:
+                messages.error(request, str(e.message))
+                return render(request, 'hod_template/add_student_template.html', context)
             try:
                 user = CustomUser.objects.create_user(
                     email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
@@ -253,7 +260,6 @@ def edit_staff(request, staff_id):
             first_name = form.cleaned_data.get('first_name')
             last_name = form.cleaned_data.get('last_name')
             address = form.cleaned_data.get('address')
-            username = form.cleaned_data.get('username')
             email = form.cleaned_data.get('email')
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
@@ -261,14 +267,11 @@ def edit_staff(request, staff_id):
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=staff.admin.id)
-                user.username = username
                 user.email = email
                 if password != None:
                     user.set_password(password)
                 if passport != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(passport.name, passport)
-                    passport_url = fs.url(filename)
+                    passport_url = handle_file_upload(passport)
                     user.profile_pic = passport_url
                 user.first_name = first_name
                 user.last_name = last_name
@@ -284,8 +287,6 @@ def edit_staff(request, staff_id):
         else:
             messages.error(request, "Please fil form properly")
     else:
-        user = CustomUser.objects.get(id=staff_id)
-        staff = Staff.objects.get(id=user.id)
         return render(request, "hod_template/edit_staff_template.html", context)
 
 
@@ -302,7 +303,6 @@ def edit_student(request, student_id):
             first_name = form.cleaned_data.get('first_name')
             last_name = form.cleaned_data.get('last_name')
             address = form.cleaned_data.get('address')
-            username = form.cleaned_data.get('username')
             email = form.cleaned_data.get('email')
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
@@ -312,11 +312,8 @@ def edit_student(request, student_id):
             try:
                 user = CustomUser.objects.get(id=student.admin.id)
                 if passport != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(passport.name, passport)
-                    passport_url = fs.url(filename)
+                    passport_url = handle_file_upload(passport)
                     user.profile_pic = passport_url
-                user.username = username
                 user.email = email
                 if password != None:
                     user.set_password(password)
@@ -435,7 +432,7 @@ def edit_session(request, session_id):
         return render(request, "hod_template/edit_session_template.html", context)
 
 
-@csrf_exempt
+@require_POST
 def check_email_availability(request):
     email = request.POST.get("email")
     try:
@@ -447,7 +444,6 @@ def check_email_availability(request):
         return HttpResponse(False)
 
 
-@csrf_exempt
 def student_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStudent.objects.all()
@@ -468,7 +464,6 @@ def student_feedback_message(request):
             return HttpResponse(False)
 
 
-@csrf_exempt
 def staff_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStaff.objects.all()
@@ -489,7 +484,6 @@ def staff_feedback_message(request):
             return HttpResponse(False)
 
 
-@csrf_exempt
 def view_staff_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStaff.objects.all()
@@ -511,10 +505,9 @@ def view_staff_leave(request):
             leave.save()
             return HttpResponse(True)
         except Exception as e:
-            return False
+            return HttpResponse(False)
 
 
-@csrf_exempt
 def view_student_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStudent.objects.all()
@@ -536,7 +529,7 @@ def view_student_leave(request):
             leave.save()
             return HttpResponse(True)
         except Exception as e:
-            return False
+            return HttpResponse(False)
 
 
 def admin_view_attendance(request):
@@ -551,7 +544,7 @@ def admin_view_attendance(request):
     return render(request, "hod_template/admin_view_attendance.html", context)
 
 
-@csrf_exempt
+@require_POST
 def get_admin_attendance(request):
     subject_id = request.POST.get('subject')
     session_id = request.POST.get('session')
@@ -570,9 +563,9 @@ def get_admin_attendance(request):
                 "name": str(report.student)
             }
             json_data.append(data)
-        return JsonResponse(json.dumps(json_data), safe=False)
+        return JsonResponse(json_data, safe=False)
     except Exception as e:
-        return None
+        return JsonResponse({'error': 'Invalid request parameters'}, status=400)
 
 
 def admin_view_profile(request):
@@ -593,9 +586,7 @@ def admin_view_profile(request):
                 if password != None:
                     custom_user.set_password(password)
                 if passport != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(passport.name, passport)
-                    passport_url = fs.url(filename)
+                    passport_url = handle_file_upload(passport)
                     custom_user.profile_pic = passport_url
                 custom_user.first_name = first_name
                 custom_user.last_name = last_name
@@ -628,7 +619,7 @@ def admin_notify_student(request):
     return render(request, "hod_template/student_notification.html", context)
 
 
-@csrf_exempt
+@require_POST
 def send_student_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -644,8 +635,8 @@ def send_student_notification(request):
             },
             'to': student.admin.fcm_token
         }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
+        fcm_key = os.environ.get('FCM_SERVER_KEY', '')
+        headers = {'Authorization': 'key=' + fcm_key,
                    'Content-Type': 'application/json'}
         data = requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStudent(student=student, message=message)
@@ -655,7 +646,7 @@ def send_student_notification(request):
         return HttpResponse("False")
 
 
-@csrf_exempt
+@require_POST
 def send_staff_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -671,8 +662,8 @@ def send_staff_notification(request):
             },
             'to': staff.admin.fcm_token
         }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
+        fcm_key = os.environ.get('FCM_SERVER_KEY', '')
+        headers = {'Authorization': 'key=' + fcm_key,
                    'Content-Type': 'application/json'}
         data = requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStaff(staff=staff, message=message)
@@ -682,6 +673,7 @@ def send_staff_notification(request):
         return HttpResponse("False")
 
 
+@require_POST
 def delete_staff(request, staff_id):
     staff = get_object_or_404(CustomUser, staff__id=staff_id)
     staff.delete()
@@ -689,6 +681,7 @@ def delete_staff(request, staff_id):
     return redirect(reverse('manage_staff'))
 
 
+@require_POST
 def delete_student(request, student_id):
     student = get_object_or_404(CustomUser, student__id=student_id)
     student.delete()
@@ -696,6 +689,7 @@ def delete_student(request, student_id):
     return redirect(reverse('manage_student'))
 
 
+@require_POST
 def delete_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     try:
@@ -707,6 +701,7 @@ def delete_course(request, course_id):
     return redirect(reverse('manage_course'))
 
 
+@require_POST
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     subject.delete()
@@ -714,6 +709,7 @@ def delete_subject(request, subject_id):
     return redirect(reverse('manage_subject'))
 
 
+@require_POST
 def delete_session(request, session_id):
     session = get_object_or_404(Session, id=session_id)
     try:

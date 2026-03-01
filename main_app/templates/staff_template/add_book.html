@@ -57,15 +57,45 @@
 
         </div>
     </div>
+
+    <!-- Books List -->
+    {% if books %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card card-dark">
+                <div class="card-header">
+                    <h3 class="card-title">All Books</h3>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Book Name</th>
+                                <th>Author</th>
+                                <th>ISBN</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ book.name }}</td>
+                                <td>{{ book.author }}</td>
+                                <td>{{ book.isbn }}</td>
+                                <td>{{ book.category }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 </section>
-    
-<!-- {% endblock content %}
-{% block custom_js %}
-<script>
-    if alert 
-        alert("Book is added successfully.");
-    document.location = "/view_books"
-    endif 
-</script>
-{% endblock custom_js %} -->
+
+{% endblock content %}

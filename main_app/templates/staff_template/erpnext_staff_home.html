@@ -247,7 +247,7 @@
             const barChart = new Chart(barCtx, {
                 type: 'bar',
                 data: {
-                    labels: {{ subject_list|safe }},
+                    labels: JSON.parse('{{ subject_list|escapejs }}'),
                     datasets: [{
                         label: 'Attendance Count',
                         data: {{ attendance_list }},
