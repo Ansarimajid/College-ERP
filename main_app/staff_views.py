@@ -312,21 +312,32 @@ def add_book(request):
 
         if not all([name, author, isbn, category]):
             messages.error(request, "All fields are required")
-            return render(request, "staff_template/add_book.html", {'page_title': 'Add Book'})
+            return render(request, "staff_template/add_book.html", {
+                'page_title': 'Add Book',
+                'books': Book.objects.all().order_by('-id')
+            })
 
         try:
             isbn_val = int(isbn)
         except ValueError:
             messages.error(request, "ISBN must be a valid number")
-            return render(request, "staff_template/add_book.html", {'page_title': 'Add Book'})
+            return render(request, "staff_template/add_book.html", {
+                'page_title': 'Add Book',
+                'books': Book.objects.all().order_by('-id')
+            })
 
-        books = Book.objects.create(name=name, author=author, isbn=isbn_val, category=category)
-        alert = True
-        return render(request, "staff_template/add_book.html", {'alert':alert})
+        Book.objects.create(name=name, author=author, isbn=isbn_val, category=category)
+        messages.success(request, "Book added successfully")
+        return render(request, "staff_template/add_book.html", {
+            'alert': True,
+            'page_title': 'Add Book',
+            'books': Book.objects.all().order_by('-id')
+        })
     context = {
-        'page_title': "Add Book"
+        'page_title': "Add Book",
+        'books': Book.objects.all().order_by('-id')
     }
-    return render(request, "staff_template/add_book.html",context)
+    return render(request, "staff_template/add_book.html", context)
 
 #issue book
 

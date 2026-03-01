@@ -1,0 +1,48 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}Issued Books{% endblock page_title %}
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">Issued Books</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Book Name</th>
+                                    <th>ISBN</th>
+                                    <th>Issued Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Fine (Rs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detail in details %}
+                                <tr>
+                                    <td>{{ detail.0 }}</td>
+                                    <td>{{ detail.1 }}</td>
+                                    <td>{{ detail.2 }}</td>
+                                    <td>{{ detail.3 }}</td>
+                                    <td>{{ detail.4 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No books issued.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
