@@ -8,10 +8,11 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import (HttpResponseRedirect, get_object_or_404,
                               redirect, render)
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .forms import *
 from .models import *
+from .utils import handle_file_upload
 
 
 def student_home(request):
@@ -45,14 +46,13 @@ def student_home(request):
         'subjects': subjects,
         'data_present': data_present,
         'data_absent': data_absent,
-        'data_name': subject_name,
+        'data_name': json.dumps(subject_name),
         'page_title': 'Student Homepage'
 
     }
     return render(request, 'student_template/erpnext_student_home.html', context)
 
 
-@ csrf_exempt
 def student_view_attendance(request):
     student = get_object_or_404(Student, admin=request.user)
     if request.method != 'POST':
@@ -81,9 +81,9 @@ def student_view_attendance(request):
                     "status": report.status
                 }
                 json_data.append(data)
-            return JsonResponse(json.dumps(json_data), safe=False)
+            return JsonResponse(json_data, safe=False)
         except Exception as e:
-            return None
+            return JsonResponse({'error': 'Could not fetch attendance data'}, status=400)
 
 
 def student_apply_leave(request):
@@ -155,9 +155,7 @@ def student_view_profile(request):
                 if password != None:
                     admin.set_password(password)
                 if passport != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(passport.name, passport)
-                    passport_url = fs.url(filename)
+                    passport_url = handle_file_upload(passport)
                     admin.profile_pic = passport_url
                 admin.first_name = first_name
                 admin.last_name = last_name
@@ -175,7 +173,7 @@ def student_view_profile(request):
     return render(request, "student_template/student_view_profile.html", context)
 
 
-@csrf_exempt
+@require_POST
 def student_fcmtoken(request):
     token = request.POST.get('token')
     student_user = get_object_or_404(CustomUser, id=request.user.id)

@@ -241,7 +241,7 @@
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
-                labels: {{ subject_list|safe }},
+                labels: JSON.parse('{{ subject_list|escapejs }}'),
                 datasets: [{
                     label: 'Attendance',
                     data: {{ attendance_list }},
@@ -286,7 +286,7 @@
         const barChart2 = new Chart(barCtx2, {
             type: 'bar',
             data: {
-                labels: {{ student_name_list|safe }},
+                labels: JSON.parse('{{ student_name_list|escapejs }}'),
                 datasets: [{
                     label: 'Present',
                     data: {{ student_attendance_present_list }},
@@ -342,7 +342,7 @@
         const pieChart2 = new Chart(pieCtx2, {
             type: 'doughnut',
             data: {
-                labels: {{ course_name_list|safe }},
+                labels: JSON.parse('{{ course_name_list|escapejs }}'),
                 datasets: [{
                     data: {{ student_count_list_in_course }},
                     backgroundColor: [
@@ -375,7 +375,7 @@
         const pieChart3 = new Chart(pieCtx3, {
             type: 'doughnut',
             data: {
-                labels: {{ subject_list|safe }},
+                labels: JSON.parse('{{ subject_list|escapejs }}'),
                 datasets: [{
                     data: {{ student_count_list_in_subject }},
                     backgroundColor: [

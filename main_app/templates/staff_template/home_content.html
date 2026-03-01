@@ -141,7 +141,7 @@
           options: pieOptions      
         });
 
-        var subject_list = {{ subject_list|safe|escape }};
+        var subject_list = JSON.parse('{{ subject_list|escapejs }}');
         var attendance_list = {{ attendance_list }};
   
             var barChartData = {

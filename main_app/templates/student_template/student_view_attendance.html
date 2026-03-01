@@ -108,7 +108,7 @@
                     end_date:end_date
                 }
             }).done(function (response) {
-                var json_data = JSON.parse(response)
+                var json_data = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (json_data.length < 1) {
                     $("#attendance_data").html("<div class='col-md-12 alert alert-danger'>No Data For Specified Parameters</div>")
 

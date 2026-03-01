@@ -5,11 +5,12 @@ from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import (HttpResponseRedirect, get_object_or_404,redirect, render)
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .forms import *
 from .models import *
 from . import forms, models
+from .utils import handle_file_upload
 from datetime import date
 
 def staff_home(request):
@@ -32,7 +33,7 @@ def staff_home(request):
         'total_attendance': total_attendance,
         'total_leave': total_leave,
         'total_subject': total_subject,
-        'subject_list': subject_list,
+        'subject_list': json.dumps(subject_list),
         'attendance_list': attendance_list
     }
     return render(request, "staff_template/erpnext_staff_home.html", context)
@@ -51,7 +52,7 @@ def staff_take_attendance(request):
     return render(request, 'staff_template/staff_take_attendance.html', context)
 
 
-@csrf_exempt
+@require_POST
 def get_students(request):
     subject_id = request.POST.get('subject')
     session_id = request.POST.get('session')
@@ -67,12 +68,12 @@ def get_students(request):
                     "name": student.admin.last_name + " " + student.admin.first_name
                     }
             student_data.append(data)
-        return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
+        return JsonResponse(student_data, safe=False)
     except Exception as e:
-        return e
+        return JsonResponse({'error': 'Could not fetch students'}, status=400)
 
 
-@csrf_exempt
+@require_POST
 def save_attendance(request):
     student_data = request.POST.get('student_ids')
     date = request.POST.get('date')
@@ -90,7 +91,7 @@ def save_attendance(request):
             attendance_report = AttendanceReport(student=student, attendance=attendance, status=student_dict.get('status'))
             attendance_report.save()
     except Exception as e:
-        return None
+        return HttpResponse("Error: " + str(e), status=400)
 
     return HttpResponse("OK")
 
@@ -108,7 +109,7 @@ def staff_update_attendance(request):
     return render(request, 'staff_template/staff_update_attendance.html', context)
 
 
-@csrf_exempt
+@require_POST
 def get_student_attendance(request):
     attendance_date_id = request.POST.get('attendance_date_id')
     try:
@@ -120,12 +121,12 @@ def get_student_attendance(request):
                     "name": attendance.student.admin.last_name + " " + attendance.student.admin.first_name,
                     "status": attendance.status}
             student_data.append(data)
-        return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
+        return JsonResponse(student_data, safe=False)
     except Exception as e:
-        return e
+        return JsonResponse({'error': 'Could not fetch attendance'}, status=400)
 
 
-@csrf_exempt
+@require_POST
 def update_attendance(request):
     student_data = request.POST.get('student_ids')
     date = request.POST.get('date')
@@ -140,7 +141,7 @@ def update_attendance(request):
             attendance_report.status = student_dict.get('status')
             attendance_report.save()
     except Exception as e:
-        return None
+        return HttpResponse("Error: " + str(e), status=400)
 
     return HttpResponse("OK")
 
@@ -209,9 +210,7 @@ def staff_view_profile(request):
                 if password != None:
                     admin.set_password(password)
                 if passport != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(passport.name, passport)
-                    passport_url = fs.url(filename)
+                    passport_url = handle_file_upload(passport)
                     admin.profile_pic = passport_url
                 admin.first_name = first_name
                 admin.last_name = last_name
@@ -232,7 +231,7 @@ def staff_view_profile(request):
     return render(request, "staff_template/staff_view_profile.html", context)
 
 
-@csrf_exempt
+@require_POST
 def staff_fcmtoken(request):
     token = request.POST.get('token')
     try:
@@ -287,7 +286,7 @@ def staff_add_result(request):
     return render(request, "staff_template/staff_add_result.html", context)
 
 
-@csrf_exempt
+@require_POST
 def fetch_student_result(request):
     try:
         subject_id = request.POST.get('subject')
@@ -306,14 +305,22 @@ def fetch_student_result(request):
 #library
 def add_book(request):
     if request.method == "POST":
-        name = request.POST['name']
-        author = request.POST['author']
-        isbn = request.POST['isbn']
-        category = request.POST['category']
+        name = request.POST.get('name', '').strip()
+        author = request.POST.get('author', '').strip()
+        isbn = request.POST.get('isbn', '').strip()
+        category = request.POST.get('category', '').strip()
 
+        if not all([name, author, isbn, category]):
+            messages.error(request, "All fields are required")
+            return render(request, "staff_template/add_book.html", {'page_title': 'Add Book'})
 
-        books = Book.objects.create(name=name, author=author, isbn=isbn, category=category )
-        books.save()
+        try:
+            isbn_val = int(isbn)
+        except ValueError:
+            messages.error(request, "ISBN must be a valid number")
+            return render(request, "staff_template/add_book.html", {'page_title': 'Add Book'})
+
+        books = Book.objects.create(name=name, author=author, isbn=isbn_val, category=category)
         alert = True
         return render(request, "staff_template/add_book.html", {'alert':alert})
     context = {
@@ -330,28 +337,24 @@ def issue_book(request):
         form = forms.IssueBookForm(request.POST)
         if form.is_valid():
             obj = models.IssuedBook()
-            obj.student_id = request.POST['name2']
-            obj.isbn = request.POST['isbn2']
+            obj.student = form.cleaned_data['name2']
+            obj.book = form.cleaned_data['isbn2']
             obj.save()
             alert = True
-            return render(request, "staff_template/issue_book.html", {'obj':obj, 'alert':alert})
-    return render(request, "staff_template/issue_book.html", {'form':form})
+            return render(request, "staff_template/issue_book.html", {'obj': obj, 'alert': alert})
+    return render(request, "staff_template/issue_book.html", {'form': form})
 
 def view_issued_book(request):
     issuedBooks = IssuedBook.objects.all()
     details = []
-    for i in issuedBooks:
-        days = (date.today()-i.issued_date)
-        d=days.days
-        fine=0
-        if d>14:
-            day=d-14
-            fine=day*5
-        books = list(models.Book.objects.filter(isbn=i.isbn))
-        # students = list(models.Student.objects.filter(admin=i.admin))
-        i=0
-        for l in books:
-            t=(books[i].name,books[i].isbn,issuedBooks[0].issued_date,issuedBooks[0].expiry_date,fine)
-            i=i+1
+    for issued in issuedBooks:
+        days = (date.today() - issued.issued_date)
+        d = days.days
+        fine = 0
+        if d > 14:
+            day = d - 14
+            fine = day * 5
+        if issued.book:
+            t = (issued.book.name, issued.book.isbn, issued.issued_date, issued.expiry_date, fine)
             details.append(t)
-    return render(request, "staff_template/view_issued_book.html", {'issuedBooks':issuedBooks, 'details':details})
+    return render(request, "staff_template/view_issued_book.html", {'issuedBooks': issuedBooks, 'details': details})

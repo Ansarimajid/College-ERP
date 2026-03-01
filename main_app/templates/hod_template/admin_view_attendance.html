@@ -123,7 +123,7 @@
             }
 
             ).done(function(response){
-                var json_data = JSON.parse(response)
+                var json_data = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (json_data.length > 0){
 
                     var html = "";
@@ -175,7 +175,7 @@ if (attendance_date.length  == 0){
                     subject:subject
                 }
             }).done(function (response) {
-                var json_data = JSON.parse(response)
+                var json_data = (typeof response === 'string') ? JSON.parse(response) : response;
                 if (json_data.length < 1) {
                     alert("No data to display")
 
