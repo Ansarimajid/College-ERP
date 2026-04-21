@@ -16,6 +16,7 @@ db.sqlite3
 .vscode
 .env
 .venv
+.venv-1/
 env/
 venv/
 ENV/
