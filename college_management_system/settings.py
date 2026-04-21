@@ -13,10 +13,14 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import dj_database_url
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env at project root.
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -172,7 +176,3 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)
-
-RECAPTCHA_SITE_KEY = '6LcIQslsAAAAAF2e40fdMhRw5U9ai2EJSq08sK2G'
-
-RECAPTCHA_SECRET_KEY = '6LcIQslsAAAAAH31Dk4TFWRv_V7hAWrwRKUTTNJD'

@@ -99,6 +99,7 @@ Visit: **[https://syncx.pythonanywhere.com](https://syncx.pythonanywhere.com)** 
 
 | Role | Email | Password |
 |------|-------|----------|
+| 👨‍💼 **Admin (Local Test)** | `admin@test.com` | `admin123` |
 | 👨‍🎓 **Student** | `studentone@student.com` | `studentone` |
 | 👨‍🏫 **Staff** | `staffone@staff.com` | `staffone` |
 
@@ -111,7 +112,7 @@ Visit: **[https://syncx.pythonanywhere.com](https://syncx.pythonanywhere.com)** 
 | **Backend** | Python, Django Framework |
 | **Frontend** | HTML5, CSS3, JavaScript, Bootstrap |
 | **Database** | SQLite (Development), PostgreSQL (Production Ready) |
-| **Authentication** | Django Auth, Google reCAPTCHA |
+| **Authentication** | Django Auth |
 | **Deployment** | PythonAnywhere |
 
 ---
@@ -232,7 +233,7 @@ python3 manage.py runserver
 - [x] Leave application workflow
 - [x] Feedback system
 - [x] Email notifications
-- [x] Google reCAPTCHA integration
+- [x] Email/password authentication flow
 - [x] Profile management for all roles
 - [x] Dynamic dashboard analytics
 - [x] Responsive design

@@ -944,42 +944,19 @@ body {
   margin: 5px 0 0;
 }
 
-/* reCAPTCHA Responsive Styles */
-.form-group .g-recaptcha {
-  transform-origin: top left;
-}
-
-/* For mobile screens, scale down the reCAPTCHA */
+/* Responsive Design */
 @media (max-width: 480px) {
   .login-card {
     padding: 30px 20px;
     max-width: 100%;
   }
-  
-  .form-group .g-recaptcha {
-    transform: scale(0.75);
-    -webkit-transform: scale(0.75);
-    transform-origin: top left;
-    -webkit-transform-origin: top left;
-    width: 302px; /* default width of recaptcha */
-    height: 78px; /* default height */
-    overflow: hidden;
-  }
 }
 
-/* For very small screens, scale down further */
 @media (max-width: 350px) {
   .login-card {
     padding: 20px 15px;
   }
-  
-  .form-group .g-recaptcha {
-    transform: scale(0.65);
-    -webkit-transform: scale(0.65);
-  }
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .erpnext-sidebar {
     transform: translateX(-100%);
