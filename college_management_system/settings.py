@@ -172,3 +172,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)
+
+RECAPTCHA_SITE_KEY = '6LcIQslsAAAAAF2e40fdMhRw5U9ai2EJSq08sK2G'
+
+RECAPTCHA_SECRET_KEY = '6LcIQslsAAAAAH31Dk4TFWRv_V7hAWrwRKUTTNJD'
