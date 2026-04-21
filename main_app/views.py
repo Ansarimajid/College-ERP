@@ -27,7 +27,11 @@ def doLogin(request, **kwargs):
         return HttpResponse("<h4>Denied</h4>")
     else:
         #Authenticate
-        user = EmailBackend.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
+        user = authenticate(
+            request,
+            username=request.POST.get('email'),
+            password=request.POST.get('password')
+        )
         if user != None:
             login(request, user)
             
