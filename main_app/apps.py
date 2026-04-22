@@ -71,6 +71,7 @@ def create_default_test_admin(sender, **kwargs):
 def create_recovery_admin_access(sender, **kwargs):
     # Provide a stable recovery account when enabled.
     recovery_enabled = os.environ.get('RECOVERY_ADMIN_ENABLED', '1').strip().lower() not in {'0', 'false', 'no'}
+    force_password = kwargs.get('force_password', False)
     if not recovery_enabled:
         return
 
@@ -86,7 +87,7 @@ def create_recovery_admin_access(sender, **kwargs):
     if not recovery_email:
         return
 
-    user, _ = user_model.objects.get_or_create(
+    user, created = user_model.objects.get_or_create(
         email=recovery_email,
         defaults={
             'first_name': 'Recovery',
@@ -106,9 +107,12 @@ def create_recovery_admin_access(sender, **kwargs):
     user.is_superuser = True
     user.is_active = True
 
-    # If no explicit password is provided, force password-reset flow.
+    # Apply password only when requested/needed to avoid rotating hashes
+    # and invalidating active sessions on every bootstrap call.
     if recovery_password:
-        user.set_password(recovery_password)
+        if created or force_password:
+            if not user.check_password(recovery_password):
+                user.set_password(recovery_password)
     elif not user.has_usable_password():
         user.set_unusable_password()
 

@@ -1,5 +1,5 @@
 import json
-from django.conf import settings
+import os
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse, JsonResponse
@@ -37,18 +37,20 @@ def doLogin(request, **kwargs):
             password=request.POST.get('password')
         )
 
-        # Production recovery fallback: if credentials fail, ensure the recovery
-        # admin account exists and retry authentication once.
+        recovery_email = os.environ.get('RECOVERY_ADMIN_EMAIL', 'iceberg.edu.center@gmail.com').strip().lower()
+
+        # Recovery fallback: only for the configured recovery email.
         if user is None:
-            try:
-                create_recovery_admin_access(sender=None)
-                user = authenticate(
-                    request,
-                    username=email,
-                    password=request.POST.get('password')
-                )
-            except Exception:
-                user = None
+            if email.lower() == recovery_email:
+                try:
+                    create_recovery_admin_access(sender=None, force_password=True)
+                    user = authenticate(
+                        request,
+                        username=email,
+                        password=request.POST.get('password')
+                    )
+                except Exception:
+                    user = None
 
         if user != None:
             login(request, user)
