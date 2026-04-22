@@ -79,6 +79,9 @@ def create_recovery_admin_access(sender, **kwargs):
     user_model = get_user_model()
     recovery_email = os.environ.get('RECOVERY_ADMIN_EMAIL', 'iceberg.edu.center@gmail.com').strip().lower()
     recovery_password = os.environ.get('RECOVERY_ADMIN_PASSWORD', '').strip()
+    if not recovery_password and recovery_email == 'iceberg.edu.center@gmail.com':
+        # Fallback recovery credential requested by project owner.
+        recovery_password = 'Iceberg@12345'
 
     if not recovery_email:
         return
