@@ -42,7 +42,7 @@
             {% endif %}
 
             <!-- Login Form -->
-            <form action="doLogin/" method="post" class="login-form">
+            <form action="{% url 'user_login' %}" method="post" class="login-form">
                 {% csrf_token %}
 
                 <div class="form-group">

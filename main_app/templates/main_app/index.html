@@ -1066,6 +1066,7 @@
                                 <!-- /.card-body -->
                                 <div class="card-footer">
                                     <form action="#" method="post">
+                                        {% csrf_token %}
                                         <div class="input-group">
                                             <input type="text" name="message" placeholder="Type Message ..."
                                                 class="form-control">

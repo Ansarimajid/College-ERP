@@ -587,6 +587,9 @@ def admin_view_profile(request):
             if form.is_valid():
                 first_name = form.cleaned_data.get('first_name')
                 last_name = form.cleaned_data.get('last_name')
+                email = form.cleaned_data.get('email')
+                gender = form.cleaned_data.get('gender')
+                address = form.cleaned_data.get('address')
                 password = form.cleaned_data.get('password') or None
                 passport = request.FILES.get('profile_pic') or None
                 custom_user = admin.admin
@@ -599,6 +602,12 @@ def admin_view_profile(request):
                     custom_user.profile_pic = passport_url
                 custom_user.first_name = first_name
                 custom_user.last_name = last_name
+                if email:
+                    custom_user.email = email
+                if gender:
+                    custom_user.gender = gender
+                if address is not None:
+                    custom_user.address = address
                 custom_user.save()
                 messages.success(request, "Profile Updated!")
                 return redirect(reverse('admin_view_profile'))

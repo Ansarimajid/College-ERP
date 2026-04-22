@@ -69,6 +69,11 @@ class StudentForm(CustomUserForm):
 class AdminForm(CustomUserForm):
     def __init__(self, *args, **kwargs):
         super(AdminForm, self).__init__(*args, **kwargs)
+        # Admin profile updates should not be blocked by optional legacy fields.
+        self.fields['password'].required = False
+        self.fields['profile_pic'].required = False
+        self.fields['gender'].required = False
+        self.fields['address'].required = False
 
     class Meta(CustomUserForm.Meta):
         model = Admin
