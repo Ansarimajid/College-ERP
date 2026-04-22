@@ -82,8 +82,8 @@ def student_view_attendance(request):
                 }
                 json_data.append(data)
             return JsonResponse(json.dumps(json_data), safe=False)
-        except Exception as e:
-            return None
+        except Exception:
+            return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
 def student_apply_leave(request):

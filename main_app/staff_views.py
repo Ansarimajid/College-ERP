@@ -68,8 +68,8 @@ def get_students(request):
                     }
             student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
-    except Exception as e:
-        return e
+    except Exception:
+        return JsonResponse({'error': 'Unable to fetch students.'}, status=400)
 
 
 @csrf_exempt
@@ -89,8 +89,8 @@ def save_attendance(request):
             student = get_object_or_404(Student, id=student_dict.get('id'))
             attendance_report = AttendanceReport(student=student, attendance=attendance, status=student_dict.get('status'))
             attendance_report.save()
-    except Exception as e:
-        return None
+    except Exception:
+        return HttpResponse("ERROR", status=400)
 
     return HttpResponse("OK")
 
@@ -121,8 +121,8 @@ def get_student_attendance(request):
                     "status": attendance.status}
             student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
-    except Exception as e:
-        return e
+    except Exception:
+        return JsonResponse({'error': 'Unable to fetch student attendance.'}, status=400)
 
 
 @csrf_exempt
@@ -139,8 +139,8 @@ def update_attendance(request):
             attendance_report = get_object_or_404(AttendanceReport, student=student, attendance=attendance)
             attendance_report.status = student_dict.get('status')
             attendance_report.save()
-    except Exception as e:
-        return None
+    except Exception:
+        return HttpResponse("ERROR", status=400)
 
     return HttpResponse("OK")
 

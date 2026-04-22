@@ -2,6 +2,7 @@ import json
 import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import (HttpResponse, HttpResponseRedirect,
                               get_object_or_404, redirect, render)
@@ -571,8 +572,8 @@ def get_admin_attendance(request):
             }
             json_data.append(data)
         return JsonResponse(json.dumps(json_data), safe=False)
-    except Exception as e:
-        return None
+    except Exception:
+        return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
 def admin_view_profile(request):
@@ -693,15 +694,31 @@ def send_staff_notification(request):
 
 def delete_staff(request, staff_id):
     staff = get_object_or_404(CustomUser, staff__id=staff_id)
-    staff.delete()
-    messages.success(request, "Staff deleted successfully!")
+    try:
+        staff.delete()
+        messages.success(request, "Staff deleted successfully!")
+    except IntegrityError:
+        messages.error(
+            request,
+            "Could not delete staff because related attendance data exists."
+        )
     return redirect(reverse('manage_staff'))
 
 
 def delete_student(request, student_id):
-    student = get_object_or_404(CustomUser, student__id=student_id)
-    student.delete()
-    messages.success(request, "Student deleted successfully!")
+    student_user = get_object_or_404(CustomUser, student__id=student_id)
+    try:
+        with transaction.atomic():
+            student_profile = student_user.student
+            # AttendanceReport keeps a DO_NOTHING FK to Student, so remove it manually.
+            AttendanceReport.objects.filter(student=student_profile).delete()
+            student_user.delete()
+        messages.success(request, "Student deleted successfully!")
+    except IntegrityError:
+        messages.error(
+            request,
+            "Could not delete student because related records still exist."
+        )
     return redirect(reverse('manage_student'))
 
 
@@ -718,8 +735,14 @@ def delete_course(request, course_id):
 
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
-    subject.delete()
-    messages.success(request, "Subject deleted successfully!")
+    try:
+        subject.delete()
+        messages.success(request, "Subject deleted successfully!")
+    except IntegrityError:
+        messages.error(
+            request,
+            "Could not delete subject because attendance records are linked to it."
+        )
     return redirect(reverse('manage_subject'))
 
 

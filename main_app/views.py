@@ -91,8 +91,8 @@ def get_attendance(request):
                     }
             attendance_list.append(data)
         return JsonResponse(json.dumps(attendance_list), safe=False)
-    except Exception as e:
-        return None
+    except Exception:
+        return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
 def showFirebaseJS(request):
