@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .EmailBackend import EmailBackend
-from .models import Attendance, Session, Subject 
+from .models import Admin, Attendance, Session, Staff, Student, Subject 
 
 # Create your views here.
 
@@ -26,14 +26,25 @@ def doLogin(request, **kwargs):
     if request.method != 'POST':
         return HttpResponse("<h4>Denied</h4>")
     else:
+        email = (request.POST.get('email') or '').strip()
+
         #Authenticate
         user = authenticate(
             request,
-            username=request.POST.get('email'),
+            username=email,
             password=request.POST.get('password')
         )
         if user != None:
             login(request, user)
+
+            # Heal missing role profiles for older records created before signal fixes.
+            user_type = str(user.user_type)
+            if user_type == '1':
+                Admin.objects.get_or_create(admin=user)
+            elif user_type == '2':
+                Staff.objects.get_or_create(admin=user)
+            elif user_type == '3':
+                Student.objects.get_or_create(admin=user)
             
             # Handle "Remember Me" functionality
             remember_me = request.POST.get('remember')

@@ -12,15 +12,21 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import dj_database_url
 import os
+import sys
 from pathlib import Path
-from dotenv import load_dotenv
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from .env at project root.
-load_dotenv(BASE_DIR / '.env')
+if load_dotenv is not None:
+    load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -178,7 +184,11 @@ else:
     EMAIL_BACKEND = 'main_app.mail_backends.CompatibleSMTPEmailBackend'
 # DEFAULT_FROM_EMAIL = "School Management System <admin@admin.com>"
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+if DEBUG or 'test' in sys.argv:
+    # Manifest storage requires collectstatic; use plain storage in dev/test.
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)

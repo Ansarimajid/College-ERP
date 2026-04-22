@@ -7,15 +7,17 @@ class EmailBackend(ModelBackend):
         UserModel = get_user_model()
         if username is None:
             username = kwargs.get(UserModel.USERNAME_FIELD)
+        if isinstance(username, str):
+            username = username.strip()
         if username is None or password is None:
             return None
 
         try:
-            user = UserModel.objects.get(email=username)
+            user = UserModel.objects.get(email__iexact=username)
         except UserModel.DoesNotExist:
             # Allow username-based lookup as fallback where USERNAME_FIELD is not email.
             try:
-                user = UserModel.objects.get(**{UserModel.USERNAME_FIELD: username})
+                user = UserModel.objects.get(**{f"{UserModel.USERNAME_FIELD}__iexact": username})
             except UserModel.DoesNotExist:
                 return None
 
