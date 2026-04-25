@@ -27,7 +27,7 @@ def staff_home(request):
         subject_list.append(subject.name)
         attendance_list.append(attendance_count)
     context = {
-        'page_title': 'Staff Panel - ' + str(staff.admin.first_name) + ' ' + str(staff.admin.last_name[0]) + '' + ' (' + str(staff.course) + ')',
+        'page_title': 'Staff Panel - ' + str(staff.admin.first_name) + ' ' + (str(staff.admin.last_name[0]) if staff.admin.last_name else '') + ' (' + str(staff.course) + ')',
         'total_students': total_students,
         'total_attendance': total_attendance,
         'total_leave': total_leave,
@@ -340,18 +340,10 @@ def issue_book(request):
 def view_issued_book(request):
     issuedBooks = IssuedBook.objects.all()
     details = []
-    for i in issuedBooks:
-        days = (date.today()-i.issued_date)
-        d=days.days
-        fine=0
-        if d>14:
-            day=d-14
-            fine=day*5
-        books = list(models.Book.objects.filter(isbn=i.isbn))
-        # students = list(models.Student.objects.filter(admin=i.admin))
-        i=0
-        for l in books:
-            t=(books[i].name,books[i].isbn,issuedBooks[0].issued_date,issuedBooks[0].expiry_date,fine)
-            i=i+1
-            details.append(t)
-    return render(request, "staff_template/view_issued_book.html", {'issuedBooks':issuedBooks, 'details':details})
+    for issued in issuedBooks:
+        days = (date.today() - issued.issued_date).days
+        fine = max(0, (days - 14) * 5)
+        book = models.Book.objects.filter(isbn=issued.isbn).first()
+        if book:
+            details.append((book.name, book.isbn, issued.issued_date, issued.expiry_date, fine))
+    return render(request, "staff_template/view_issued_book.html", {'issuedBooks': issuedBooks, 'details': details})

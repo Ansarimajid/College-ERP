@@ -101,8 +101,8 @@ class Library(models.Model):
 def expiry():
     return datetime.today() + timedelta(days=14)
 class IssuedBook(models.Model):
-    student_id = models.CharField(max_length=100, blank=True) 
-    isbn = models.CharField(max_length=13)
+    student_id = models.CharField(max_length=100, blank=True)
+    isbn = models.PositiveIntegerField()
     issued_date = models.DateField(auto_now=True)
     expiry_date = models.DateField(default=expiry)
 
@@ -164,7 +164,7 @@ class LeaveReportStaff(models.Model):
 class FeedbackStudent(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     feedback = models.TextField()
-    reply = models.TextField()
+    reply = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -172,7 +172,7 @@ class FeedbackStudent(models.Model):
 class FeedbackStaff(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
     feedback = models.TextField()
-    reply = models.TextField()
+    reply = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

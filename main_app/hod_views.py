@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
@@ -100,10 +101,12 @@ def add_staff(request):
             password = form.cleaned_data.get('password')
             course = form.cleaned_data.get('course')
             passport = request.FILES.get('profile_pic')
-            fs = FileSystemStorage()
-            filename = fs.save(passport.name, passport)
-            passport_url = fs.url(filename)
             try:
+                passport_url = ''
+                if passport:
+                    fs = FileSystemStorage()
+                    filename = fs.save(passport.name, passport)
+                    passport_url = fs.url(filename)
                 user = CustomUser.objects.create_user(
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
@@ -134,11 +137,13 @@ def add_student(request):
             password = student_form.cleaned_data.get('password')
             course = student_form.cleaned_data.get('course')
             session = student_form.cleaned_data.get('session')
-            passport = request.FILES['profile_pic']
-            fs = FileSystemStorage()
-            filename = fs.save(passport.name, passport)
-            passport_url = fs.url(filename)
+            passport = request.FILES.get('profile_pic')
             try:
+                passport_url = ''
+                if passport:
+                    fs = FileSystemStorage()
+                    filename = fs.save(passport.name, passport)
+                    passport_url = fs.url(filename)
                 user = CustomUser.objects.create_user(
                     email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
@@ -243,7 +248,7 @@ def manage_subject(request):
 
 def edit_staff(request, staff_id):
     staff = get_object_or_404(Staff, id=staff_id)
-    form = StaffForm(request.POST or None, instance=staff)
+    form = StaffEditForm(request.POST or None, request.FILES or None, instance=staff)
     context = {
         'form': form,
         'staff_id': staff_id,
@@ -254,7 +259,6 @@ def edit_staff(request, staff_id):
             first_name = form.cleaned_data.get('first_name')
             last_name = form.cleaned_data.get('last_name')
             address = form.cleaned_data.get('address')
-            username = form.cleaned_data.get('username')
             email = form.cleaned_data.get('email')
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
@@ -262,11 +266,10 @@ def edit_staff(request, staff_id):
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=staff.admin.id)
-                user.username = username
                 user.email = email
-                if password != None:
+                if password is not None:
                     user.set_password(password)
-                if passport != None:
+                if passport is not None:
                     fs = FileSystemStorage()
                     filename = fs.save(passport.name, passport)
                     passport_url = fs.url(filename)
@@ -283,11 +286,8 @@ def edit_staff(request, staff_id):
             except Exception as e:
                 messages.error(request, "Could Not Update " + str(e))
         else:
-            messages.error(request, "Please fil form properly")
-    else:
-        user = CustomUser.objects.get(id=staff_id)
-        staff = Staff.objects.get(id=user.id)
-        return render(request, "hod_template/edit_staff_template.html", context)
+            messages.error(request, "Please fill form properly")
+    return render(request, "hod_template/edit_staff_template.html", context)
 
 
 def edit_student(request, student_id):
@@ -303,7 +303,6 @@ def edit_student(request, student_id):
             first_name = form.cleaned_data.get('first_name')
             last_name = form.cleaned_data.get('last_name')
             address = form.cleaned_data.get('address')
-            username = form.cleaned_data.get('username')
             email = form.cleaned_data.get('email')
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
@@ -312,14 +311,13 @@ def edit_student(request, student_id):
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=student.admin.id)
-                if passport != None:
+                if passport is not None:
                     fs = FileSystemStorage()
                     filename = fs.save(passport.name, passport)
                     passport_url = fs.url(filename)
                     user.profile_pic = passport_url
-                user.username = username
                 user.email = email
-                if password != None:
+                if password is not None:
                     user.set_password(password)
                 user.first_name = first_name
                 user.last_name = last_name
@@ -335,8 +333,7 @@ def edit_student(request, student_id):
                 messages.error(request, "Could Not Update " + str(e))
         else:
             messages.error(request, "Please Fill Form Properly!")
-    else:
-        return render(request, "hod_template/edit_student_template.html", context)
+    return render(request, "hod_template/edit_student_template.html", context)
 
 
 def edit_course(request, course_id):
@@ -512,7 +509,7 @@ def view_staff_leave(request):
             leave.save()
             return HttpResponse(True)
         except Exception as e:
-            return False
+            return HttpResponse(False)
 
 
 @csrf_exempt
@@ -537,7 +534,7 @@ def view_student_leave(request):
             leave.save()
             return HttpResponse(True)
         except Exception as e:
-            return False
+            return HttpResponse(False)
 
 
 def admin_view_attendance(request):
@@ -644,6 +641,7 @@ def send_student_notification(request):
     message = request.POST.get('message')
     student = get_object_or_404(Student, admin_id=id)
     try:
+        fcm_server_key = os.environ.get('FCM_SERVER_KEY', '')
         url = "https://fcm.googleapis.com/fcm/send"
         body = {
             'notification': {
@@ -654,10 +652,11 @@ def send_student_notification(request):
             },
             'to': student.admin.fcm_token
         }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-                   'Content-Type': 'application/json'}
-        data = requests.post(url, data=json.dumps(body), headers=headers)
+        headers = {
+            'Authorization': 'key=' + fcm_server_key,
+            'Content-Type': 'application/json',
+        }
+        requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStudent(student=student, message=message)
         notification.save()
         return HttpResponse("True")
@@ -671,6 +670,7 @@ def send_staff_notification(request):
     message = request.POST.get('message')
     staff = get_object_or_404(Staff, admin_id=id)
     try:
+        fcm_server_key = os.environ.get('FCM_SERVER_KEY', '')
         url = "https://fcm.googleapis.com/fcm/send"
         body = {
             'notification': {
@@ -681,10 +681,11 @@ def send_staff_notification(request):
             },
             'to': staff.admin.fcm_token
         }
-        headers = {'Authorization':
-                   'key=AAAA3Bm8j_M:APA91bElZlOLetwV696SoEtgzpJr2qbxBfxVBfDWFiopBWzfCfzQp2nRyC7_A2mlukZEHV4g1AmyC6P_HonvSkY2YyliKt5tT3fe_1lrKod2Daigzhb2xnYQMxUWjCAIQcUexAMPZePB',
-                   'Content-Type': 'application/json'}
-        data = requests.post(url, data=json.dumps(body), headers=headers)
+        headers = {
+            'Authorization': 'key=' + fcm_server_key,
+            'Content-Type': 'application/json',
+        }
+        requests.post(url, data=json.dumps(body), headers=headers)
         notification = NotificationStaff(staff=staff, message=message)
         notification.save()
         return HttpResponse("True")

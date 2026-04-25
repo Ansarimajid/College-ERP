@@ -16,14 +16,14 @@ class LoginCheckMiddleWare(MiddlewareMixin):
         }
 
         if user.is_authenticated:
-            if user_type == '1': # Is it the HOD/Admin
-                if modulename == 'main_app.student_views':
+            if user_type == '1':  # HOD/Admin
+                if modulename in ('main_app.student_views', 'main_app.staff_views'):
                     return redirect(reverse('admin_home'))
-            elif user_type == '2': #  Staff :-/ ?
-                if modulename == 'main_app.student_views' or modulename == 'main_app.hod_views':
+            elif user_type == '2':  # Staff
+                if modulename in ('main_app.student_views', 'main_app.hod_views'):
                     return redirect(reverse('staff_home'))
-            elif user_type == '3': # ... or Student ?
-                if modulename == 'main_app.hod_views' or modulename == 'main_app.staff_views':
+            elif user_type == '3':  # Student
+                if modulename in ('main_app.hod_views', 'main_app.staff_views'):
                     return redirect(reverse('student_home'))
             else:
                 # Do not force logout for unknown/legacy user_type values.

@@ -1,0 +1,54 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}Issued Books{% endblock page_title %}
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-dark">
+                    <div class="card-header">
+                        <h3 class="card-title">Issued Books</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if details %}
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Book Name</th>
+                                    <th>ISBN</th>
+                                    <th>Issue Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Fine (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for name, isbn, issued_date, expiry_date, fine in details %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ name }}</td>
+                                    <td>{{ isbn }}</td>
+                                    <td>{{ issued_date }}</td>
+                                    <td>{{ expiry_date }}</td>
+                                    <td>
+                                        {% if fine > 0 %}
+                                        <span class="badge badge-danger">₹{{ fine }}</span>
+                                        {% else %}
+                                        <span class="badge badge-success">No Fine</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted text-center">No books are currently issued.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
