@@ -1,9 +1,23 @@
+# Web framework
 Django==3.1.1
-mysql-connector==2.2.9
-virtualenv==20.0.31
-dj-database-url==0.5.0
+
+# WSGI server (production)
 gunicorn==20.0.4
+
+# Static file serving
 whitenoise==5.2.0
-Pillow
-requests
-python-dotenv
+
+# PostgreSQL driver (Digital Ocean managed databases)
+psycopg2-binary>=2.9.3
+
+# Database URL parsing (reads DATABASE_URL env var)
+dj-database-url==0.5.0
+
+# Image handling (profile pictures)
+Pillow>=9.0.0
+
+# HTTP requests (Firebase notifications)
+requests>=2.27.0
+
+# Environment variable loading from .env
+python-dotenv>=0.19.0

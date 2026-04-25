@@ -1,0 +1,51 @@
+name: college-erp
+region: nyc
+services:
+  - name: web
+    github:
+      repo: Jahongir359/College-ERP
+      branch: main
+      deploy_on_push: true
+    build_command: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    run_command: gunicorn college_management_system.wsgi --workers 3 --timeout 120 --bind 0.0.0.0:${PORT}
+    environment_slug: python
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    http_port: 8080
+    routes:
+      - path: /
+    envs:
+      # ── Django ────────────────────────────────────────────────────────────
+      - key: DJANGO_SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DJANGO_DEBUG
+        scope: RUN_AND_BUILD_TIME
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        scope: RUN_AND_BUILD_TIME
+        value: "${APP_DOMAIN}"
+      # ── Database ──────────────────────────────────────────────────────────
+      # Attach a Digital Ocean managed PostgreSQL database and set DATABASE_URL
+      # in the App Platform console; it will be injected automatically.
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      # ── Recovery admin ────────────────────────────────────────────────────
+      - key: RECOVERY_ADMIN_EMAIL
+        scope: RUN_AND_BUILD_TIME
+        value: "iceberg.edu.center@gmail.com"
+      - key: RECOVERY_ADMIN_PASSWORD
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      # ── Email (SMTP) ──────────────────────────────────────────────────────
+      - key: EMAIL_HOST_USER
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: EMAIL_HOST_PASSWORD
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      # ── Firebase ──────────────────────────────────────────────────────────
+      - key: FCM_SERVER_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
