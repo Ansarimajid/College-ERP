@@ -8,6 +8,10 @@ services:
       deploy_on_push: true
     build_command: pip install -r requirements.txt && python manage.py collectstatic --noinput
     run_command: gunicorn college_management_system.wsgi --workers 3 --timeout 120 --bind 0.0.0.0:${PORT}
+  jobs:
+    - name: db-migrate
+      kind: PRE_DEPLOY
+      run_command: python manage.py migrate --noinput
     environment_slug: python
     instance_size_slug: basic-xxs
     instance_count: 1

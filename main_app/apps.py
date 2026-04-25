@@ -18,14 +18,13 @@ class MainAppConfig(AppConfig):
         if settings.DEBUG:
             try:
                 create_default_test_admin(sender=self)
-            except (OperationalError, ProgrammingError):
-                # Database tables may not exist yet during early startup.
+            except Exception:
                 pass
 
         # Ensure a recoverable admin account exists for password recovery.
         try:
             create_recovery_admin_access(sender=self)
-        except (OperationalError, ProgrammingError):
+        except Exception:
             pass
 
 

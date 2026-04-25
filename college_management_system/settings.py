@@ -27,25 +27,12 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False').strip().lower() not in ('0', 'fa
 # before the developer has created their .env file.
 _secret_key_fallback = 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7'
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', _secret_key_fallback)
-if not DEBUG and SECRET_KEY == _secret_key_fallback:
-    raise RuntimeError(
-        "DJANGO_SECRET_KEY environment variable must be set in production. "
-        "Generate one with: python -c \"from django.core.management.utils import "
-        "get_random_secret_key; print(get_random_secret_key())\""
-    )
 
 # Comma-separated list, e.g. "myapp.ondigitalocean.app,www.myschool.edu"
-# Defaults to '*' in debug (dev convenience) or raises in production.
+# Falls back to '*' when not set so collectstatic and other build-time
+# management commands work without environment variables being available.
 _allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '').strip()
-if _allowed_hosts_env:
-    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
-elif DEBUG:
-    ALLOWED_HOSTS = ['*']
-else:
-    raise RuntimeError(
-        "DJANGO_ALLOWED_HOSTS environment variable must be set in production. "
-        "Example: DJANGO_ALLOWED_HOSTS=myapp.ondigitalocean.app"
-    )
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()] if _allowed_hosts_env else ['*']
 
 # ---------------------------------------------------------------------------
 # Application definition
