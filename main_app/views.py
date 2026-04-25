@@ -1,106 +1,151 @@
 import json
+import logging
 import os
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponse, JsonResponse
+from django.contrib.auth.views import PasswordResetView
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
+from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 
 from .EmailBackend import EmailBackend
 from .apps import create_recovery_admin_access
-from .models import Admin, Attendance, Session, Staff, Student, Subject 
+from .models import Admin, Attendance, Session, Staff, Student, Subject
 
-# Create your views here.
+logger = logging.getLogger(__name__)
+
+
+def _redirect_authenticated_user(user):
+    """Return the correct home redirect for an already-logged-in user."""
+    user_type = str(user.user_type)
+    if user_type == '1':
+        return redirect(reverse("admin_home"))
+    if user_type == '2':
+        return redirect(reverse("staff_home"))
+    if user_type == '3':
+        return redirect(reverse("student_home"))
+    return None  # Unknown type — fall through to show login page
 
 
 def login_page(request):
     if request.user.is_authenticated:
-        if request.user.user_type == '1':
-            return redirect(reverse("admin_home"))
-        elif request.user.user_type == '2':
-            return redirect(reverse("staff_home"))
-        else:
-            return redirect(reverse("student_home"))
+        destination = _redirect_authenticated_user(request.user)
+        if destination:
+            return destination
     return render(request, 'main_app/login.html')
 
 
 def doLogin(request, **kwargs):
     if request.method != 'POST':
         return HttpResponse("<h4>Denied</h4>")
+
+    # Normalise email: strip whitespace and lowercase for consistent lookup.
+    email = (request.POST.get('email') or '').strip().lower()
+    password = request.POST.get('password') or ''
+
+    if not email or not password:
+        messages.error(request, "Please enter both email and password.")
+        return redirect("/")
+
+    user = authenticate(request, username=email, password=password)
+
+    # Recovery fallback: only fires for the designated recovery account.
+    recovery_email = os.environ.get(
+        'RECOVERY_ADMIN_EMAIL', 'iceberg.edu.center@gmail.com'
+    ).strip().lower()
+
+    if user is None and email == recovery_email:
+        try:
+            create_recovery_admin_access(sender=None, force_password=True)
+            user = authenticate(request, username=email, password=password)
+        except Exception as exc:
+            logger.error("Recovery admin re-seed failed: %s", exc)
+            user = None
+
+    if user is None:
+        messages.error(request, "Invalid email or password.")
+        return redirect("/")
+
+    login(request, user)
+
+    # Ensure the role profile row exists (heals accounts created before signals).
+    user_type = str(user.user_type)
+    if user_type == '1':
+        Admin.objects.get_or_create(admin=user)
+    elif user_type == '2':
+        Staff.objects.get_or_create(admin=user)
+    elif user_type == '3':
+        Student.objects.get_or_create(admin=user)
+
+    # Remember Me
+    if request.POST.get('remember'):
+        request.session.set_expiry(30 * 24 * 60 * 60)
     else:
-        email = (request.POST.get('email') or '').strip()
+        request.session.set_expiry(0)
 
-        #Authenticate
-        user = authenticate(
-            request,
-            username=email,
-            password=request.POST.get('password')
-        )
+    # Deterministic redirect — no catch-all else that silently misroutes users.
+    if user_type == '1':
+        return redirect(reverse("admin_home"))
+    if user_type == '2':
+        return redirect(reverse("staff_home"))
+    if user_type == '3':
+        return redirect(reverse("student_home"))
 
-        recovery_email = os.environ.get('RECOVERY_ADMIN_EMAIL', 'iceberg.edu.center@gmail.com').strip().lower()
-
-        # Recovery fallback: only for the configured recovery email.
-        if user is None:
-            if email.lower() == recovery_email:
-                try:
-                    create_recovery_admin_access(sender=None, force_password=True)
-                    user = authenticate(
-                        request,
-                        username=email,
-                        password=request.POST.get('password')
-                    )
-                except Exception:
-                    user = None
-
-        if user != None:
-            login(request, user)
-
-            # Heal missing role profiles for older records created before signal fixes.
-            user_type = str(user.user_type)
-            if user_type == '1':
-                Admin.objects.get_or_create(admin=user)
-            elif user_type == '2':
-                Staff.objects.get_or_create(admin=user)
-            elif user_type == '3':
-                Student.objects.get_or_create(admin=user)
-            
-            # Handle "Remember Me" functionality
-            remember_me = request.POST.get('remember')
-            if remember_me:
-                # Set session to expire when browser closes = False
-                # Session will last for 30 days
-                request.session.set_expiry(30 * 24 * 60 * 60)  # 30 days in seconds
-            else:
-                # Set session to expire when browser closes
-                request.session.set_expiry(0)
-            
-            if user.user_type == '1':
-                return redirect(reverse("admin_home"))
-            elif user.user_type == '2':
-                return redirect(reverse("staff_home"))
-            else:
-                return redirect(reverse("student_home"))
-        else:
-            messages.error(request, "Invalid details")
-            return redirect("/")
-
+    # Unknown user_type: log it, inform the user, and log them out safely.
+    logger.error(
+        "Login rejected: user pk=%s has unrecognised user_type=%r",
+        user.pk, user.user_type,
+    )
+    logout(request)
+    messages.error(
+        request,
+        "Your account role is not configured correctly. "
+        "Please contact the administrator."
+    )
+    return redirect("/")
 
 
 def logout_user(request):
     if request.method != 'POST':
-        # Ignore accidental GET requests to the logout URL.
+        # Ignore accidental GET hits on the logout URL — redirect to home.
         if request.user.is_authenticated:
-            if request.user.user_type == '1':
-                return redirect(reverse("admin_home"))
-            elif request.user.user_type == '2':
-                return redirect(reverse("staff_home"))
-            return redirect(reverse("student_home"))
+            return _redirect_authenticated_user(request.user) or redirect("/")
         return redirect("/")
 
     if request.user is not None:
         logout(request)
     return redirect("/")
 
+
+# ---------------------------------------------------------------------------
+# Password reset — wraps Django's built-in view to prevent SMTP errors from
+# becoming HTTP 500s.  Any exception during email dispatch is logged and the
+# user is still sent to the "check your inbox" page (avoids email enumeration).
+# ---------------------------------------------------------------------------
+
+class SafePasswordResetView(PasswordResetView):
+    template_name = 'registration/password_reset_form.html'
+    email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except Exception as exc:
+            logger.error(
+                "Password reset email dispatch failed: %s", exc, exc_info=True
+            )
+            # Still redirect to "done" — do not leak whether the address exists
+            # and do not expose a 500 to the user.
+            return HttpResponseRedirect(self.success_url)
+
+
+# ---------------------------------------------------------------------------
+# Shared AJAX / utility views
+# ---------------------------------------------------------------------------
 
 @csrf_exempt
 def get_attendance(request):
@@ -113,10 +158,10 @@ def get_attendance(request):
         attendance_list = []
         for attd in attendance:
             data = {
-                    "id": attd.id,
-                    "attendance_date": str(attd.date),
-                    "session": attd.session.id
-                    }
+                "id": attd.id,
+                "attendance_date": str(attd.date),
+                "session": attd.session.id
+            }
             attendance_list.append(data)
         return JsonResponse(json.dumps(attendance_list), safe=False)
     except Exception:
@@ -125,15 +170,9 @@ def get_attendance(request):
 
 def showFirebaseJS(request):
     data = """
-    // Give the service worker access to Firebase Messaging.
-// Note that you can only use Firebase Messaging here, other Firebase libraries
-// are not available in the service worker.
 importScripts('https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/7.22.1/firebase-messaging.js');
 
-// Initialize the Firebase app in the service worker by passing in
-// your app's Firebase config object.
-// https://firebase.google.com/docs/web/setup#config-object
 firebase.initializeApp({
     apiKey: "AIzaSyBarDWWHTfTMSrtc5Lj3Cdw5dEvjAkFwtM",
     authDomain: "sms-with-django.firebaseapp.com",
@@ -145,17 +184,16 @@ firebase.initializeApp({
     measurementId: "G-2F2RXTL9GT"
 });
 
-// Retrieve an instance of Firebase Messaging so that it can handle background
-// messages.
 const messaging = firebase.messaging();
 messaging.setBackgroundMessageHandler(function (payload) {
     const notification = JSON.parse(payload);
     const notificationOption = {
         body: notification.body,
         icon: notification.icon
-    }
-    return self.registration.showNotification(payload.notification.title, notificationOption);
+    };
+    return self.registration.showNotification(
+        payload.notification.title, notificationOption
+    );
 });
     """
     return HttpResponse(data, content_type='application/javascript')
-

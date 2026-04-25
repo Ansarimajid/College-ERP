@@ -12,10 +12,12 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import UpdateView
 
+from .decorators import admin_only
 from .forms import *
 from .models import *
 
 
+@admin_only
 def admin_home(request):
     total_staff = Staff.objects.all().count()
     total_students = Student.objects.all().count()

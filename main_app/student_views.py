@@ -10,10 +10,12 @@ from django.shortcuts import (HttpResponseRedirect, get_object_or_404,
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
+from .decorators import student_only
 from .forms import *
 from .models import *
 
 
+@student_only
 def student_home(request):
     student = get_object_or_404(Student, admin=request.user)
     total_subject = Subject.objects.filter(course=student.course).count()

@@ -167,13 +167,21 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'noreply@college-erp.local'
 
-if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
-    # If SMTP credentials are missing, avoid runtime 500s during password
-    # reset by writing emails to sent_emails/ instead of attempting SMTP.
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Full SMTP — used in production when credentials are configured.
+    EMAIL_BACKEND = 'main_app.mail_backends.CompatibleSMTPEmailBackend'
+elif DEBUG:
+    # Development without SMTP: save emails to files so reset links are readable.
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 else:
-    EMAIL_BACKEND = 'main_app.mail_backends.CompatibleSMTPEmailBackend'
+    # Production without SMTP credentials: print to stdout (visible in DO logs).
+    # Set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD in the App Platform console
+    # to switch to real delivery.
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+LOGIN_URL = '/'
 
 # ---------------------------------------------------------------------------
 # Production security hardening
