@@ -165,23 +165,20 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds (default)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # This will be overridden by remember me
 SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request to extend expiry
 
-# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-# EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_mails")
-
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'noreply@college-erp.local'
 
 if DEBUG and (not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD):
-    # In local development, avoid SMTP crashes when credentials are not configured.
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    # Save password-reset emails to files under sent_emails/ so the reset
+    # link is readable without configuring an SMTP server.
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 else:
     EMAIL_BACKEND = 'main_app.mail_backends.CompatibleSMTPEmailBackend'
-# DEFAULT_FROM_EMAIL = "School Management System <admin@admin.com>"
 
 if DEBUG or 'test' in sys.argv:
     # Manifest storage requires collectstatic; use plain storage in dev/test.
