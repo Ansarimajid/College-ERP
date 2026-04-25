@@ -49,10 +49,13 @@
             </label>
             
             <!-- Logout Button -->
-            <a href="{% url 'user_logout' %}" class="btn btn-outline-primary btn-sm logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="logout-text">Logout</span>
-            </a>
+            <form method="post" action="{% url 'user_logout' %}" class="m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary btn-sm logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Logout</span>
+                </button>
+            </form>
         </div>
     </nav>
 

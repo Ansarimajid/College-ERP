@@ -87,7 +87,17 @@ def doLogin(request, **kwargs):
 
 
 def logout_user(request):
-    if request.user != None:
+    if request.method != 'POST':
+        # Ignore accidental GET requests to the logout URL.
+        if request.user.is_authenticated:
+            if request.user.user_type == '1':
+                return redirect(reverse("admin_home"))
+            elif request.user.user_type == '2':
+                return redirect(reverse("staff_home"))
+            return redirect(reverse("student_home"))
+        return redirect("/")
+
+    if request.user is not None:
         logout(request)
     return redirect("/")
 

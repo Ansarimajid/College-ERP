@@ -40,6 +40,7 @@ class CompatibleSMTPEmailBackend(DjangoSMTPEmailBackend):
                     self.connection.login(self.username, self.password)
 
                 return True
-            except OSError:
+            except (OSError, smtplib.SMTPException):
                 if not self.fail_silently:
                     raise
+                return False

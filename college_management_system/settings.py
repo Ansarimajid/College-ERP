@@ -131,12 +131,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-if DEBUG or 'test' in sys.argv:
+_has_static_manifest = (STATIC_ROOT / 'staticfiles.json').exists()
+
+if DEBUG or 'test' in sys.argv or not _has_static_manifest:
     # Plain storage: no hashing, works without running collectstatic.
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
-    # Compressed + fingerprinted files; requires collectstatic before startup.
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # Compressed + fingerprinted files. Uses non-strict manifest lookup so
+    # missing entries don't crash request rendering with HTTP 500.
+    STATICFILES_STORAGE = 'main_app.staticfiles_storage.NonStrictCompressedManifestStaticFilesStorage'
 
 # ---------------------------------------------------------------------------
 # Authentication
@@ -164,9 +167,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or 'noreply@college-erp.local'
 
-if DEBUG and (not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD):
-    # Save reset emails as files in sent_emails/ so the reset link is
-    # readable without an SMTP server during development.
+if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    # If SMTP credentials are missing, avoid runtime 500s during password
+    # reset by writing emails to sent_emails/ instead of attempting SMTP.
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 else:
