@@ -84,6 +84,22 @@ urlpatterns = [
     path("subject/edit/<int:subject_id>",
          hod_views.edit_subject, name='edit_subject'),
 
+    # Branch
+    path("branch/manage/", hod_views.manage_branch, name='manage_branch'),
+    path("branch/add/", hod_views.add_branch, name='add_branch'),
+    path("branch/edit/<int:branch_id>", hod_views.edit_branch, name='edit_branch'),
+    path("branch/delete/<int:branch_id>", hod_views.delete_branch, name='delete_branch'),
+
+    # Group
+    path("group/manage/", hod_views.manage_group, name='manage_group'),
+    path("group/add/", hod_views.add_group, name='add_group'),
+    path("group/edit/<int:group_id>", hod_views.edit_group, name='edit_group'),
+    path("group/delete/<int:group_id>", hod_views.delete_group, name='delete_group'),
+
+    # Enrollment
+    path("enrollment/manage/", hod_views.manage_enrollment, name='manage_enrollment'),
+    path("enrollment/add/", hod_views.add_enrollment, name='add_enrollment'),
+    path("enrollment/delete/<int:enrollment_id>", hod_views.delete_enrollment, name='delete_enrollment'),
 
     # Staff
     path("staff/home/", staff_views.staff_home, name='staff_home'),
@@ -142,4 +158,15 @@ urlpatterns = [
     path('student/view/result/', student_views.student_view_result,
          name='student_view_result'),
 
+    # Assignments (Teacher)
+    path("staff/assignments/", staff_views.staff_assignments, name='staff_assignments'),
+    path("staff/assignment/add/", staff_views.add_assignment, name='add_assignment'),
+    path("staff/assignment/edit/<int:assignment_id>", staff_views.edit_assignment, name='edit_assignment'),
+    path("staff/assignment/delete/<int:assignment_id>", staff_views.delete_assignment, name='delete_assignment'),
+    path("staff/assignment/<int:assignment_id>/submissions/", staff_views.view_submissions, name='view_submissions'),
+    path("staff/submission/<int:submission_id>/grade/", staff_views.grade_submission, name='grade_submission'),
+
+    # Assignments (Student)
+    path("student/assignments/", student_views.student_assignments, name='student_assignments'),
+    path("student/assignment/<int:assignment_id>/submit/", student_views.submit_assignment, name='submit_assignment'),
 ]

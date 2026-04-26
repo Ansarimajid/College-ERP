@@ -1,0 +1,57 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title">{{page_title}}</h3>
+            <a href="{% url 'add_group' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-plus"></i> Add Group
+            </a>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Group Name</th>
+                  <th>Program</th>
+                  <th>Teacher</th>
+                  <th>Branch</th>
+                  <th>Schedule</th>
+                  <th>Capacity</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for group in groups %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ group.name }}</td>
+                  <td>{{ group.course.name }}</td>
+                  <td>{{ group.teacher|default:"—" }}</td>
+                  <td>{{ group.branch|default:"—" }}</td>
+                  <td>{{ group.schedule|default:"—" }}</td>
+                  <td>{{ group.capacity }}</td>
+                  <td>
+                    <a href="{% url 'edit_group' group.id %}" class="btn btn-info btn-sm">Edit</a>
+                    <a href="{% url 'delete_group' group.id %}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Delete this group?')">Delete</a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted">No groups yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

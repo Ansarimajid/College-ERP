@@ -1,0 +1,58 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">{{page_title}}</h3>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Assignment</th>
+                  <th>Subject</th>
+                  <th>Group</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in assignments %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ a.title }}</td>
+                  <td>{{ a.subject.name }}</td>
+                  <td>{{ a.group|default:"—" }}</td>
+                  <td>{{ a.due_date }}</td>
+                  <td>
+                    {% if a.id in submitted_ids %}
+                    <span class="badge badge-success">Submitted</span>
+                    {% else %}
+                    <span class="badge badge-warning">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'submit_assignment' a.id %}" class="btn btn-sm btn-primary">
+                      {% if a.id in submitted_ids %}Update{% else %}Submit{% endif %}
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted">No assignments assigned to your groups.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

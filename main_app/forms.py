@@ -204,6 +204,39 @@ class EditResultForm(FormSettings):
 
 #issue book
 
+class BranchForm(FormSettings):
+    class Meta:
+        model = Branch
+        fields = ['name', 'address']
+
+
+class GroupForm(FormSettings):
+    class Meta:
+        model = Group
+        fields = ['name', 'course', 'teacher', 'branch', 'schedule', 'capacity']
+
+
+class EnrollmentForm(FormSettings):
+    class Meta:
+        model = Enrollment
+        fields = ['student', 'group', 'is_active']
+
+
+class AssignmentForm(FormSettings):
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'subject', 'group', 'due_date']
+        widgets = {
+            'due_date': DateInput(attrs={'type': 'date'}),
+        }
+
+
+class SubmissionForm(FormSettings):
+    class Meta:
+        model = Submission
+        fields = ['file', 'note']
+
+
 class IssueBookForm(forms.Form):
     isbn2 = forms.ModelChoiceField(queryset=models.Book.objects.all(), empty_label="Book Name [ISBN]", to_field_name="isbn", label="Book (Name and ISBN)")
     name2 = forms.ModelChoiceField(queryset=models.Student.objects.all(), empty_label="Name", label="Student Details")

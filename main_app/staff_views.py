@@ -350,3 +350,92 @@ def view_issued_book(request):
         if book:
             details.append((book.name, book.isbn, issued.issued_date, issued.expiry_date, fine))
     return render(request, "staff_template/view_issued_book.html", {'issuedBooks': issuedBooks, 'details': details})
+
+# ── Assignments ───────────────────────────────────────────────────────────────
+
+@staff_only
+def staff_assignments(request):
+    staff = get_object_or_404(Staff, admin=request.user)
+    assignments = Assignment.objects.filter(created_by=staff).select_related('subject', 'group').order_by('-created_at')
+    return render(request, 'staff_template/staff_assignments.html', {
+        'assignments': assignments,
+        'page_title': 'Assignments',
+    })
+
+
+@staff_only
+def add_assignment(request):
+    staff = get_object_or_404(Staff, admin=request.user)
+    form = AssignmentForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.created_by = staff
+            obj.save()
+            messages.success(request, "Assignment created!")
+            return redirect(reverse('staff_assignments'))
+        else:
+            messages.error(request, "Form has errors!")
+    # restrict subjects/groups to this teacher
+    form.fields['subject'].queryset = Subject.objects.filter(staff=staff)
+    form.fields['group'].queryset = Group.objects.filter(teacher=staff)
+    return render(request, 'staff_template/add_assignment.html', {
+        'form': form,
+        'page_title': 'Add Assignment',
+    })
+
+
+@staff_only
+def edit_assignment(request, assignment_id):
+    staff = get_object_or_404(Staff, admin=request.user)
+    assignment = get_object_or_404(Assignment, id=assignment_id, created_by=staff)
+    form = AssignmentForm(request.POST or None, instance=assignment)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Assignment updated!")
+            return redirect(reverse('staff_assignments'))
+        else:
+            messages.error(request, "Form has errors!")
+    form.fields['subject'].queryset = Subject.objects.filter(staff=staff)
+    form.fields['group'].queryset = Group.objects.filter(teacher=staff)
+    return render(request, 'staff_template/add_assignment.html', {
+        'form': form,
+        'page_title': 'Edit Assignment',
+    })
+
+
+@staff_only
+def delete_assignment(request, assignment_id):
+    staff = get_object_or_404(Staff, admin=request.user)
+    assignment = get_object_or_404(Assignment, id=assignment_id, created_by=staff)
+    assignment.delete()
+    messages.success(request, "Assignment deleted.")
+    return redirect(reverse('staff_assignments'))
+
+
+@staff_only
+def view_submissions(request, assignment_id):
+    staff = get_object_or_404(Staff, admin=request.user)
+    assignment = get_object_or_404(Assignment, id=assignment_id, created_by=staff)
+    submissions = Submission.objects.filter(assignment=assignment).select_related('student__admin')
+    return render(request, 'staff_template/view_submissions.html', {
+        'assignment': assignment,
+        'submissions': submissions,
+        'page_title': f'Submissions — {assignment.title}',
+    })
+
+
+@staff_only
+def grade_submission(request, submission_id):
+    staff = get_object_or_404(Staff, admin=request.user)
+    submission = get_object_or_404(Submission, id=submission_id, assignment__created_by=staff)
+    if request.method == 'POST':
+        grade = request.POST.get('grade')
+        try:
+            submission.grade = float(grade)
+            submission.save()
+            messages.success(request, "Grade saved!")
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid grade value.")
+    return redirect(reverse('view_submissions', args=[submission.assignment_id]))

@@ -225,4 +225,72 @@ def save_user_profile(sender, instance, **kwargs):
     elif user_type == '3':
         Student.objects.get_or_create(admin=instance)
 
-# todos
+
+class Branch(models.Model):
+    name = models.CharField(max_length=100)
+    address = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Branches"
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True)
+    schedule = models.CharField(max_length=200, blank=True, default="",
+                                help_text="e.g. Mon/Wed 10:00–12:00")
+    capacity = models.PositiveIntegerField(default=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Enrollment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    enrolled_on = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('student', 'group')
+
+    def __str__(self):
+        return f"{self.student} → {self.group}"
+
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default="")
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
+    due_date = models.DateField()
+    created_by = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Submission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='submissions/', null=True, blank=True)
+    note = models.TextField(blank=True, default="")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    grade = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assignment', 'student')
+
+    def __str__(self):
+        return f"{self.student} → {self.assignment}"

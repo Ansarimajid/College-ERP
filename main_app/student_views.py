@@ -229,3 +229,42 @@ def view_books(request):
     }
     return render(request, "student_template/view_books.html", context)
 
+
+
+# ── Assignments ───────────────────────────────────────────────────────────────
+
+@student_only
+def student_assignments(request):
+    student = get_object_or_404(Student, admin=request.user)
+    enrolled_groups = Enrollment.objects.filter(student=student, is_active=True).values_list('group_id', flat=True)
+    assignments = Assignment.objects.filter(group__in=enrolled_groups).select_related('subject', 'group', 'created_by__admin').order_by('due_date')
+    submitted_ids = set(Submission.objects.filter(student=student).values_list('assignment_id', flat=True))
+    return render(request, 'student_template/student_assignments.html', {
+        'assignments': assignments,
+        'submitted_ids': submitted_ids,
+        'page_title': 'Assignments',
+    })
+
+
+@student_only
+def submit_assignment(request, assignment_id):
+    student = get_object_or_404(Student, admin=request.user)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    existing = Submission.objects.filter(assignment=assignment, student=student).first()
+    form = SubmissionForm(request.POST or None, request.FILES or None, instance=existing)
+    if request.method == 'POST':
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.assignment = assignment
+            obj.student = student
+            obj.save()
+            messages.success(request, "Submitted successfully!")
+            return redirect(reverse('student_assignments'))
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'student_template/submit_assignment.html', {
+        'form': form,
+        'assignment': assignment,
+        'existing': existing,
+        'page_title': f'Submit — {assignment.title}',
+    })

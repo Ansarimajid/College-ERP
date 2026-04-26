@@ -758,3 +758,157 @@ def delete_session(request, session_id):
         messages.error(
             request, "There are students assigned to this session. Please move them to another session.")
     return redirect(reverse('manage_session'))
+
+
+# ── Branch CRUD ──────────────────────────────────────────────────────────────
+
+@admin_only
+def manage_branch(request):
+    branches = Branch.objects.all()
+    return render(request, 'hod_template/manage_branch.html', {
+        'branches': branches,
+        'page_title': 'Manage Branches',
+    })
+
+
+@admin_only
+def add_branch(request):
+    form = BranchForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Branch added successfully!")
+            return redirect(reverse('manage_branch'))
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'hod_template/add_branch.html', {
+        'form': form,
+        'page_title': 'Add Branch',
+    })
+
+
+@admin_only
+def edit_branch(request, branch_id):
+    branch = get_object_or_404(Branch, id=branch_id)
+    form = BranchForm(request.POST or None, instance=branch)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Branch updated!")
+            return redirect(reverse('manage_branch'))
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'hod_template/add_branch.html', {
+        'form': form,
+        'page_title': 'Edit Branch',
+    })
+
+
+@admin_only
+def delete_branch(request, branch_id):
+    branch = get_object_or_404(Branch, id=branch_id)
+    try:
+        branch.delete()
+        messages.success(request, "Branch deleted!")
+    except Exception:
+        messages.error(request, "Could not delete branch — it has groups linked to it.")
+    return redirect(reverse('manage_branch'))
+
+
+# ── Group CRUD ───────────────────────────────────────────────────────────────
+
+@admin_only
+def manage_group(request):
+    groups = Group.objects.select_related('course', 'teacher', 'branch').all()
+    return render(request, 'hod_template/manage_group.html', {
+        'groups': groups,
+        'page_title': 'Manage Groups',
+    })
+
+
+@admin_only
+def add_group(request):
+    form = GroupForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Group created!")
+            return redirect(reverse('manage_group'))
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'hod_template/add_group.html', {
+        'form': form,
+        'page_title': 'Add Group',
+    })
+
+
+@admin_only
+def edit_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    form = GroupForm(request.POST or None, instance=group)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Group updated!")
+            return redirect(reverse('manage_group'))
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'hod_template/add_group.html', {
+        'form': form,
+        'page_title': 'Edit Group',
+    })
+
+
+@admin_only
+def delete_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    try:
+        group.delete()
+        messages.success(request, "Group deleted!")
+    except Exception:
+        messages.error(request, "Could not delete group.")
+    return redirect(reverse('manage_group'))
+
+
+# ── Enrollment management ────────────────────────────────────────────────────
+
+@admin_only
+def manage_enrollment(request):
+    group_id = request.GET.get('group')
+    groups = Group.objects.all()
+    enrollments = Enrollment.objects.select_related('student__admin', 'group').all()
+    if group_id:
+        enrollments = enrollments.filter(group_id=group_id)
+    return render(request, 'hod_template/manage_enrollment.html', {
+        'enrollments': enrollments,
+        'groups': groups,
+        'selected_group': group_id,
+        'page_title': 'Enrollments',
+    })
+
+
+@admin_only
+def add_enrollment(request):
+    form = EnrollmentForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, "Student enrolled!")
+                return redirect(reverse('manage_enrollment'))
+            except IntegrityError:
+                messages.error(request, "Student is already enrolled in that group.")
+        else:
+            messages.error(request, "Form has errors!")
+    return render(request, 'hod_template/add_enrollment.html', {
+        'form': form,
+        'page_title': 'Enroll Student',
+    })
+
+
+@admin_only
+def delete_enrollment(request, enrollment_id):
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+    enrollment.delete()
+    messages.success(request, "Enrollment removed.")
+    return redirect(reverse('manage_enrollment'))

@@ -1,0 +1,74 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card mb-3">
+          <div class="card-header">
+            <h3 class="card-title">{{ assignment.title }}</h3>
+          </div>
+          <div class="card-body">
+            <p><strong>Subject:</strong> {{ assignment.subject.name }} &nbsp;|&nbsp;
+               <strong>Group:</strong> {{ assignment.group|default:"All" }} &nbsp;|&nbsp;
+               <strong>Due:</strong> {{ assignment.due_date }}</p>
+            {% if assignment.description %}
+            <p class="text-muted">{{ assignment.description }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">{{page_title}}</h3>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Student</th>
+                  <th>Submitted At</th>
+                  <th>Note</th>
+                  <th>File</th>
+                  <th>Grade</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in submissions %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ sub.student }}</td>
+                  <td>{{ sub.submitted_at|date:"d M Y H:i" }}</td>
+                  <td>{{ sub.note|default:"—" }}</td>
+                  <td>
+                    {% if sub.file %}
+                    <a href="{{ sub.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Download</a>
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ sub.grade|default:"—" }}</td>
+                  <td>
+                    <form method="post" action="{% url 'grade_submission' sub.id %}" class="d-flex gap-1">
+                      {% csrf_token %}
+                      <input type="number" name="grade" step="0.1" min="0" max="100"
+                             value="{{ sub.grade|default:'' }}"
+                             class="form-control form-control-sm" style="width:80px;">
+                      <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted">No submissions yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

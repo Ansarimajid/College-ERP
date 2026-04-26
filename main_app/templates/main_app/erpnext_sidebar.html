@@ -114,6 +114,56 @@
             </div>
         </div>
 
+        <div class="nav-item has-submenu {% if 'branch' in request.path %}open{% endif %}">
+            <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-map-marker-alt"></i>
+                <span class="nav-text">Branches</span>
+                <i class="nav-arrow fas fa-chevron-right"></i>
+            </a>
+            <div class="nav-submenu">
+                <div class="nav-item">
+                    {% url 'add_branch' as add_branch %}
+                    <a href="{{ add_branch }}" class="nav-link {% if add_branch == request.path %}active{% endif %}">
+                        <span class="nav-text">Add Branch</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    {% url 'manage_branch' as manage_branch %}
+                    <a href="{{ manage_branch }}" class="nav-link {% if manage_branch == request.path %}active{% endif %}">
+                        <span class="nav-text">Manage Branches</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-item has-submenu {% if 'group' in request.path or 'enrollment' in request.path %}open{% endif %}">
+            <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-layer-group"></i>
+                <span class="nav-text">Groups</span>
+                <i class="nav-arrow fas fa-chevron-right"></i>
+            </a>
+            <div class="nav-submenu">
+                <div class="nav-item">
+                    {% url 'add_group' as add_group %}
+                    <a href="{{ add_group }}" class="nav-link {% if add_group == request.path %}active{% endif %}">
+                        <span class="nav-text">Add Group</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    {% url 'manage_group' as manage_group %}
+                    <a href="{{ manage_group }}" class="nav-link {% if manage_group == request.path %}active{% endif %}">
+                        <span class="nav-text">Manage Groups</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    {% url 'manage_enrollment' as manage_enrollment %}
+                    <a href="{{ manage_enrollment }}" class="nav-link {% if manage_enrollment == request.path %}active{% endif %}">
+                        <span class="nav-text">Enrollments</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <h6 class="nav-section-title">People</h6>
 
         <div class="nav-item">
@@ -248,6 +298,14 @@
             </a>
         </div>
 
+        <div class="nav-item">
+            {% url 'staff_assignments' as staff_assignments %}
+            <a href="{{ staff_assignments }}" class="nav-link {% if 'assignment' in request.path %}active{% endif %}">
+                <i class="nav-icon fas fa-tasks"></i>
+                <span class="nav-text">Assignments</span>
+            </a>
+        </div>
+
         <h6 class="nav-section-title">Attendance</h6>
         
         <div class="nav-item">
@@ -340,8 +398,16 @@
             </a>
         </div>
 
+        <div class="nav-item">
+            {% url 'student_assignments' as student_assignments %}
+            <a href="{{ student_assignments }}" class="nav-link {% if 'assignment' in request.path %}active{% endif %}">
+                <i class="nav-icon fas fa-tasks"></i>
+                <span class="nav-text">Assignments</span>
+            </a>
+        </div>
+
         <h6 class="nav-section-title">Library & Resources</h6>
-        
+
         <div class="nav-item">
             {% url 'view_books' as view_books %}
             <a href="{{ view_books }}" class="nav-link {% if view_books == request.path %}active{% endif %}">

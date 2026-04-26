@@ -1,0 +1,38 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-7">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5>{{ assignment.title }}</h5>
+            <p class="text-muted mb-1">
+              <strong>Subject:</strong> {{ assignment.subject.name }} &nbsp;|&nbsp;
+              <strong>Due:</strong> {{ assignment.due_date }}
+            </p>
+            {% if assignment.description %}
+            <p>{{ assignment.description }}</p>
+            {% endif %}
+            {% if existing %}
+            <div class="alert alert-info mb-0">
+              Already submitted on {{ existing.submitted_at|date:"d M Y H:i" }}.
+              {% if existing.grade is not None %}Grade: <strong>{{ existing.grade }}</strong>{% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{% if existing %}Update Submission{% else %}Submit Work{% endif %}</h3>
+          </div>
+          {% include "main_app/form_template.html" with messages=messages form=form button_text="Submit" %}
+        </div>
+        <a href="{% url 'student_assignments' %}" class="btn btn-secondary mt-2">← Back</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}
