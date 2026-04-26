@@ -92,7 +92,7 @@ def admin_home(request):
 
 def add_staff(request):
     form = StaffForm(request.POST or None, request.FILES or None)
-    context = {'form': form, 'page_title': 'Add Staff'}
+    context = {'form': form, 'page_title': 'Add Teacher'}
     if request.method == 'POST':
         if form.is_valid():
             first_name = form.cleaned_data.get('first_name')
@@ -216,7 +216,7 @@ def manage_staff(request):
     allStaff = CustomUser.objects.filter(user_type=2)
     context = {
         'allStaff': allStaff,
-        'page_title': 'Manage Staff'
+        'page_title': 'Manage Teachers'
     }
     return render(request, "hod_template/manage_staff.html", context)
 
@@ -254,7 +254,7 @@ def edit_staff(request, staff_id):
     context = {
         'form': form,
         'staff_id': staff_id,
-        'page_title': 'Edit Staff'
+        'page_title': 'Edit Teacher'
     }
     if request.method == 'POST':
         if form.is_valid():
@@ -474,7 +474,7 @@ def staff_feedback_message(request):
         feedbacks = FeedbackStaff.objects.all()
         context = {
             'feedbacks': feedbacks,
-            'page_title': 'Staff Feedback Messages'
+            'page_title': 'Teacher Feedback'
         }
         return render(request, 'hod_template/staff_feedback_template.html', context)
     else:
@@ -495,7 +495,7 @@ def view_staff_leave(request):
         allLeave = LeaveReportStaff.objects.all()
         context = {
             'allLeave': allLeave,
-            'page_title': 'Leave Applications From Staff'
+            'page_title': 'Teacher Leave Requests'
         }
         return render(request, "hod_template/staff_leave_view.html", context)
     else:
@@ -622,7 +622,7 @@ def admin_view_profile(request):
 def admin_notify_staff(request):
     staff = CustomUser.objects.filter(user_type=2)
     context = {
-        'page_title': "Send Notifications To Staff",
+        'page_title': "Notify Teachers",
         'allStaff': staff
     }
     return render(request, "hod_template/staff_notification.html", context)
@@ -631,7 +631,7 @@ def admin_notify_staff(request):
 def admin_notify_student(request):
     student = CustomUser.objects.filter(user_type=3)
     context = {
-        'page_title': "Send Notifications To Students",
+        'page_title': "Notify Students",
         'students': student
     }
     return render(request, "hod_template/student_notification.html", context)

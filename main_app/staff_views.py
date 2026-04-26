@@ -30,7 +30,7 @@ def staff_home(request):
         subject_list.append(subject.name)
         attendance_list.append(attendance_count)
     context = {
-        'page_title': 'Staff Panel - ' + str(staff.admin.first_name) + ' ' + (str(staff.admin.last_name[0]) if staff.admin.last_name else '') + ' (' + str(staff.course) + ')',
+        'page_title': str(staff.admin.first_name) + ' ' + str(staff.admin.last_name) + ' · ' + str(staff.course),
         'total_students': total_students,
         'total_attendance': total_attendance,
         'total_leave': total_leave,

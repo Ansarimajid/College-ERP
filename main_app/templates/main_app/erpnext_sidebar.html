@@ -9,9 +9,9 @@
             <h6>{{ user.get_full_name|default:user.username }}</h6>
             <small>
                 {% if user.user_type == '1' %}
-                    Administrator
+                    Admin
                 {% elif user.user_type == '2' %}
-                    Staff Member
+                    Teacher
                 {% else %}
                     Student
                 {% endif %}
@@ -24,7 +24,7 @@
 <div class="nav-section">
     {% if user.user_type == '1' %}
         <!-- Admin Navigation -->
-        <h6 class="nav-section-title">Main</h6>
+        <h6 class="nav-section-title">Overview</h6>
         
         <div class="nav-item">
             {% url 'admin_home' as admin_home %}
@@ -110,21 +110,21 @@
             </div>
         </div>
 
-        <h6 class="nav-section-title">User Management</h6>
-        
+        <h6 class="nav-section-title">People</h6>
+
         <div class="nav-item">
             {% url 'add_staff' as add_staff %}
             <a href="{{ add_staff }}" class="nav-link {% if add_staff == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-user-plus"></i>
-                <span class="nav-text">Add Staff</span>
+                <span class="nav-text">Add Teacher</span>
             </a>
         </div>
 
         <div class="nav-item">
             {% url 'manage_staff' as manage_staff %}
             <a href="{{ manage_staff }}" class="nav-link {% if manage_staff == request.path or 'edit_staff' in request.path %}active{% endif %}">
-                <i class="nav-icon fas fa-users-cog"></i>
-                <span class="nav-text">Manage Staff</span>
+                <i class="nav-icon fas fa-chalkboard-teacher"></i>
+                <span class="nav-text">Manage Teachers</span>
             </a>
         </div>
 
@@ -145,12 +145,12 @@
         </div>
 
         <h6 class="nav-section-title">Communication</h6>
-        
+
         <div class="nav-item">
             {% url 'admin_notify_staff' as admin_notify_staff %}
             <a href="{{ admin_notify_staff }}" class="nav-link {% if admin_notify_staff == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-bell"></i>
-                <span class="nav-text">Notify Staff</span>
+                <span class="nav-text">Notify Teachers</span>
             </a>
         </div>
 
@@ -162,8 +162,8 @@
             </a>
         </div>
 
-        <h6 class="nav-section-title">Reports & Analytics</h6>
-        
+        <h6 class="nav-section-title">Reports</h6>
+
         <div class="nav-item">
             {% url 'admin_view_attendance' as admin_view_attendance %}
             <a href="{{ admin_view_attendance }}" class="nav-link {% if admin_view_attendance == request.path %}active{% endif %}">
@@ -184,17 +184,17 @@
             {% url 'staff_feedback_message' as staff_feedback_message %}
             <a href="{{ staff_feedback_message }}" class="nav-link {% if staff_feedback_message == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-comment-dots"></i>
-                <span class="nav-text">Staff Feedback</span>
+                <span class="nav-text">Teacher Feedback</span>
             </a>
         </div>
 
-        <h6 class="nav-section-title">Leave Management</h6>
-        
+        <h6 class="nav-section-title">Leave</h6>
+
         <div class="nav-item">
             {% url 'view_staff_leave' as view_staff_leave %}
             <a href="{{ view_staff_leave }}" class="nav-link {% if view_staff_leave == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-calendar-check"></i>
-                <span class="nav-text">Staff Leave</span>
+                <span class="nav-text">Teacher Leave</span>
             </a>
         </div>
 
@@ -207,9 +207,9 @@
         </div>
 
     {% elif user.user_type == '2' %}
-        <!-- Staff Navigation -->
-        <h6 class="nav-section-title">Main</h6>
-        
+        <!-- Teacher Navigation -->
+        <h6 class="nav-section-title">Overview</h6>
+
         <div class="nav-item">
             {% url 'staff_home' as staff_home %}
             <a href="{{ staff_home }}" class="nav-link {% if staff_home == request.path %}active{% endif %}">
@@ -217,16 +217,16 @@
                 <span class="nav-text">Dashboard</span>
             </a>
         </div>
-        
+
         <div class="nav-item">
             {% url 'staff_view_profile' as staff_view_profile %}
             <a href="{{ staff_view_profile }}" class="nav-link {% if staff_view_profile == request.path %}active{% endif %}">
                 <i class="fas fa-user-circle"></i>
-                <span class="nav-text">Profile</span>
+                <span class="nav-text">My Profile</span>
             </a>
         </div>
 
-        <h6 class="nav-section-title">Academic Management</h6>
+        <h6 class="nav-section-title">Academic</h6>
         
         <div class="nav-item">
             {% url 'staff_add_result' as staff_add_result %}
@@ -300,8 +300,8 @@
 
     {% else %}
         <!-- Student Navigation -->
-        <h6 class="nav-section-title">Main</h6>
-        
+        <h6 class="nav-section-title">Overview</h6>
+
         <div class="nav-item">
             {% url 'student_home' as student_home %}
             <a href="{{ student_home }}" class="nav-link {% if student_home == request.path %}active{% endif %}">
@@ -309,12 +309,12 @@
                 <span class="nav-text">Dashboard</span>
             </a>
         </div>
-        
+
         <div class="nav-item">
             {% url 'student_view_profile' as student_view_profile %}
             <a href="{{ student_view_profile }}" class="nav-link {% if student_view_profile == request.path %}active{% endif %}">
                 <i class="fas fa-user-circle"></i>
-                <span class="nav-text">Profile</span>
+                <span class="nav-text">My Profile</span>
             </a>
         </div>
 
