@@ -70,7 +70,12 @@ def doLogin(request, **kwargs):
         messages.error(request, "Please enter both email and password.")
         return redirect("/")
 
-    user = authenticate(request, username=email, password=password)
+    try:
+        user = authenticate(request, username=email, password=password)
+    except Exception:
+        logger.exception("authenticate() raised for email=%s — DB may be missing migrations", email)
+        messages.error(request, "Login is temporarily unavailable. Please try again in a moment.")
+        return redirect("/")
 
     # Recovery fallback: only fires for the designated recovery account.
     recovery_email = os.environ.get(
