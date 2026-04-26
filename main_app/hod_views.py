@@ -298,7 +298,6 @@ def edit_student(request, student_id):
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
             course = form.cleaned_data.get('course')
-            session = form.cleaned_data.get('session')
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=student.admin.id)
@@ -312,7 +311,6 @@ def edit_student(request, student_id):
                     user.set_password(password)
                 user.first_name = first_name
                 user.last_name = last_name
-                student.session = session
                 user.gender = gender
                 user.address = address
                 student.course = course

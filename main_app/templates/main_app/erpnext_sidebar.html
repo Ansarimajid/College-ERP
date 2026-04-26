@@ -70,28 +70,6 @@
             </div>
         </div>
 
-        <div class="nav-item has-submenu {% if 'session' in request.path %}open{% endif %}">
-            <a href="#" class="nav-link">
-                <i class="nav-icon fas fa-calendar-alt"></i>
-                <span class="nav-text">Sessions</span>
-                <i class="nav-arrow fas fa-chevron-right"></i>
-            </a>
-            <div class="nav-submenu">
-                <div class="nav-item">
-                    {% url 'add_session' as add_session %}
-                    <a href="{{ add_session }}" class="nav-link {% if add_session == request.path %}active{% endif %}">
-                        <span class="nav-text">Add Session</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    {% url 'manage_session' as manage_session %}
-                    <a href="{{ manage_session }}" class="nav-link {% if manage_session == request.path or 'edit_session' in request.path %}active{% endif %}">
-                        <span class="nav-text">Manage Sessions</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <div class="nav-item has-submenu {% if 'branch' in request.path %}open{% endif %}">
             <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-map-marker-alt"></i>

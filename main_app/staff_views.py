@@ -363,8 +363,6 @@ def add_assignment(request):
             obj.save()
             messages.success(request, "Assignment created!")
             return redirect(reverse('staff_assignments'))
-        else:
-            messages.error(request, "Form has errors!")
     form.fields['group'].queryset = Group.objects.filter(teacher=staff, is_archived=False)
     return render(request, 'staff_template/add_assignment.html', {
         'form': form,
@@ -382,8 +380,6 @@ def edit_assignment(request, assignment_id):
             form.save()
             messages.success(request, "Assignment updated!")
             return redirect(reverse('staff_assignments'))
-        else:
-            messages.error(request, "Form has errors!")
     form.fields['group'].queryset = Group.objects.filter(teacher=staff, is_archived=False)
     return render(request, 'staff_template/add_assignment.html', {
         'form': form,

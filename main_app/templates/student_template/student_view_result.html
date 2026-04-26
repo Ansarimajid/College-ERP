@@ -29,10 +29,7 @@
                   {% with total=r.test|add:r.exam %}
                   <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>
-                      {% if r.group %}{{ r.group.name }}{% else %}—{% endif %}
-                      {% if r.subject %}<br><small class="text-muted">{{ r.subject.name }}</small>{% endif %}
-                    </td>
+                    <td>{% if r.group %}{{ r.group.name }}{% else %}—{% endif %}</td>
                     <td>{{ r.test }}</td>
                     <td>{{ r.exam }}</td>
                     <td><strong>{{ total }}</strong></td>

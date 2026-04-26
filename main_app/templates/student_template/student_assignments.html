@@ -16,7 +16,6 @@
                 <tr>
                   <th>#</th>
                   <th>Assignment</th>
-                  <th>Subject</th>
                   <th>Group</th>
                   <th>Due Date</th>
                   <th>Status</th>
@@ -28,7 +27,6 @@
                 <tr>
                   <td>{{ forloop.counter }}</td>
                   <td>{{ a.title }}</td>
-                  <td>{{ a.subject.name }}</td>
                   <td>{{ a.group|default:"—" }}</td>
                   <td>{{ a.due_date }}</td>
                   <td>
@@ -45,7 +43,7 @@
                   </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="text-center text-muted">No assignments assigned to your groups.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted">No assignments assigned to your groups.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
