@@ -242,7 +242,7 @@
             {% url 'staff_add_result' as staff_add_result %}
             <a href="{{ staff_add_result }}" class="nav-link {% if staff_add_result == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-plus-circle"></i>
-                <span class="nav-text">Add Result</span>
+                <span class="nav-text">Add / Update Scores</span>
             </a>
         </div>
 
@@ -250,8 +250,30 @@
             {% url 'edit_student_result' as edit_student_result %}
             <a href="{{ edit_student_result }}" class="nav-link {% if edit_student_result == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-edit"></i>
-                <span class="nav-text">Edit Results</span>
+                <span class="nav-text">Edit Scores</span>
             </a>
+        </div>
+
+        <div class="nav-item has-submenu {% if 'result/file' in request.path or 'result/upload' in request.path %}open{% endif %}">
+            <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-file-upload"></i>
+                <span class="nav-text">Result Files</span>
+                <i class="nav-arrow fas fa-chevron-right"></i>
+            </a>
+            <div class="nav-submenu">
+                <div class="nav-item">
+                    {% url 'upload_result_file' as upload_result_file %}
+                    <a href="{{ upload_result_file }}" class="nav-link {% if upload_result_file == request.path %}active{% endif %}">
+                        <span class="nav-text">Upload File</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    {% url 'staff_result_files' as staff_result_files %}
+                    <a href="{{ staff_result_files }}" class="nav-link {% if staff_result_files == request.path %}active{% endif %}">
+                        <span class="nav-text">Manage Files</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="nav-item">
@@ -350,7 +372,15 @@
             {% url 'student_view_result' as student_view_result %}
             <a href="{{ student_view_result }}" class="nav-link {% if student_view_result == request.path %}active{% endif %}">
                 <i class="nav-icon fas fa-chart-bar"></i>
-                <span class="nav-text">View Results</span>
+                <span class="nav-text">View Scores</span>
+            </a>
+        </div>
+
+        <div class="nav-item">
+            {% url 'student_result_files' as student_result_files %}
+            <a href="{{ student_result_files }}" class="nav-link {% if student_result_files == request.path %}active{% endif %}">
+                <i class="nav-icon fas fa-file-alt"></i>
+                <span class="nav-text">Result Files</span>
             </a>
         </div>
 

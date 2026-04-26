@@ -15,7 +15,7 @@
             {% if not groups %}
             <div class="alert alert-warning">
               <i class="fas fa-exclamation-triangle mr-1"></i>
-              You are not enrolled in any groups yet. Please contact your teacher or admin.
+              You are not enrolled in any active groups yet.
             </div>
             {% else %}
 
@@ -51,10 +51,13 @@
             {% endif %}
           </div><!-- /.card-body -->
 
-          <div class="card-footer" style="overflow:auto; max-height:420px;">
+          <div class="card-footer" style="overflow:auto; max-height:500px;">
             <div id="summary" class="mb-3" style="display:none;">
               <span class="badge badge-success p-2 mr-2">
                 <i class="fas fa-check-circle mr-1"></i> Present: <strong id="cnt_present">0</strong>
+              </span>
+              <span class="badge badge-warning p-2 mr-2">
+                <i class="fas fa-clock mr-1"></i> Late: <strong id="cnt_late">0</strong>
               </span>
               <span class="badge badge-danger p-2">
                 <i class="fas fa-times-circle mr-1"></i> Absent: <strong id="cnt_absent">0</strong>
@@ -77,6 +80,7 @@
   box-shadow: 0 2px 6px rgba(0,0,0,.15); font-size: 13px;
 }
 .att-present { background: linear-gradient(135deg,#10B981,#059669); }
+.att-late    { background: linear-gradient(135deg,#F59E0B,#D97706); }
 .att-absent  { background: linear-gradient(135deg,#EF4444,#DC2626); }
 </style>
 <script>
@@ -106,13 +110,19 @@ document.getElementById('fetch_btn').addEventListener('click', function () {
       document.getElementById('summary').style.display = 'none';
       return;
     }
-    let present = 0, absent = 0, html = '';
+    let present = 0, late = 0, absent = 0, html = '';
     arr.forEach(r => {
-      if (r.status) {
+      // status: 1=Present, 2=Late, 0=Absent
+      if (r.status === 1) {
         present++;
         html += `<div class="col-lg-2 col-md-3 col-4"><div class="att-tile att-present">
           <i class="fas fa-check-circle mb-1 d-block"></i>
           <strong>${r.date}</strong><div>Present</div></div></div>`;
+      } else if (r.status === 2) {
+        late++;
+        html += `<div class="col-lg-2 col-md-3 col-4"><div class="att-tile att-late">
+          <i class="fas fa-clock mb-1 d-block"></i>
+          <strong>${r.date}</strong><div>Late</div></div></div>`;
       } else {
         absent++;
         html += `<div class="col-lg-2 col-md-3 col-4"><div class="att-tile att-absent">
@@ -122,6 +132,7 @@ document.getElementById('fetch_btn').addEventListener('click', function () {
     });
     container.innerHTML = html;
     document.getElementById('cnt_present').textContent = present;
+    document.getElementById('cnt_late').textContent    = late;
     document.getElementById('cnt_absent').textContent  = absent;
     document.getElementById('summary').style.display = 'block';
   })

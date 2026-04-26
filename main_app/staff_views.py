@@ -46,10 +46,11 @@ def staff_home(request):
 
 
 def staff_take_attendance(request):
-    staff = get_object_or_404(Staff, admin=request.user)
-    groups = Group.objects.filter(teacher=staff).select_related('course', 'branch')
+    # Show ALL non-archived groups so any teacher can take attendance
+    groups = Group.objects.filter(is_archived=False).select_related('course', 'branch')
     context = {
         'groups': groups,
+        'today': date.today().isoformat(),
         'page_title': 'Take Attendance',
     }
     return render(request, 'staff_template/staff_take_attendance.html', context)
@@ -75,31 +76,40 @@ def get_students(request):
         return JsonResponse({'error': 'Unable to fetch students.'}, status=400)
 
 
+_STATUS_LABELS = {
+    AttendanceReport.ABSENT: 'Absent',
+    AttendanceReport.PRESENT: 'Present',
+    AttendanceReport.LATE: 'Late',
+}
+
+
 @csrf_exempt
 def save_attendance(request):
     student_data = request.POST.get('student_ids')
-    date = request.POST.get('date')
+    att_date = request.POST.get('date')
     group_id = request.POST.get('group')
     students = json.loads(student_data)
     try:
         group = get_object_or_404(Group, id=group_id)
-        attendance = Attendance(group=group, date=date)
-        attendance.save()
+        attendance = Attendance.objects.create(group=group, date=att_date)
         for student_dict in students:
-            student = get_object_or_404(Student, id=student_dict.get('id'))
-            AttendanceReport(
+            student = get_object_or_404(Student, id=student_dict['id'])
+            status = int(student_dict.get('status', AttendanceReport.ABSENT))
+            AttendanceReport.objects.create(student=student, attendance=attendance, status=status)
+            NotificationStudent.objects.create(
                 student=student,
-                attendance=attendance,
-                status=student_dict.get('status'),
-            ).save()
+                message=(
+                    f"Attendance for {group.name} on {att_date} has been marked: "
+                    f"{_STATUS_LABELS.get(status, 'Unknown')}."
+                ),
+            )
     except Exception:
         return HttpResponse("ERROR", status=400)
     return HttpResponse("OK")
 
 
 def staff_update_attendance(request):
-    staff = get_object_or_404(Staff, admin=request.user)
-    groups = Group.objects.filter(teacher=staff).select_related('course', 'branch')
+    groups = Group.objects.filter(is_archived=False).select_related('course', 'branch')
     context = {
         'groups': groups,
         'page_title': 'Update Attendance',
@@ -112,12 +122,14 @@ def get_student_attendance(request):
     attendance_date_id = request.POST.get('attendance_date_id')
     try:
         attendance = get_object_or_404(Attendance, id=attendance_date_id)
-        reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student__admin')
+        reports = AttendanceReport.objects.filter(
+            attendance=attendance
+        ).select_related('student__admin')
         student_data = [
             {
-                "id": r.student.admin.id,
+                "id": r.student.id,   # student PK (not admin PK)
                 "name": r.student.admin.last_name + " " + r.student.admin.first_name,
-                "status": r.status,
+                "status": r.status,   # 0/1/2
             }
             for r in reports
         ]
@@ -134,10 +146,18 @@ def update_attendance(request):
     try:
         attendance = get_object_or_404(Attendance, id=attendance_id)
         for student_dict in students:
-            student = get_object_or_404(Student, admin_id=student_dict.get('id'))
+            student = get_object_or_404(Student, id=student_dict['id'])   # student PK
             report = get_object_or_404(AttendanceReport, student=student, attendance=attendance)
-            report.status = student_dict.get('status')
+            status = int(student_dict.get('status', AttendanceReport.ABSENT))
+            report.status = status
             report.save()
+            NotificationStudent.objects.create(
+                student=student,
+                message=(
+                    f"Attendance for {attendance.group.name} on {attendance.date} "
+                    f"updated to {_STATUS_LABELS.get(status, 'Unknown')}."
+                ),
+            )
     except Exception:
         return HttpResponse("ERROR", status=400)
     return HttpResponse("OK")
@@ -254,7 +274,7 @@ def staff_view_notification(request):
 
 def staff_add_result(request):
     staff = get_object_or_404(Staff, admin=request.user)
-    groups = Group.objects.filter(teacher=staff).select_related('course')
+    groups = Group.objects.filter(is_archived=False).select_related('course')
     context = {
         'page_title': 'Result Upload',
         'groups': groups,
@@ -421,3 +441,96 @@ def grade_submission(request, submission_id):
         except (ValueError, TypeError):
             messages.error(request, "Invalid grade value.")
     return redirect(reverse('view_submissions', args=[submission.assignment_id]))
+
+
+# ── Result Files ──────────────────────────────────────────────────────────────
+
+_ALLOWED_RESULT_EXTENSIONS = {'.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif', '.webp'}
+
+
+@staff_only
+def staff_result_files(request):
+    staff = get_object_or_404(Staff, admin=request.user)
+    files = (
+        ResultFile.objects
+        .filter(uploaded_by=staff)
+        .select_related('group', 'student__admin')
+    )
+    return render(request, 'staff_template/staff_result_files.html', {
+        'files': files,
+        'page_title': 'Result Files',
+    })
+
+
+@staff_only
+def upload_result_file(request):
+    import os
+    staff = get_object_or_404(Staff, admin=request.user)
+    groups = Group.objects.filter(is_archived=False).select_related('course')
+
+    if request.method != 'POST':
+        return render(request, 'staff_template/upload_result_file.html', {
+            'groups': groups,
+            'page_title': 'Upload Result File',
+        })
+
+    group_id = request.POST.get('group', '').strip()
+    student_id = request.POST.get('student', '').strip() or None
+    title = request.POST.get('title', '').strip()
+    description = request.POST.get('description', '').strip()
+    uploaded_file = request.FILES.get('file')
+
+    errors = {}
+    if not group_id:
+        errors['group'] = 'Please select a group.'
+    if not title:
+        errors['title'] = 'Title is required.'
+    if not uploaded_file:
+        errors['file'] = 'Please choose a file to upload.'
+    elif os.path.splitext(uploaded_file.name)[1].lower() not in _ALLOWED_RESULT_EXTENSIONS:
+        errors['file'] = 'Only PDF, Word (.doc/.docx), or image files are allowed.'
+
+    if errors:
+        return render(request, 'staff_template/upload_result_file.html', {
+            'groups': groups,
+            'errors': errors,
+            'post': request.POST,
+            'page_title': 'Upload Result File',
+        })
+
+    group = get_object_or_404(Group, id=group_id)
+    student = get_object_or_404(Student, id=student_id) if student_id else None
+
+    result_file = ResultFile.objects.create(
+        group=group,
+        student=student,
+        file=uploaded_file,
+        title=title,
+        description=description,
+        uploaded_by=staff,
+    )
+
+    if student:
+        NotificationStudent.objects.create(
+            student=student,
+            message=f"A result file '{title}' has been uploaded for you in {group.name}.",
+        )
+    else:
+        for e in Enrollment.objects.filter(group=group, is_active=True).select_related('student'):
+            NotificationStudent.objects.create(
+                student=e.student,
+                message=f"A result file '{title}' has been uploaded for {group.name}.",
+            )
+
+    messages.success(request, f"File '{title}' uploaded successfully.")
+    return redirect(reverse('staff_result_files'))
+
+
+@staff_only
+def delete_result_file(request, file_id):
+    staff = get_object_or_404(Staff, admin=request.user)
+    result_file = get_object_or_404(ResultFile, id=file_id, uploaded_by=staff)
+    result_file.file.delete(save=False)
+    result_file.delete()
+    messages.success(request, "File deleted.")
+    return redirect(reverse('staff_result_files'))

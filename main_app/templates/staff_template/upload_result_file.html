@@ -1,0 +1,137 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-upload mr-2"></i>{{ page_title }}</h3>
+          </div>
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card-body">
+
+              {% if messages %}
+                {% for m in messages %}
+                <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible">
+                  {{ m }} <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+                {% endfor %}
+              {% endif %}
+
+              <!-- Group -->
+              <div class="form-group">
+                <label><i class="fas fa-layer-group mr-1"></i> Group <span class="text-danger">*</span></label>
+                <select id="group_select" name="group" class="form-control {% if errors.group %}is-invalid{% endif %}">
+                  <option value="">— Select group —</option>
+                  {% for g in groups %}
+                  <option value="{{ g.id }}" {% if post.group == g.id|stringformat:"s" %}selected{% endif %}>
+                    {{ g.name }}{% if g.course %} · {{ g.course.name }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.group %}
+                <div class="invalid-feedback d-block">{{ errors.group }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Upload scope: group-wide or individual -->
+              <div class="form-group">
+                <label><i class="fas fa-users mr-1"></i> Upload For</label>
+                <div class="d-flex" style="gap:10px;">
+                  <label class="d-flex align-items-center" style="cursor:pointer;gap:6px;">
+                    <input type="radio" name="upload_scope" value="group" checked onchange="toggleStudent(false)">
+                    <span>Entire Group</span>
+                  </label>
+                  <label class="d-flex align-items-center" style="cursor:pointer;gap:6px;">
+                    <input type="radio" name="upload_scope" value="student" onchange="toggleStudent(true)">
+                    <span>Individual Student</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Student dropdown (hidden by default) -->
+              <div id="student_section" style="display:none;" class="form-group">
+                <label><i class="fas fa-user-graduate mr-1"></i> Student</label>
+                <select id="student_select" name="student" class="form-control">
+                  <option value="">— Select group first —</option>
+                </select>
+              </div>
+
+              <!-- Title -->
+              <div class="form-group">
+                <label><i class="fas fa-heading mr-1"></i> Title <span class="text-danger">*</span></label>
+                <input type="text" name="title" class="form-control {% if errors.title %}is-invalid{% endif %}"
+                       value="{{ post.title|default:'' }}" placeholder="e.g. Midterm Results — Group A">
+                {% if errors.title %}
+                <div class="invalid-feedback d-block">{{ errors.title }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Description -->
+              <div class="form-group">
+                <label><i class="fas fa-info-circle mr-1"></i> Description <small class="text-muted">(optional)</small></label>
+                <textarea name="description" class="form-control" rows="2"
+                          placeholder="Any notes for students…">{{ post.description|default:'' }}</textarea>
+              </div>
+
+              <!-- File -->
+              <div class="form-group">
+                <label><i class="fas fa-paperclip mr-1"></i> File <span class="text-danger">*</span></label>
+                <input type="file" name="file" class="form-control-file {% if errors.file %}is-invalid{% endif %}"
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp">
+                <small class="form-text text-muted">Allowed: PDF, Word (.doc / .docx), or image files. Max 25 MB.</small>
+                {% if errors.file %}
+                <div class="invalid-feedback d-block">{{ errors.file }}</div>
+                {% endif %}
+              </div>
+
+            </div><!-- /.card-body -->
+            <div class="card-footer">
+              <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-upload mr-1"></i> Upload File &amp; Notify Students
+              </button>
+              <a href="{% url 'staff_result_files' %}" class="btn btn-secondary btn-block mt-2">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
+
+function toggleStudent(show) {
+  const sec = document.getElementById('student_section');
+  sec.style.display = show ? 'block' : 'none';
+  if (!show) document.getElementById('student_select').value = '';
+}
+
+document.getElementById('group_select').addEventListener('change', function () {
+  const group = this.value;
+  const sel   = document.getElementById('student_select');
+  sel.innerHTML = '<option value="">— Loading… —</option>';
+  if (!group) { sel.innerHTML = '<option value="">— Select group first —</option>'; return; }
+
+  fetch("{% url 'get_students' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    sel.innerHTML = '<option value="">— Select student —</option>' +
+      arr.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  })
+  .catch(() => { sel.innerHTML = '<option value="">Error loading students</option>'; });
+});
+</script>
+{% endblock %}

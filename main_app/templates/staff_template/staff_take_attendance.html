@@ -5,46 +5,99 @@
 <section class="content">
   <div class="container-fluid">
     <div class="row">
-      <div class="col-md-8 offset-md-2">
+      <div class="col-md-10 offset-md-1">
+
         <div class="card card-dark">
           <div class="card-header">
-            <h3 class="card-title">{{ page_title }}</h3>
+            <h3 class="card-title"><i class="fas fa-clipboard-check mr-2"></i>{{ page_title }}</h3>
           </div>
           <div class="card-body">
 
-            <div class="form-group">
-              <label><i class="fas fa-layer-group mr-1"></i> Select Group</label>
-              <select id="group" class="form-control">
-                <option value="">— Choose a group —</option>
-                {% for g in groups %}
-                <option value="{{ g.id }}">{{ g.name }}{% if g.branch %} · {{ g.branch.name }}{% endif %}</option>
-                {% endfor %}
-              </select>
+            {% if not groups %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              No active groups found. Please ask the admin to create groups first.
+            </div>
+            {% else %}
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label><i class="fas fa-layer-group mr-1"></i> Group</label>
+                  <select id="group" class="form-control">
+                    <option value="">— Select group —</option>
+                    {% for g in groups %}
+                    <option value="{{ g.id }}">
+                      {{ g.name }}{% if g.course %} · {{ g.course.name }}{% endif %}{% if g.branch %} · {{ g.branch.name }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label><i class="fas fa-calendar-day mr-1"></i> Date</label>
+                  <input type="date" id="attendance_date" class="form-control"
+                         value="{{ today }}" max="{{ today }}">
+                </div>
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-group w-100">
+                  <button type="button" id="fetch_btn" class="btn btn-primary btn-block">
+                    <i class="fas fa-users mr-1"></i> Load
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label><i class="fas fa-calendar-day mr-1"></i> Attendance Date</label>
-              <input type="date" id="attendance_date" class="form-control"
-                     value="{{ today }}" max="{{ today }}">
-            </div>
-
-            <button type="button" id="fetch_students_btn" class="btn btn-primary btn-block">
-              <i class="fas fa-users mr-1"></i> Load Students
-            </button>
-
+            {% endif %}
           </div><!-- /.card-body -->
+        </div>
 
-          <div id="student_section" style="display:none;" class="card-footer">
-            <hr>
-            <h6 class="mb-3"><i class="fas fa-clipboard-list mr-1"></i> Mark Attendance</h6>
-            <div id="student_list" class="row mb-3"></div>
+        <!-- Student roster -->
+        <div id="roster_card" class="card card-dark" style="display:none;">
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0" id="roster_title">Mark Attendance</h5>
+            <div class="mt-1">
+              <button type="button" class="btn btn-sm btn-success mr-1" onclick="markAll(1)">All Present</button>
+              <button type="button" class="btn btn-sm btn-warning mr-1" onclick="markAll(2)">All Late</button>
+              <button type="button" class="btn btn-sm btn-danger" onclick="markAll(0)">All Absent</button>
+            </div>
+          </div>
+
+          <div class="card-body p-0">
+            <div id="student_list" class="table-responsive">
+              <table class="table table-hover mb-0" id="roster_table">
+                <thead class="thead-dark">
+                  <tr>
+                    <th style="width:50%">Student</th>
+                    <th>
+                      <span class="status-btn-header d-flex gap-2">
+                        <span class="badge badge-success px-3 py-2">Present</span>
+                        <span class="badge badge-warning px-3 py-2">Late</span>
+                        <span class="badge badge-danger px-3 py-2">Absent</span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="roster_tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div id="att_summary" class="mb-2">
+              <span class="badge badge-success p-2 mr-2">Present: <strong id="cnt_p">0</strong></span>
+              <span class="badge badge-warning p-2 mr-2">Late: <strong id="cnt_l">0</strong></span>
+              <span class="badge badge-danger p-2">Absent: <strong id="cnt_a">0</strong></span>
+            </div>
             <button type="button" id="save_btn" class="btn btn-success btn-block">
               <i class="fas fa-save mr-1"></i> Save Attendance
             </button>
             <div id="save_msg" class="mt-2"></div>
           </div>
-
         </div>
+
       </div>
     </div>
   </div>
@@ -52,14 +105,64 @@
 {% endblock %}
 
 {% block custom_js %}
+<style>
+.status-btn-group { display: flex; gap: 6px; }
+.status-btn {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  background: #f0f0f0;
+  color: #555;
+}
+.status-btn.active-present { background: #28a745; color: #fff; border-color: #28a745; }
+.status-btn.active-late    { background: #ffc107; color: #333; border-color: #ffc107; }
+.status-btn.active-absent  { background: #dc3545; color: #fff; border-color: #dc3545; }
+.status-btn:hover          { opacity: .85; }
+.gap-2 { gap: 8px; }
+</style>
 <script>
 const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
+const STATUS_CLASS = {0: 'active-absent', 1: 'active-present', 2: 'active-late'};
+const STATUS_LABEL = {0: 'Absent', 1: 'Present', 2: 'Late'};
 
-document.getElementById('fetch_students_btn').addEventListener('click', function () {
+function updateSummary() {
+  const rows = document.querySelectorAll('#roster_tbody tr');
+  let p = 0, l = 0, a = 0;
+  rows.forEach(r => {
+    const v = parseInt(r.querySelector('input.student-status').value);
+    if (v === 1) p++; else if (v === 2) l++; else a++;
+  });
+  document.getElementById('cnt_p').textContent = p;
+  document.getElementById('cnt_l').textContent = l;
+  document.getElementById('cnt_a').textContent = a;
+}
+
+function setStatus(row, status) {
+  const inp = row.querySelector('input.student-status');
+  inp.value = status;
+  row.querySelectorAll('.status-btn').forEach(b => {
+    b.classList.remove('active-present', 'active-late', 'active-absent');
+  });
+  row.querySelector(`.status-btn[data-status="${status}"]`).classList.add(STATUS_CLASS[status]);
+  updateSummary();
+}
+
+function markAll(status) {
+  document.querySelectorAll('#roster_tbody tr').forEach(r => setStatus(r, status));
+}
+
+document.getElementById('fetch_btn').addEventListener('click', function () {
   const group = document.getElementById('group').value;
-  const date  = document.getElementById('attendance_date').value;
+  const attDate = document.getElementById('attendance_date').value;
   if (!group) { alert('Please select a group first.'); return; }
-  if (!date)  { alert('Please select a date.'); return; }
+  if (!attDate) { alert('Please select a date.'); return; }
+
+  this.disabled = true;
+  this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Loading…';
 
   fetch("{% url 'get_students' %}", {
     method: 'POST',
@@ -69,83 +172,81 @@ document.getElementById('fetch_students_btn').addEventListener('click', function
   .then(r => r.json())
   .then(data => {
     const arr = JSON.parse(data);
-    if (!arr.length) { alert('No enrolled students in this group.'); return; }
+    const btn = document.getElementById('fetch_btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-users mr-1"></i> Load';
 
-    const list = document.getElementById('student_list');
-    list.innerHTML = arr.map(s => `
-      <div class="col-md-4 col-6 mb-2">
-        <div class="card p-2 text-center student-card" data-id="${s.id}" style="cursor:pointer;border:2px solid #28a745;">
-          <i class="fas fa-user-check text-success mb-1"></i>
-          <small class="font-weight-bold">${s.name}</small>
-          <small class="text-success status-label">Present</small>
+    if (!arr.length) {
+      alert('No enrolled students in this group.');
+      return;
+    }
+
+    const tbody = document.getElementById('roster_tbody');
+    tbody.innerHTML = arr.map(s => `
+      <tr data-id="${s.id}">
+        <td class="align-middle font-weight-bold">${s.name}</td>
+        <td>
+          <div class="status-btn-group">
+            <button type="button" class="status-btn active-present" data-status="1" onclick="setStatus(this.closest('tr'),1)">Present</button>
+            <button type="button" class="status-btn" data-status="2" onclick="setStatus(this.closest('tr'),2)">Late</button>
+            <button type="button" class="status-btn" data-status="0" onclick="setStatus(this.closest('tr'),0)">Absent</button>
+          </div>
           <input type="hidden" class="student-status" value="1">
-        </div>
-      </div>`).join('');
+        </td>
+      </tr>`).join('');
 
-    document.getElementById('student_section').style.display = 'block';
+    const grpOpt = document.getElementById('group').selectedOptions[0].text;
+    document.getElementById('roster_title').textContent =
+      `${grpOpt} · ${attDate} — ${arr.length} students`;
+    document.getElementById('roster_card').style.display = 'block';
     document.getElementById('save_msg').innerHTML = '';
-
-    // Toggle present/absent on click
-    document.querySelectorAll('.student-card').forEach(card => {
-      card.addEventListener('click', function () {
-        const inp   = this.querySelector('.student-status');
-        const label = this.querySelector('.status-label');
-        const icon  = this.querySelector('i');
-        if (inp.value === '1') {
-          inp.value = '0';
-          this.style.border = '2px solid #dc3545';
-          icon.className = 'fas fa-user-times text-danger mb-1';
-          label.textContent = 'Absent';
-          label.className = 'text-danger status-label';
-        } else {
-          inp.value = '1';
-          this.style.border = '2px solid #28a745';
-          icon.className = 'fas fa-user-check text-success mb-1';
-          label.textContent = 'Present';
-          label.className = 'text-success status-label';
-        }
-      });
-    });
+    updateSummary();
   })
-  .catch(() => alert('Error loading students.'));
+  .catch(() => {
+    const btn = document.getElementById('fetch_btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-users mr-1"></i> Load';
+    alert('Error loading students.');
+  });
 });
 
 document.getElementById('save_btn').addEventListener('click', function () {
-  const group = document.getElementById('group').value;
-  const date  = document.getElementById('attendance_date').value;
-  const cards = document.querySelectorAll('.student-card');
-  if (!cards.length) return;
+  const group   = document.getElementById('group').value;
+  const attDate = document.getElementById('attendance_date').value;
+  const rows    = document.querySelectorAll('#roster_tbody tr');
+  if (!rows.length) return;
 
   const student_ids = JSON.stringify(
-    Array.from(cards).map(c => ({
-      id: c.dataset.id,
-      status: parseInt(c.querySelector('.student-status').value)
+    Array.from(rows).map(r => ({
+      id:     parseInt(r.dataset.id),
+      status: parseInt(r.querySelector('input.student-status').value),
     }))
   );
 
   this.disabled = true;
-  this.textContent = 'Saving…';
+  this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving…';
 
   fetch("{% url 'save_attendance' %}", {
     method: 'POST',
     headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ group, date, student_ids })
+    body: new URLSearchParams({ group, date: attDate, student_ids })
   })
   .then(r => r.text())
   .then(resp => {
-    document.getElementById('save_msg').innerHTML =
-      resp === 'OK'
-        ? '<div class="alert alert-success mb-0"><i class="fas fa-check-circle mr-1"></i> Attendance saved successfully!</div>'
-        : '<div class="alert alert-danger mb-0">Error saving attendance. Please try again.</div>';
     if (resp === 'OK') {
-      setTimeout(() => location.reload(), 1500);
+      document.getElementById('save_msg').innerHTML =
+        '<div class="alert alert-success mb-0"><i class="fas fa-check-circle mr-1"></i> Attendance saved! Students have been notified.</div>';
+      document.getElementById('save_btn').style.display = 'none';
     } else {
+      document.getElementById('save_msg').innerHTML =
+        '<div class="alert alert-danger mb-0">Error saving attendance. Please try again.</div>';
       this.disabled = false;
       this.innerHTML = '<i class="fas fa-save mr-1"></i> Save Attendance';
     }
   })
   .catch(() => {
-    document.getElementById('save_msg').innerHTML = '<div class="alert alert-danger mb-0">Network error.</div>';
+    document.getElementById('save_msg').innerHTML =
+      '<div class="alert alert-danger mb-0">Network error.</div>';
     this.disabled = false;
     this.innerHTML = '<i class="fas fa-save mr-1"></i> Save Attendance';
   });

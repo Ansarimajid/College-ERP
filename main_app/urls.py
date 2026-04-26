@@ -171,4 +171,12 @@ urlpatterns = [
     # Assignments (Student)
     path("student/assignments/", student_views.student_assignments, name='student_assignments'),
     path("student/assignment/<int:assignment_id>/submit/", student_views.submit_assignment, name='submit_assignment'),
+
+    # Result Files (Staff)
+    path("staff/result/files/", staff_views.staff_result_files, name='staff_result_files'),
+    path("staff/result/upload-file/", staff_views.upload_result_file, name='upload_result_file'),
+    path("staff/result/delete-file/<int:file_id>/", staff_views.delete_result_file, name='delete_result_file'),
+
+    # Result Files (Student)
+    path("student/result/files/", student_views.student_result_files, name='student_result_files'),
 ]

@@ -19,9 +19,11 @@ from .models import *
 def student_home(request):
     student = get_object_or_404(Student, admin=request.user)
 
-    # Overall attendance
+    # Overall attendance (Present=1 and Late=2 both count as attended)
     total_attendance = AttendanceReport.objects.filter(student=student).count()
-    total_present = AttendanceReport.objects.filter(student=student, status=True).count()
+    total_present = AttendanceReport.objects.filter(
+        student=student, status__in=[AttendanceReport.PRESENT, AttendanceReport.LATE]
+    ).count()
     if total_attendance == 0:
         percent_absent = percent_present = 0
     else:
@@ -42,9 +44,13 @@ def student_home(request):
         group = enrollment.group
         att_qs = Attendance.objects.filter(group=group)
         present_count = AttendanceReport.objects.filter(
-            attendance__in=att_qs, status=True, student=student).count()
+            attendance__in=att_qs,
+            status__in=[AttendanceReport.PRESENT, AttendanceReport.LATE],
+            student=student,
+        ).count()
         absent_count = AttendanceReport.objects.filter(
-            attendance__in=att_qs, status=False, student=student).count()
+            attendance__in=att_qs, status=AttendanceReport.ABSENT, student=student
+        ).count()
         total_cls = present_count + absent_count
         pct = round((present_count / total_cls) * 100) if total_cls > 0 else 0
         group_name.append(group.name)
@@ -223,12 +229,31 @@ def student_view_notification(request):
 
 def student_view_result(request):
     student = get_object_or_404(Student, admin=request.user)
-    results = StudentResult.objects.filter(student=student).select_related('group', 'subject')
+    results = StudentResult.objects.filter(student=student).select_related('group')
     context = {
         'results': results,
         'page_title': "View Results",
     }
     return render(request, "student_template/student_view_result.html", context)
+
+
+@student_only
+def student_result_files(request):
+    from django.db.models import Q
+    student = get_object_or_404(Student, admin=request.user)
+    enrolled_group_ids = Enrollment.objects.filter(
+        student=student, is_active=True
+    ).values_list('group_id', flat=True)
+    files = (
+        ResultFile.objects
+        .filter(group_id__in=enrolled_group_ids)
+        .filter(Q(student=student) | Q(student__isnull=True))
+        .select_related('group', 'uploaded_by__admin')
+    )
+    return render(request, 'student_template/student_result_files.html', {
+        'files': files,
+        'page_title': 'Result Files',
+    })
 
 
 #library

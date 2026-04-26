@@ -1,0 +1,68 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-10 offset-md-1">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-file-alt mr-2"></i>{{ page_title }}</h3>
+          </div>
+          <div class="card-body p-0">
+            {% if files %}
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Group</th>
+                    <th>For</th>
+                    <th>Uploaded</th>
+                    <th>Download</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for f in files %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                      <strong>{{ f.title }}</strong>
+                      {% if f.description %}<br><small class="text-muted">{{ f.description }}</small>{% endif %}
+                    </td>
+                    <td>{{ f.group.name }}</td>
+                    <td>
+                      {% if f.student %}
+                        <span class="badge badge-primary">Personal</span>
+                      {% else %}
+                        <span class="badge badge-info">Entire Group</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ f.uploaded_at|date:"d M Y" }}</td>
+                    <td>
+                      <a href="{{ f.file.url }}" target="_blank" class="btn btn-sm btn-success">
+                        <i class="fas fa-download mr-1"></i> View / Download
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted">
+              <i class="fas fa-folder-open fa-3x mb-3 d-block"></i>
+              No result files have been uploaded for your groups yet.
+              <br>
+              <small>Your teacher will upload files here after exams or assessments.</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

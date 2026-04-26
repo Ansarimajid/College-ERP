@@ -1,0 +1,84 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title">{{ page_title }}</h3>
+            <a href="{% url 'upload_result_file' %}" class="btn btn-primary btn-sm">
+              <i class="fas fa-upload mr-1"></i> Upload New File
+            </a>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            {% if messages %}
+              {% for m in messages %}
+              <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible">
+                {{ m }} <button type="button" class="close" data-dismiss="alert">&times;</button>
+              </div>
+              {% endfor %}
+            {% endif %}
+
+            {% if files %}
+            <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Group</th>
+                  <th>Student</th>
+                  <th>Uploaded</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for f in files %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>
+                    <strong>{{ f.title }}</strong>
+                    {% if f.description %}<br><small class="text-muted">{{ f.description }}</small>{% endif %}
+                  </td>
+                  <td>{{ f.group.name }}</td>
+                  <td>
+                    {% if f.student %}
+                      {{ f.student.admin.last_name }}, {{ f.student.admin.first_name }}
+                    {% else %}
+                      <span class="badge badge-info">Entire Group</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ f.uploaded_at|date:"d M Y, H:i" }}</td>
+                  <td>
+                    <a href="{{ f.file.url }}" target="_blank" class="btn btn-sm btn-success">
+                      <i class="fas fa-download mr-1"></i> Download
+                    </a>
+                    <a href="{% url 'delete_result_file' f.id %}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Delete this file?')">
+                      <i class="fas fa-trash mr-1"></i> Delete
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-folder-open fa-3x mb-3 d-block"></i>
+              No result files uploaded yet.
+              <br>
+              <a href="{% url 'upload_result_file' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-upload mr-1"></i> Upload First File
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

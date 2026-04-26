@@ -143,9 +143,14 @@ class Attendance(models.Model):
 
 
 class AttendanceReport(models.Model):
+    ABSENT = 0
+    PRESENT = 1
+    LATE = 2
+    STATUS_CHOICES = ((ABSENT, 'Absent'), (PRESENT, 'Present'), (LATE, 'Late'))
+
     student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
     attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
-    status = models.BooleanField(default=False)
+    status = models.SmallIntegerField(default=ABSENT, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -304,3 +309,24 @@ class Submission(models.Model):
 
     def __str__(self):
         return f"{self.student} → {self.assignment}"
+
+
+class ResultFile(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True)
+    file = models.FileField(upload_to='results/')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default="")
+    uploaded_by = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def filename(self):
+        import os
+        return os.path.basename(self.file.name) if self.file else ''
