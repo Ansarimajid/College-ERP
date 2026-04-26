@@ -70,28 +70,6 @@
             </div>
         </div>
 
-        <div class="nav-item has-submenu {% if 'subject' in request.path %}open{% endif %}">
-            <a href="#" class="nav-link">
-                <i class="nav-icon fas fa-book"></i>
-                <span class="nav-text">Subjects</span>
-                <i class="nav-arrow fas fa-chevron-right"></i>
-            </a>
-            <div class="nav-submenu">
-                <div class="nav-item">
-                    {% url 'add_subject' as add_subject %}
-                    <a href="{{ add_subject }}" class="nav-link {% if add_subject == request.path %}active{% endif %}">
-                        <span class="nav-text">Add Subject</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    {% url 'manage_subject' as manage_subject %}
-                    <a href="{{ manage_subject }}" class="nav-link {% if manage_subject == request.path or 'edit_subject' in request.path %}active{% endif %}">
-                        <span class="nav-text">Manage Subjects</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <div class="nav-item has-submenu {% if 'session' in request.path %}open{% endif %}">
             <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-calendar-alt"></i>

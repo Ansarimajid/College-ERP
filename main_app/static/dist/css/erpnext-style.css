@@ -957,25 +957,51 @@ body {
     padding: 20px 15px;
   }
 }
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1015;
+  transition: opacity 0.3s ease;
+}
+
 @media (max-width: 768px) {
   .erpnext-sidebar {
     transform: translateX(-100%);
+    z-index: 1025;
   }
-  
+
   .erpnext-main {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
-  
+
   .sidebar-open .erpnext-sidebar {
     transform: translateX(0);
   }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
+
+  .sidebar-open .sidebar-overlay {
+    display: block;
   }
-  
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-grid .stat-card {
+    padding: 14px 10px;
+  }
+
   .navbar-brand {
-    font-size: 18px;
+    font-size: 14px;
+  }
+
+  .erpnext-main {
+    padding: 12px 10px;
   }
 }
 

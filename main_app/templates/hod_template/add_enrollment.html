@@ -1,19 +1,128 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
 <section class="content">
   <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-md-6">
+      <div class="col-md-7">
         <div class="card card-dark">
           <div class="card-header">
-            <h3 class="card-title">{{page_title}}</h3>
+            <h3 class="card-title">{{ page_title }}</h3>
           </div>
-          {% include "main_app/form_template.html" with messages=messages form=form button_text="Enroll" %}
+          <form method="POST" id="enroll_form">
+            {% csrf_token %}
+            <div class="card-body">
+
+              {# Non-field errors #}
+              {% if errors.__all__ %}
+              <div class="alert alert-danger">{{ errors.__all__ }}</div>
+              {% endif %}
+
+              {# Step 1: Select Group #}
+              <div class="form-group">
+                <label><i class="fas fa-layer-group mr-1"></i> Group <span class="text-danger">*</span></label>
+                <select id="group_select" name="group" class="form-control" required>
+                  <option value="">— Choose a group —</option>
+                  {% for g in groups %}
+                  <option value="{{ g.id }}" {% if posted.group == g.id|stringformat:"s" %}selected{% endif %}>
+                    {{ g.name }}{% if g.course %} · {{ g.course.name }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.group %}<div class="text-danger small mt-1">{{ errors.group }}</div>{% endif %}
+              </div>
+
+              {# Group info panel (shown after selection) #}
+              <div id="group_info" class="alert alert-info py-2 px-3 mb-3" style="display:none;font-size:13px;">
+                <span id="gi_teacher"></span> &nbsp;·&nbsp; <span id="gi_program"></span>
+                &nbsp;·&nbsp; <span id="gi_enrolled"></span>/<span id="gi_capacity"></span> enrolled
+                {% if gi_schedule %}&nbsp;·&nbsp; <span id="gi_schedule"></span>{% endif %}
+              </div>
+
+              {# Step 2: Select Student #}
+              <div class="form-group">
+                <label><i class="fas fa-user-graduate mr-1"></i> Student <span class="text-danger">*</span></label>
+                <select id="student_select" name="student" class="form-control" required>
+                  <option value="">— Select a student —</option>
+                  {% for s in students %}
+                  <option value="{{ s.id }}" {% if posted.student == s.id|stringformat:"s" %}selected{% endif %}>
+                    {{ s }} {% if s.course %}· {{ s.course.name }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.student %}<div class="text-danger small mt-1">{{ errors.student }}</div>{% endif %}
+              </div>
+
+              {# Step 3: Enrollment Status #}
+              <div class="form-group">
+                <label><i class="fas fa-toggle-on mr-1"></i> Enrollment Status</label>
+                <select name="is_active" class="form-control">
+                  <option value="True" {% if not posted or posted.is_active == 'True' %}selected{% endif %}>Active</option>
+                  <option value="False" {% if posted.is_active == 'False' %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+
+            </div>
+            <div class="card-footer">
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-user-check mr-1"></i> Enroll Student
+              </button>
+              <a href="{% url 'manage_enrollment' %}" class="btn btn-secondary btn-block mt-2">
+                <i class="fas fa-list mr-1"></i> View All Enrollments
+              </a>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
 </section>
-{% endblock content %}
+{% endblock %}
+
+{% block custom_js %}
+<script>
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
+
+function loadGroupInfo(groupId) {
+  if (!groupId) {
+    document.getElementById('group_info').style.display = 'none';
+    return;
+  }
+  fetch("{% url 'get_group_info' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group_id: groupId })
+  })
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('gi_teacher').textContent = 'Teacher: ' + d.teacher;
+    document.getElementById('gi_program').textContent = 'Program: ' + d.program;
+    document.getElementById('gi_enrolled').textContent = d.enrolled_count;
+    document.getElementById('gi_capacity').textContent = d.capacity;
+    document.getElementById('group_info').style.display = 'block';
+
+    // Mark already-enrolled students
+    const sel = document.getElementById('student_select');
+    Array.from(sel.options).forEach(opt => {
+      if (!opt.value) return;
+      const alreadyEnrolled = d.enrolled_ids.includes(parseInt(opt.value));
+      opt.disabled = alreadyEnrolled;
+      opt.text = opt.text.replace(' [enrolled]', '');
+      if (alreadyEnrolled) opt.text += ' [enrolled]';
+    });
+  })
+  .catch(() => {});
+}
+
+document.getElementById('group_select').addEventListener('change', function () {
+  loadGroupInfo(this.value);
+});
+
+// Auto-load on page load if group is pre-selected (e.g. after validation error)
+document.addEventListener('DOMContentLoaded', function () {
+  const sel = document.getElementById('group_select');
+  if (sel.value) loadGroupInfo(sel.value);
+});
+</script>
+{% endblock %}

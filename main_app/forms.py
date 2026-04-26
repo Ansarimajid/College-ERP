@@ -213,16 +213,12 @@ class StaffEditForm(CustomUserForm):
 
 
 class EditResultForm(FormSettings):
-    session_list = Session.objects.all()
-    session_year = forms.ModelChoiceField(
-        label="Session Year", queryset=session_list, required=True)
-
     def __init__(self, *args, **kwargs):
         super(EditResultForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = StudentResult
-        fields = ['session_year', 'subject', 'student', 'test', 'exam']
+        fields = ['group', 'student', 'test', 'exam']
 
 #todos
 # class TodoForm(forms.ModelForm):
@@ -242,18 +238,33 @@ class GroupForm(FormSettings):
     class Meta:
         model = Group
         fields = ['name', 'course', 'teacher', 'branch', 'schedule', 'capacity']
+        labels = {
+            'course': 'Program',
+            'teacher': 'Teacher',
+            'branch': 'Branch / Location',
+            'schedule': 'Schedule',
+            'capacity': 'Capacity (max students)',
+        }
 
 
 class EnrollmentForm(FormSettings):
+    STATUS_CHOICES = [(True, 'Active'), (False, 'Inactive')]
+    is_active = forms.TypedChoiceField(
+        choices=STATUS_CHOICES,
+        coerce=lambda x: x == 'True' or x is True,
+        label="Enrollment Status",
+        initial=True,
+    )
+
     class Meta:
         model = Enrollment
-        fields = ['student', 'group', 'is_active']
+        fields = ['group', 'student', 'is_active']
 
 
 class AssignmentForm(FormSettings):
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'subject', 'group', 'due_date']
+        fields = ['title', 'description', 'group', 'due_date']
         widgets = {
             'due_date': DateInput(attrs={'type': 'date'}),
         }

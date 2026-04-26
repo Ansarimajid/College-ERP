@@ -95,11 +95,13 @@ urlpatterns = [
     path("group/add/", hod_views.add_group, name='add_group'),
     path("group/edit/<int:group_id>", hod_views.edit_group, name='edit_group'),
     path("group/delete/<int:group_id>", hod_views.delete_group, name='delete_group'),
+    path("group/archive/<int:group_id>", hod_views.archive_group, name='archive_group'),
 
     # Enrollment
     path("enrollment/manage/", hod_views.manage_enrollment, name='manage_enrollment'),
     path("enrollment/add/", hod_views.add_enrollment, name='add_enrollment'),
     path("enrollment/delete/<int:enrollment_id>", hod_views.delete_enrollment, name='delete_enrollment'),
+    path("enrollment/group-info/", hod_views.get_group_info, name='get_group_info'),
 
     # Staff
     path("staff/home/", staff_views.staff_home, name='staff_home'),

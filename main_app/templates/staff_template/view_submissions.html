@@ -11,9 +11,10 @@
             <h3 class="card-title">{{ assignment.title }}</h3>
           </div>
           <div class="card-body">
-            <p><strong>Subject:</strong> {{ assignment.subject.name }} &nbsp;|&nbsp;
+            <p>
                <strong>Group:</strong> {{ assignment.group|default:"All" }} &nbsp;|&nbsp;
-               <strong>Due:</strong> {{ assignment.due_date }}</p>
+               <strong>Due:</strong> {{ assignment.due_date }}
+            </p>
             {% if assignment.description %}
             <p class="text-muted">{{ assignment.description }}</p>
             {% endif %}

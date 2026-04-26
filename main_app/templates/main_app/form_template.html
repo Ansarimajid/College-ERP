@@ -2,30 +2,36 @@
     {% csrf_token %}
     <div class="card-body">
 
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-        {% for field in form  %}
+        {% for field in form %}
         <div class="form-group">
-            {{field.errors}}
-            {{field.label_tag}}
-            {{field}}
-
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                <span><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
         </div>
         {% endfor %}
 
-
-
-
     </div>
-    <!-- /.card-body -->
 
     <div class="card-footer">
         <button type="submit" class="btn btn-success btn-block">
-            {% if button_text %}
-            {{button_text}}
-            {% else %}
-            Submit
-            {% endif %}
-
+            {% if button_text %}{{ button_text }}{% else %}Submit{% endif %}
         </button>
     </div>
 </form>

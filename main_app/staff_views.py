@@ -17,26 +17,30 @@ from datetime import date
 @staff_only
 def staff_home(request):
     staff = get_object_or_404(Staff, admin=request.user)
-    total_students = Student.objects.filter(course=staff.course).count()
+    groups = Group.objects.filter(teacher=staff, is_archived=False)
+    total_groups = groups.count()
+    total_students = (
+        Enrollment.objects
+        .filter(group__in=groups, is_active=True)
+        .values('student').distinct().count()
+    )
     total_leave = LeaveReportStaff.objects.filter(staff=staff).count()
-    subjects = Subject.objects.filter(staff=staff)
-    total_subject = subjects.count()
-    attendance_list = Attendance.objects.filter(subject__in=subjects)
-    total_attendance = attendance_list.count()
+    total_attendance = Attendance.objects.filter(group__in=groups).count()
+
+    group_label_list = []
     attendance_list = []
-    subject_list = []
-    for subject in subjects:
-        attendance_count = Attendance.objects.filter(subject=subject).count()
-        subject_list.append(subject.name)
-        attendance_list.append(attendance_count)
+    for group in groups:
+        group_label_list.append(group.name[:12])
+        attendance_list.append(Attendance.objects.filter(group=group).count())
+
     context = {
-        'page_title': str(staff.admin.first_name) + ' ' + str(staff.admin.last_name) + ' · ' + str(staff.course),
+        'page_title': f"{staff.admin.first_name} {staff.admin.last_name} · {staff.course}",
         'total_students': total_students,
         'total_attendance': total_attendance,
         'total_leave': total_leave,
-        'total_subject': total_subject,
-        'subject_list': subject_list,
-        'attendance_list': attendance_list
+        'total_subject': total_groups,
+        'subject_list': group_label_list,
+        'attendance_list': attendance_list,
     }
     return render(request, "staff_template/erpnext_staff_home.html", context)
 
@@ -361,9 +365,7 @@ def add_assignment(request):
             return redirect(reverse('staff_assignments'))
         else:
             messages.error(request, "Form has errors!")
-    # restrict subjects/groups to this teacher
-    form.fields['subject'].queryset = Subject.objects.filter(staff=staff)
-    form.fields['group'].queryset = Group.objects.filter(teacher=staff)
+    form.fields['group'].queryset = Group.objects.filter(teacher=staff, is_archived=False)
     return render(request, 'staff_template/add_assignment.html', {
         'form': form,
         'page_title': 'Add Assignment',
@@ -382,8 +384,7 @@ def edit_assignment(request, assignment_id):
             return redirect(reverse('staff_assignments'))
         else:
             messages.error(request, "Form has errors!")
-    form.fields['subject'].queryset = Subject.objects.filter(staff=staff)
-    form.fields['group'].queryset = Group.objects.filter(teacher=staff)
+    form.fields['group'].queryset = Group.objects.filter(teacher=staff, is_archived=False)
     return render(request, 'staff_template/add_assignment.html', {
         'form': form,
         'page_title': 'Edit Assignment',

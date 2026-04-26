@@ -1,14 +1,14 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
 <section class="content">
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-12">
         <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="card-title">{{page_title}}</h3>
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="card-title">{{ page_title }}</h3>
             <a href="{% url 'add_group' %}" class="btn btn-primary btn-sm">
               <i class="fas fa-plus"></i> Add Group
             </a>
@@ -23,28 +23,47 @@
                   <th>Teacher</th>
                   <th>Branch</th>
                   <th>Schedule</th>
-                  <th>Capacity</th>
+                  <th>Cap.</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {% for group in groups %}
-                <tr>
+                <tr {% if group.is_archived %}class="table-secondary text-muted"{% endif %}>
                   <td>{{ forloop.counter }}</td>
-                  <td>{{ group.name }}</td>
+                  <td>
+                    {{ group.name }}
+                    {% if group.is_archived %}<span class="badge badge-secondary ml-1">Archived</span>{% endif %}
+                  </td>
                   <td>{{ group.course.name }}</td>
                   <td>{{ group.teacher|default:"—" }}</td>
                   <td>{{ group.branch|default:"—" }}</td>
                   <td>{{ group.schedule|default:"—" }}</td>
                   <td>{{ group.capacity }}</td>
                   <td>
+                    {% if group.is_archived %}
+                      <span class="badge badge-secondary">Archived</span>
+                    {% else %}
+                      <span class="badge badge-success">Active</span>
+                    {% endif %}
+                  </td>
+                  <td>
                     <a href="{% url 'edit_group' group.id %}" class="btn btn-info btn-sm">Edit</a>
-                    <a href="{% url 'delete_group' group.id %}" class="btn btn-danger btn-sm"
-                       onclick="return confirm('Delete this group?')">Delete</a>
+                    <a href="{% url 'archive_group' group.id %}"
+                       class="btn btn-warning btn-sm"
+                       onclick="return confirm('{% if group.is_archived %}Restore{% else %}Archive{% endif %} this group?')">
+                      {% if group.is_archived %}Restore{% else %}Archive{% endif %}
+                    </a>
+                    <a href="{% url 'delete_group' group.id %}"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Permanently delete this group? This only works if it has no students or records.')">
+                      Delete
+                    </a>
                   </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="text-center text-muted">No groups yet.</td></tr>
+                <tr><td colspan="9" class="text-center text-muted">No groups yet. <a href="{% url 'add_group' %}">Add one</a>.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -54,4 +73,4 @@
     </div>
   </div>
 </section>
-{% endblock content %}
+{% endblock %}

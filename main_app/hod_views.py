@@ -21,54 +21,34 @@ from .models import *
 def admin_home(request):
     total_staff = Staff.objects.all().count()
     total_students = Student.objects.all().count()
-    subjects = Subject.objects.all()
-    total_subject = subjects.count()
     total_course = Course.objects.all().count()
-    attendance_list = Attendance.objects.filter(subject__in=subjects)
-    total_attendance = attendance_list.count()
-    attendance_list = []
-    subject_list = []
-    for subject in subjects:
-        attendance_count = Attendance.objects.filter(subject=subject).count()
-        subject_list.append(subject.name[:7])
-        attendance_list.append(attendance_count)
+    total_groups = Group.objects.filter(is_archived=False).count()
 
-    # Total Subjects and students in Each Course
+    # Attendance chart: per active group
+    active_groups = Group.objects.filter(is_archived=False).select_related('course')
+    group_label_list = [g.name[:12] for g in active_groups]
+    group_attendance_list = [
+        Attendance.objects.filter(group=g).count() for g in active_groups
+    ]
+
+    # Students per program
     course_all = Course.objects.all()
     course_name_list = []
-    subject_count_list = []
     student_count_list_in_course = []
-
     for course in course_all:
-        subjects = Subject.objects.filter(course_id=course.id).count()
-        students = Student.objects.filter(course_id=course.id).count()
         course_name_list.append(course.name)
-        subject_count_list.append(subjects)
-        student_count_list_in_course.append(students)
-    
-    subject_all = Subject.objects.all()
-    subject_list = []
-    student_count_list_in_subject = []
-    for subject in subject_all:
-        course = Course.objects.get(id=subject.course.id)
-        student_count = Student.objects.filter(course_id=course.id).count()
-        subject_list.append(subject.name)
-        student_count_list_in_subject.append(student_count)
+        student_count_list_in_course.append(Student.objects.filter(course_id=course.id).count())
 
-
-    # For Students
-    student_attendance_present_list=[]
-    student_attendance_leave_list=[]
-    student_name_list=[]
-
-    students = Student.objects.all()
-    for student in students:
-        
-        attendance = AttendanceReport.objects.filter(student_id=student.id, status=True).count()
+    # Student attendance overview
+    student_attendance_present_list = []
+    student_attendance_leave_list = []
+    student_name_list = []
+    for student in Student.objects.select_related('admin').all():
+        present = AttendanceReport.objects.filter(student_id=student.id, status=True).count()
         absent = AttendanceReport.objects.filter(student_id=student.id, status=False).count()
         leave = LeaveReportStudent.objects.filter(student_id=student.id, status=1).count()
-        student_attendance_present_list.append(attendance)
-        student_attendance_leave_list.append(leave+absent)
+        student_attendance_present_list.append(present)
+        student_attendance_leave_list.append(leave + absent)
         student_name_list.append(student.admin.first_name)
 
     context = {
@@ -76,16 +56,14 @@ def admin_home(request):
         'total_students': total_students,
         'total_staff': total_staff,
         'total_course': total_course,
-        'total_subject': total_subject,
-        'subject_list': subject_list,
-        'attendance_list': attendance_list,
+        'total_groups': total_groups,
+        'group_label_list': group_label_list,
+        'group_attendance_list': group_attendance_list,
         'student_attendance_present_list': student_attendance_present_list,
         'student_attendance_leave_list': student_attendance_leave_list,
-        "student_name_list": student_name_list,
-        "student_count_list_in_subject": student_count_list_in_subject,
-        "student_count_list_in_course": student_count_list_in_course,
-        "course_name_list": course_name_list,
-
+        'student_name_list': student_name_list,
+        'student_count_list_in_course': student_count_list_in_course,
+        'course_name_list': course_name_list,
     }
     return render(request, 'hod_template/home_content.html', context)
 
@@ -782,8 +760,6 @@ def add_branch(request):
             form.save()
             messages.success(request, "Branch added successfully!")
             return redirect(reverse('manage_branch'))
-        else:
-            messages.error(request, "Form has errors!")
     return render(request, 'hod_template/add_branch.html', {
         'form': form,
         'page_title': 'Add Branch',
@@ -799,8 +775,6 @@ def edit_branch(request, branch_id):
             form.save()
             messages.success(request, "Branch updated!")
             return redirect(reverse('manage_branch'))
-        else:
-            messages.error(request, "Form has errors!")
     return render(request, 'hod_template/add_branch.html', {
         'form': form,
         'page_title': 'Edit Branch',
@@ -837,8 +811,6 @@ def add_group(request):
             form.save()
             messages.success(request, "Group created!")
             return redirect(reverse('manage_group'))
-        else:
-            messages.error(request, "Form has errors!")
     return render(request, 'hod_template/add_group.html', {
         'form': form,
         'page_title': 'Add Group',
@@ -854,8 +826,6 @@ def edit_group(request, group_id):
             form.save()
             messages.success(request, "Group updated!")
             return redirect(reverse('manage_group'))
-        else:
-            messages.error(request, "Form has errors!")
     return render(request, 'hod_template/add_group.html', {
         'form': form,
         'page_title': 'Edit Group',
@@ -865,11 +835,40 @@ def edit_group(request, group_id):
 @admin_only
 def delete_group(request, group_id):
     group = get_object_or_404(Group, id=group_id)
+    student_count = Enrollment.objects.filter(group=group).count()
+    attendance_count = Attendance.objects.filter(group=group).count()
+    result_count = StudentResult.objects.filter(group=group).count()
+
+    if student_count or attendance_count or result_count:
+        parts = []
+        if student_count:
+            parts.append(f"{student_count} enrollment(s)")
+        if attendance_count:
+            parts.append(f"{attendance_count} attendance record(s)")
+        if result_count:
+            parts.append(f"{result_count} result(s)")
+        messages.warning(
+            request,
+            f"Cannot delete \"{group.name}\" — it has {', '.join(parts)}. "
+            f"Archive it instead to hide it without losing data."
+        )
+        return redirect(reverse('manage_group'))
+
     try:
         group.delete()
-        messages.success(request, "Group deleted!")
-    except Exception:
-        messages.error(request, "Could not delete group.")
+        messages.success(request, f"Group \"{group.name}\" deleted.")
+    except Exception as e:
+        messages.error(request, f"Could not delete group: {e}")
+    return redirect(reverse('manage_group'))
+
+
+@admin_only
+def archive_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    group.is_archived = not group.is_archived
+    group.save()
+    action = "archived" if group.is_archived else "restored"
+    messages.success(request, f"Group \"{group.name}\" {action}.")
     return redirect(reverse('manage_group'))
 
 
@@ -892,21 +891,64 @@ def manage_enrollment(request):
 
 @admin_only
 def add_enrollment(request):
-    form = EnrollmentForm(request.POST or None)
+    groups = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
+    students = Student.objects.select_related('admin', 'course').order_by('admin__last_name')
+
     if request.method == 'POST':
-        if form.is_valid():
+        group_id = request.POST.get('group')
+        student_id = request.POST.get('student')
+        is_active = request.POST.get('is_active', 'True') == 'True'
+        errors = {}
+        if not group_id:
+            errors['group'] = 'Please select a group.'
+        if not student_id:
+            errors['student'] = 'Please select a student.'
+        if not errors:
             try:
-                form.save()
-                messages.success(request, "Student enrolled!")
-                return redirect(reverse('manage_enrollment'))
-            except IntegrityError:
-                messages.error(request, "Student is already enrolled in that group.")
-        else:
-            messages.error(request, "Form has errors!")
+                group = get_object_or_404(Group, id=group_id)
+                student = get_object_or_404(Student, id=student_id)
+                _, created = Enrollment.objects.get_or_create(
+                    student=student, group=group,
+                    defaults={'is_active': is_active}
+                )
+                if created:
+                    messages.success(request, f"{student} enrolled in {group.name}.")
+                    return redirect(reverse('manage_enrollment'))
+                else:
+                    errors['student'] = f"{student} is already enrolled in {group.name}."
+            except Exception as e:
+                errors['__all__'] = str(e)
+
+        return render(request, 'hod_template/add_enrollment.html', {
+            'groups': groups,
+            'students': students,
+            'errors': errors,
+            'posted': request.POST,
+            'page_title': 'Enroll Student',
+        })
+
     return render(request, 'hod_template/add_enrollment.html', {
-        'form': form,
+        'groups': groups,
+        'students': students,
         'page_title': 'Enroll Student',
     })
+
+
+@csrf_exempt
+@admin_only
+def get_group_info(request):
+    group_id = request.POST.get('group_id')
+    group = get_object_or_404(Group, id=group_id)
+    enrolled_ids = list(Enrollment.objects.filter(group=group).values_list('student_id', flat=True))
+    data = {
+        'teacher': str(group.teacher) if group.teacher else '—',
+        'program': group.course.name if group.course else '—',
+        'schedule': group.schedule or '—',
+        'enrolled_count': len(enrolled_ids),
+        'capacity': group.capacity,
+        'enrolled_ids': enrolled_ids,
+    }
+    return JsonResponse(data)
 
 
 @admin_only
