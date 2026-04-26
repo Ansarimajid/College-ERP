@@ -46,6 +46,7 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                 # but is mounted under accounts/).
                 or request.path.startswith('/accounts/')
                 or request.path.startswith('/admin/')
+                or request.path == '/health/'
             ):
                 pass
             else:

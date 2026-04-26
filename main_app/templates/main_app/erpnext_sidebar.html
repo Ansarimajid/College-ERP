@@ -3,7 +3,11 @@
 <!-- Sidebar Header -->
 <div class="sidebar-header">
     <div class="sidebar-user">
-        <img src="{{ request.user.profile_pic}}" alt="User Avatar" class="sidebar-user-avatar" id="sidebar-avatar" onerror="showDefaultAvatar()">
+        {% if request.user.profile_pic %}
+        <img src="{{ request.user.profile_pic }}" alt="User Avatar" class="sidebar-user-avatar" id="sidebar-avatar" onerror="showDefaultAvatar()">
+        {% else %}
+        <img src="{% static 'admin/img/icon-unknown.svg' %}" alt="User Avatar" class="sidebar-user-avatar" id="sidebar-avatar" onerror="showDefaultAvatar()">
+        {% endif %}
         <i class="fas fa-user-circle sidebar-default-avatar" id="default-avatar" style="display: none;"></i>
         <div class="sidebar-user-info">
             <h6>{{ user.get_full_name|default:user.username }}</h6>

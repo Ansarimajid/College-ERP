@@ -1,4 +1,5 @@
 import re
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -136,3 +137,24 @@ class PasswordResetFlowTests(TestCase):
         self.assertEqual(confirm_post_response.status_code, 200)
         user.refresh_from_db()
         self.assertTrue(user.check_password(new_password))
+
+
+class LoginFlowResilienceTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email='admin-login@example.com', password='AdminPass123!',
+            first_name='Admin', last_name='User', user_type='1',
+            gender='M', address='Admin Address', profile_pic='',
+        )
+
+    @override_settings(SECURE_SSL_REDIRECT=False)
+    @patch('main_app.views.login', side_effect=Exception('session backend unavailable'))
+    def test_login_failure_is_handled_without_500(self, _mock_login):
+        response = self.client.post(
+            '/doLogin/',
+            {'email': self.user.email, 'password': 'AdminPass123!'},
+            follow=False,
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], '/')

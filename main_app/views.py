@@ -5,6 +5,7 @@ import os
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import PasswordResetView
+from django.db import DatabaseError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.urls import reverse_lazy
@@ -15,6 +16,26 @@ from .apps import create_recovery_admin_access
 from .models import Admin, Attendance, Session, Staff, Student, Subject
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_role_profile(user):
+    """Best-effort role profile healing to avoid login-time crashes."""
+    user_type = str(user.user_type)
+    model_map = {
+        '1': Admin,
+        '2': Staff,
+        '3': Student,
+    }
+    profile_model = model_map.get(user_type)
+    if profile_model is None:
+        return
+
+    try:
+        if not profile_model.objects.filter(admin=user).exists():
+            profile_model.objects.create(admin=user)
+    except Exception:
+        # Keep login flow alive; dashboard views will enforce access rules.
+        logger.exception("Role profile healing failed for user pk=%s", user.pk)
 
 
 def _redirect_authenticated_user(user):
@@ -49,7 +70,12 @@ def doLogin(request, **kwargs):
         messages.error(request, "Please enter both email and password.")
         return redirect("/")
 
-    user = authenticate(request, username=email, password=password)
+    try:
+        user = authenticate(request, username=email, password=password)
+    except Exception:
+        logger.exception("authenticate() raised for email=%s — DB may be missing migrations", email)
+        messages.error(request, "Login is temporarily unavailable. Please try again in a moment.")
+        return redirect("/")
 
     # Recovery fallback: only fires for the designated recovery account.
     recovery_email = os.environ.get(
@@ -68,16 +94,26 @@ def doLogin(request, **kwargs):
         messages.error(request, "Invalid email or password.")
         return redirect("/")
 
-    login(request, user)
+    try:
+        login(request, user)
+    except DatabaseError:
+        logger.exception("Login failed due to session/database error for email=%s", email)
+        messages.error(
+            request,
+            "Login is temporarily unavailable. Please try again in a moment."
+        )
+        return redirect("/")
+    except Exception:
+        logger.exception("Unexpected login failure for email=%s", email)
+        messages.error(
+            request,
+            "Login failed due to a server issue. Please try again shortly."
+        )
+        return redirect("/")
 
     # Ensure the role profile row exists (heals accounts created before signals).
     user_type = str(user.user_type)
-    if user_type == '1':
-        Admin.objects.get_or_create(admin=user)
-    elif user_type == '2':
-        Staff.objects.get_or_create(admin=user)
-    elif user_type == '3':
-        Student.objects.get_or_create(admin=user)
+    _ensure_role_profile(user)
 
     # Remember Me
     if request.POST.get('remember'):
@@ -166,6 +202,18 @@ def get_attendance(request):
         return JsonResponse(json.dumps(attendance_list), safe=False)
     except Exception:
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
+
+
+def health(request):
+    """Lightweight health-check endpoint for DO load-balancer probes."""
+    from django.db import connection
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    status = 200 if db_ok else 503
+    return JsonResponse({'status': 'ok' if db_ok else 'db_unavailable', 'db': db_ok}, status=status)
 
 
 def showFirebaseJS(request):

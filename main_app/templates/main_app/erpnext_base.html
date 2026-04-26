@@ -50,7 +50,11 @@
             <p>gygy</p>
             
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            {% if user.profile_pic %}
             <img src="{{ user.profile_pic.url }}" alt="User Avatar" class="user-avatar">
+            {% else %}
+            <img src="{% static 'admin/img/icon-unknown.svg' %}" alt="User Avatar" class="user-avatar">
+            {% endif %}
         </div>
     </nav>
 

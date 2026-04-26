@@ -13,7 +13,11 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2" alt="User Image" id="sidebar-avatar-adminlte" onerror="showDefaultAvatarAdminLTE()">
+                {% if request.user.profile_pic %}
+                <img src="{{ request.user.profile_pic }}" class="img-circle elevation-2" alt="User Image" id="sidebar-avatar-adminlte" onerror="showDefaultAvatarAdminLTE()">
+                {% else %}
+                <img src="{% static 'admin/img/icon-unknown.svg' %}" class="img-circle elevation-2" alt="User Image" id="sidebar-avatar-adminlte" onerror="showDefaultAvatarAdminLTE()">
+                {% endif %}
                 <i class="nav-icon fas fa-user-circle adminlte-default-avatar" id="default-avatar-adminlte" style="display: none;"></i>
             </div>
             <div class="info">
@@ -309,7 +313,11 @@
                     <!-- Sidebar user panel (optional) -->
                     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                         <div class="image">
-                            <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2" alt="User Image">
+                            {% if request.user.profile_pic %}
+                            <img src="{{ request.user.profile_pic }}" class="img-circle elevation-2" alt="User Image">
+                            {% else %}
+                            <img src="{% static 'admin/img/icon-unknown.svg' %}" class="img-circle elevation-2" alt="User Image">
+                            {% endif %}
                         </div>
                         <div class="info">
                             <a href="#" class="d-block">{{ user}}</a>
@@ -451,8 +459,13 @@
                                 <!-- Sidebar user panel (optional) -->
                                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                                     <div class="image">
-                                        <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2"
+                                        {% if request.user.profile_pic %}
+                                        <img src="{{ request.user.profile_pic }}" class="img-circle elevation-2"
                                             alt="User Image" id="sidebar-avatar-student" onerror="showDefaultAvatarStudent()">
+                                        {% else %}
+                                        <img src="{% static 'admin/img/icon-unknown.svg' %}" class="img-circle elevation-2"
+                                            alt="User Image" id="sidebar-avatar-student" onerror="showDefaultAvatarStudent()">
+                                        {% endif %}
                                         <i class="nav-icon fas fa-user-circle adminlte-default-avatar" id="default-avatar-student" style="display: none;"></i>
                                     </div>
                                     <div class="info">

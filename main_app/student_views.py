@@ -29,6 +29,7 @@ def student_home(request):
     subject_name = []
     data_present = []
     data_absent = []
+    subject_rows = []  # list of dicts for the breakdown table
     subjects = Subject.objects.filter(course=student.course)
     for subject in subjects:
         attendance = Attendance.objects.filter(subject=subject)
@@ -36,20 +37,29 @@ def student_home(request):
             attendance__in=attendance, status=True, student=student).count()
         absent_count = AttendanceReport.objects.filter(
             attendance__in=attendance, status=False, student=student).count()
+        total_cls = present_count + absent_count
+        pct = round((present_count / total_cls) * 100) if total_cls > 0 else 0
         subject_name.append(subject.name)
         data_present.append(present_count)
         data_absent.append(absent_count)
+        subject_rows.append({
+            'name': subject.name,
+            'present': present_count,
+            'absent': absent_count,
+            'total': total_cls,
+            'pct': pct,
+        })
     context = {
         'total_attendance': total_attendance,
         'percent_present': percent_present,
         'percent_absent': percent_absent,
         'total_subject': total_subject,
         'subjects': subjects,
+        'subject_rows': subject_rows,
         'data_present': data_present,
         'data_absent': data_absent,
         'data_name': subject_name,
         'page_title': 'Student Homepage'
-
     }
     return render(request, 'student_template/erpnext_student_home.html', context)
 
