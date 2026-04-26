@@ -127,19 +127,18 @@ def add_staff(request):
 
 
 def add_student(request):
-    student_form = StudentForm(request.POST or None, request.FILES or None)
+    student_form = AddStudentForm(request.POST or None, request.FILES or None)
     context = {'form': student_form, 'page_title': 'Add Student'}
     if request.method == 'POST':
         if student_form.is_valid():
-            first_name = student_form.cleaned_data.get('first_name')
-            last_name = student_form.cleaned_data.get('last_name')
-            address = student_form.cleaned_data.get('address')
-            email = student_form.cleaned_data.get('email')
-            gender = student_form.cleaned_data.get('gender')
-            password = student_form.cleaned_data.get('password')
-            course = student_form.cleaned_data.get('course')
-            session = student_form.cleaned_data.get('session')
-            passport = request.FILES.get('profile_pic')
+            first_name  = student_form.cleaned_data.get('first_name')
+            last_name   = student_form.cleaned_data.get('last_name')
+            address     = student_form.cleaned_data.get('address')
+            email       = student_form.cleaned_data.get('email')
+            gender      = student_form.cleaned_data.get('gender')
+            password    = student_form.cleaned_data.get('password')
+            teacher     = student_form.cleaned_data.get('teacher')
+            passport    = request.FILES.get('profile_pic')
             try:
                 passport_url = ''
                 if passport:
@@ -147,18 +146,30 @@ def add_student(request):
                     filename = fs.save(passport.name, passport)
                     passport_url = fs.url(filename)
                 user = CustomUser.objects.create_user(
-                    email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
+                    email=email, password=password, user_type=3,
+                    first_name=first_name, last_name=last_name,
+                    profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                user.student.session = session
-                user.student.course = course
                 user.save()
-                messages.success(request, "Successfully Added")
+                # Link student to the teacher's course and enroll in teacher's first group
+                student = user.student
+                student.course = teacher.course
+                student.session = None
+                student.save()
+                group = Group.objects.filter(teacher=teacher).first()
+                if group:
+                    Enrollment.objects.get_or_create(student=student, group=group)
+                messages.success(
+                    request,
+                    f"Student added and assigned to {teacher.admin.first_name} {teacher.admin.last_name}"
+                    + (f" · enrolled in group '{group.name}'" if group else "")
+                )
                 return redirect(reverse('add_student'))
             except Exception as e:
                 messages.error(request, "Could Not Add: " + str(e))
         else:
-            messages.error(request, "Could Not Add: ")
+            messages.error(request, "Please fix the errors below.")
     return render(request, 'hod_template/add_student_template.html', context)
 
 

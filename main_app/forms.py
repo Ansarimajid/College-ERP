@@ -66,6 +66,34 @@ class StudentForm(CustomUserForm):
             ['course', 'session']
 
 
+class AddStudentForm(CustomUserForm):
+    """Used by Admin when creating a new student.
+
+    Instead of asking for course/session, the admin picks the responsible
+    teacher from a dropdown.  The student's course is derived automatically
+    from the teacher's course, and they are enrolled in the teacher's first
+    group (if one exists).
+    """
+    teacher = forms.ModelChoiceField(
+        queryset=Staff.objects.select_related('admin', 'course').all(),
+        empty_label="— Select a Teacher —",
+        label="Assign to Teacher",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['teacher'].widget.attrs['class'] = 'form-control'
+        # Show "Full Name (Program)" in the dropdown
+        self.fields['teacher'].label_from_instance = lambda obj: (
+            f"{obj.admin.first_name} {obj.admin.last_name}"
+            + (f"  ·  {obj.course.name}" if obj.course else "")
+        )
+
+    class Meta(CustomUserForm.Meta):
+        model = Student
+        fields = CustomUserForm.Meta.fields + ['teacher']
+
+
 class AdminForm(CustomUserForm):
     def __init__(self, *args, **kwargs):
         super(AdminForm, self).__init__(*args, **kwargs)
