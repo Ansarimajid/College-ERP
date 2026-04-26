@@ -1,111 +1,137 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-                    <form method="POST">
-                        {% csrf_token %}
-                <div class="card card-dark">
-                    <div class="card-header">
-                        <h3 class="card-title">{{page_title}}</h3>
-                    </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
 
-       
-                    <!-- /.card-header -->
-                    <!-- form start -->
-                    <div class="card-body">
+        {% if messages %}
+          {% for m in messages %}
+          <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible">
+            {{ m }} <button type="button" class="close" data-dismiss="alert">&times;</button>
+          </div>
+          {% endfor %}
+        {% endif %}
 
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ page_title }}</h3>
+          </div>
+          <form method="POST" id="result_form">
+            {% csrf_token %}
+            <div class="card-body">
 
-                        <div class="form-group">
-                            <label>Subject</label>
-                            <select name="subject" class="form-control" id='subject'>
-                                <option value="">----</option>
-                                {% for subject in subjects  %}
-                                <option value="{{subject.id}}">{{subject.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+              <div class="form-group">
+                <label><i class="fas fa-layer-group mr-1"></i> Select Group</label>
+                <select id="group_select" name="group" class="form-control" required>
+                  <option value="">— Choose a group —</option>
+                  {% for g in groups %}
+                  <option value="{{ g.id }}">{{ g.name }}{% if g.course %} · {{ g.course.name }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
 
+              <button type="button" id="fetch_students_btn" class="btn btn-primary btn-block">
+                <i class="fas fa-users mr-1"></i> Load Students
+              </button>
 
-                        <div class="form-group">
-                            <label>Session Year</label>
-                            <select name="session" id='session' class="form-control">
-                                <option value="">----</option>
-                                {% for session in sessions  %}
-                                <option value="{{session.id}}">{{session}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-
-                    </div>
-                    <!-- /.card-body -->
-
-                    <div class="card-footer">
-                        <button type="button" id='fetch_student' class="btn btn-primary btn-block">Fetch
-                            Students</button>
-                        <div class="form-group" id="student_data">
-
-                        </div>
-                    </div>
-                </form>
+              <div id="student_section" style="display:none;" class="mt-3">
+                <div class="form-group">
+                  <label><i class="fas fa-user-graduate mr-1"></i> Student</label>
+                  <select id="student_list" name="student_list" class="form-control" required></select>
                 </div>
-                <!-- /.card -->
 
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Test Score <small class="text-muted">(0–40)</small></label>
+                      <input type="number" name="test" id="test_score" class="form-control"
+                             min="0" max="40" step="0.5" placeholder="e.g. 35" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Exam Score <small class="text-muted">(0–60)</small></label>
+                      <input type="number" name="exam" id="exam_score" class="form-control"
+                             min="0" max="60" step="0.5" placeholder="e.g. 50" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="existing_scores" class="alert alert-info" style="display:none;"></div>
+
+              </div>
+            </div><!-- /.card-body -->
+
+            <div id="save_section" style="display:none;" class="card-footer">
+              <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-save mr-1"></i> Save Scores
+              </button>
             </div>
+          </form>
         </div>
-    </div>
-</section>
-{% endblock content %}
 
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
 
 {% block custom_js %}
 <script>
-    $(document).ready(function () {
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
 
-       
-        $("#fetch_student").click(function () {
-            var subject = $("#subject").val()
-            var session = $("#session").val()
-            $("#student_data").html(null)
-if (subject.length  == 0 || session.length == 0){
-    alert("Please select session and subject");
-    return false;
+document.getElementById('fetch_students_btn').addEventListener('click', function () {
+  const group = document.getElementById('group_select').value;
+  if (!group) { alert('Please select a group first.'); return; }
+
+  fetch("{% url 'get_students' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    if (!arr.length) { alert('No enrolled students in this group.'); return; }
+    const sel = document.getElementById('student_list');
+    sel.innerHTML = arr.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    document.getElementById('student_section').style.display = 'block';
+    document.getElementById('save_section').style.display = 'block';
+    loadExistingScores();
+  })
+  .catch(() => alert('Error loading students.'));
+});
+
+function loadExistingScores() {
+  const group   = document.getElementById('group_select').value;
+  const student = document.getElementById('student_list').value;
+  if (!group || !student) return;
+
+  fetch("{% url 'fetch_student_result' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group, student })
+  })
+  .then(r => r.text())
+  .then(resp => {
+    const box = document.getElementById('existing_scores');
+    if (resp === 'False') {
+      box.style.display = 'none';
+      document.getElementById('test_score').value = '';
+      document.getElementById('exam_score').value = '';
+    } else {
+      const data = JSON.parse(resp);
+      document.getElementById('test_score').value = data.test;
+      document.getElementById('exam_score').value = data.exam;
+      box.textContent = `Existing scores loaded — Test: ${data.test}, Exam: ${data.exam}. Edit and save to update.`;
+      box.style.display = 'block';
+    }
+  });
 }
-            $.ajax({
-                url: "{% url 'get_students' %}",
-                type: 'POST',
-                data: {
-                    subject: subject,
-                    session: session
-                }
-            }).done(function (response) {
-                var json_data = JSON.parse(response)
-                if (json_data.length < 1) {
-                    alert("No data to display")
-                } else {
-                    var div_data = "<hr/><div class='form-group'> <label> Student List</label> <select class='student_list form-control' name='student_list'> "
 
-                    for (key in json_data) {
-                        div_data += "<option value='" + json_data[key]['id'] + "'>" + json_data[key]['name'] + " </option>"
-                    }
-                    div_data += "</select></div>"
-                    div_data += "<div class='form-group row'> <div class='col-md-6'> <label> Test Score </label> <input class='form-control' name='test' placeholder='Test Score' max='40' min='0' required type='number' /></div><div class='col-md-6'><label> Exam Score </label>  <input class='form-control' placeholder='Exam Score'  name='exam' max='60' min='0' required type='number' /> </div></div><div class='form-group'><button id='save_attendance' class='btn btn-success' type='submit'>Save Result</button></div></div>"
-                    $("#student_data").html(div_data)
-                }
-            }).fail(function (response) {
-                alert("Error in fetching students")
-            })
-
-
-
-
-        })
-    })
+document.getElementById('student_list').addEventListener('change', loadExistingScores);
 </script>
-{% endblock custom_js %}
+{% endblock %}

@@ -67,35 +67,39 @@ def student_home(request):
 @ csrf_exempt
 def student_view_attendance(request):
     student = get_object_or_404(Student, admin=request.user)
+    enrolled_group_ids = Enrollment.objects.filter(
+        student=student, is_active=True
+    ).values_list('group_id', flat=True)
+    groups = Group.objects.filter(id__in=enrolled_group_ids).select_related('course')
+
     if request.method != 'POST':
-        course = get_object_or_404(Course, id=student.course.id)
         context = {
-            'subjects': Subject.objects.filter(course=course),
-            'page_title': 'View Attendance'
+            'groups': groups,
+            'page_title': 'View Attendance',
         }
         return render(request, 'student_template/student_view_attendance.html', context)
-    else:
-        subject_id = request.POST.get('subject')
-        start = request.POST.get('start_date')
-        end = request.POST.get('end_date')
-        try:
-            subject = get_object_or_404(Subject, id=subject_id)
-            start_date = datetime.strptime(start, "%Y-%m-%d")
-            end_date = datetime.strptime(end, "%Y-%m-%d")
-            attendance = Attendance.objects.filter(
-                date__range=(start_date, end_date), subject=subject)
-            attendance_reports = AttendanceReport.objects.filter(
-                attendance__in=attendance, student=student)
-            json_data = []
-            for report in attendance_reports:
-                data = {
-                    "date":  str(report.attendance.date),
-                    "status": report.status
-                }
-                json_data.append(data)
-            return JsonResponse(json.dumps(json_data), safe=False)
-        except Exception:
-            return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
+
+    # AJAX POST: return attendance records for a group in a date range
+    group_id = request.POST.get('group')
+    start = request.POST.get('start_date')
+    end = request.POST.get('end_date')
+    try:
+        group = get_object_or_404(Group, id=group_id)
+        start_date = datetime.strptime(start, "%Y-%m-%d")
+        end_date = datetime.strptime(end, "%Y-%m-%d")
+        attendance_qs = Attendance.objects.filter(
+            group=group, date__range=(start_date, end_date)
+        )
+        reports = AttendanceReport.objects.filter(
+            attendance__in=attendance_qs, student=student
+        ).select_related('attendance')
+        json_data = [
+            {"date": str(r.attendance.date), "status": r.status}
+            for r in reports.order_by('attendance__date')
+        ]
+        return JsonResponse(json.dumps(json_data), safe=False)
+    except Exception:
+        return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
 def student_apply_leave(request):
@@ -211,10 +215,10 @@ def student_view_notification(request):
 
 def student_view_result(request):
     student = get_object_or_404(Student, admin=request.user)
-    results = StudentResult.objects.filter(student=student)
+    results = StudentResult.objects.filter(student=student).select_related('group', 'subject')
     context = {
         'results': results,
-        'page_title': "View Results"
+        'page_title': "View Results",
     }
     return render(request, "student_template/student_view_result.html", context)
 

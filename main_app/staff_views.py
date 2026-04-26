@@ -43,33 +43,29 @@ def staff_home(request):
 
 def staff_take_attendance(request):
     staff = get_object_or_404(Staff, admin=request.user)
-    subjects = Subject.objects.filter(staff_id=staff)
-    sessions = Session.objects.all()
+    groups = Group.objects.filter(teacher=staff).select_related('course', 'branch')
     context = {
-        'subjects': subjects,
-        'sessions': sessions,
-        'page_title': 'Take Attendance'
+        'groups': groups,
+        'page_title': 'Take Attendance',
     }
-
     return render(request, 'staff_template/staff_take_attendance.html', context)
 
 
 @csrf_exempt
 def get_students(request):
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
+    group_id = request.POST.get('group')
     try:
-        subject = get_object_or_404(Subject, id=subject_id)
-        session = get_object_or_404(Session, id=session_id)
-        students = Student.objects.filter(
-            course_id=subject.course.id, session=session)
-        student_data = []
-        for student in students:
-            data = {
-                    "id": student.id,
-                    "name": student.admin.last_name + " " + student.admin.first_name
-                    }
-            student_data.append(data)
+        group = get_object_or_404(Group, id=group_id)
+        enrollments = Enrollment.objects.filter(
+            group=group, is_active=True
+        ).select_related('student__admin')
+        student_data = [
+            {
+                "id": e.student.id,
+                "name": e.student.admin.last_name + " " + e.student.admin.first_name,
+            }
+            for e in enrollments
+        ]
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
     except Exception:
         return JsonResponse({'error': 'Unable to fetch students.'}, status=400)
@@ -79,35 +75,31 @@ def get_students(request):
 def save_attendance(request):
     student_data = request.POST.get('student_ids')
     date = request.POST.get('date')
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
+    group_id = request.POST.get('group')
     students = json.loads(student_data)
     try:
-        session = get_object_or_404(Session, id=session_id)
-        subject = get_object_or_404(Subject, id=subject_id)
-        attendance = Attendance(session=session, subject=subject, date=date)
+        group = get_object_or_404(Group, id=group_id)
+        attendance = Attendance(group=group, date=date)
         attendance.save()
-
         for student_dict in students:
             student = get_object_or_404(Student, id=student_dict.get('id'))
-            attendance_report = AttendanceReport(student=student, attendance=attendance, status=student_dict.get('status'))
-            attendance_report.save()
+            AttendanceReport(
+                student=student,
+                attendance=attendance,
+                status=student_dict.get('status'),
+            ).save()
     except Exception:
         return HttpResponse("ERROR", status=400)
-
     return HttpResponse("OK")
 
 
 def staff_update_attendance(request):
     staff = get_object_or_404(Staff, admin=request.user)
-    subjects = Subject.objects.filter(staff_id=staff)
-    sessions = Session.objects.all()
+    groups = Group.objects.filter(teacher=staff).select_related('course', 'branch')
     context = {
-        'subjects': subjects,
-        'sessions': sessions,
-        'page_title': 'Update Attendance'
+        'groups': groups,
+        'page_title': 'Update Attendance',
     }
-
     return render(request, 'staff_template/staff_update_attendance.html', context)
 
 
@@ -115,14 +107,16 @@ def staff_update_attendance(request):
 def get_student_attendance(request):
     attendance_date_id = request.POST.get('attendance_date_id')
     try:
-        date = get_object_or_404(Attendance, id=attendance_date_id)
-        attendance_data = AttendanceReport.objects.filter(attendance=date)
-        student_data = []
-        for attendance in attendance_data:
-            data = {"id": attendance.student.admin.id,
-                    "name": attendance.student.admin.last_name + " " + attendance.student.admin.first_name,
-                    "status": attendance.status}
-            student_data.append(data)
+        attendance = get_object_or_404(Attendance, id=attendance_date_id)
+        reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student__admin')
+        student_data = [
+            {
+                "id": r.student.admin.id,
+                "name": r.student.admin.last_name + " " + r.student.admin.first_name,
+                "status": r.status,
+            }
+            for r in reports
+        ]
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
     except Exception:
         return JsonResponse({'error': 'Unable to fetch student attendance.'}, status=400)
@@ -131,20 +125,17 @@ def get_student_attendance(request):
 @csrf_exempt
 def update_attendance(request):
     student_data = request.POST.get('student_ids')
-    date = request.POST.get('date')
+    attendance_id = request.POST.get('date')
     students = json.loads(student_data)
     try:
-        attendance = get_object_or_404(Attendance, id=date)
-
+        attendance = get_object_or_404(Attendance, id=attendance_id)
         for student_dict in students:
-            student = get_object_or_404(
-                Student, admin_id=student_dict.get('id'))
-            attendance_report = get_object_or_404(AttendanceReport, student=student, attendance=attendance)
-            attendance_report.status = student_dict.get('status')
-            attendance_report.save()
+            student = get_object_or_404(Student, admin_id=student_dict.get('id'))
+            report = get_object_or_404(AttendanceReport, student=student, attendance=attendance)
+            report.status = student_dict.get('status')
+            report.save()
     except Exception:
         return HttpResponse("ERROR", status=400)
-
     return HttpResponse("OK")
 
 
@@ -259,51 +250,45 @@ def staff_view_notification(request):
 
 def staff_add_result(request):
     staff = get_object_or_404(Staff, admin=request.user)
-    subjects = Subject.objects.filter(staff=staff)
-    sessions = Session.objects.all()
+    groups = Group.objects.filter(teacher=staff).select_related('course')
     context = {
         'page_title': 'Result Upload',
-        'subjects': subjects,
-        'sessions': sessions
+        'groups': groups,
     }
     if request.method == 'POST':
         try:
             student_id = request.POST.get('student_list')
-            subject_id = request.POST.get('subject')
+            group_id = request.POST.get('group')
             test = request.POST.get('test')
             exam = request.POST.get('exam')
             student = get_object_or_404(Student, id=student_id)
-            subject = get_object_or_404(Subject, id=subject_id)
-            try:
-                data = StudentResult.objects.get(
-                    student=student, subject=subject)
-                data.exam = exam
-                data.test = test
-                data.save()
-                messages.success(request, "Scores Updated")
-            except:
-                result = StudentResult(student=student, subject=subject, test=test, exam=exam)
+            group = get_object_or_404(Group, id=group_id)
+            result, created = StudentResult.objects.get_or_create(
+                student=student, group=group,
+                defaults={'test': test, 'exam': exam},
+            )
+            if not created:
+                result.test = test
+                result.exam = exam
                 result.save()
-                messages.success(request, "Scores Saved")
+            messages.success(request, "Scores " + ("Saved" if created else "Updated"))
         except Exception as e:
-            messages.warning(request, "Error Occured While Processing Form")
+            messages.warning(request, "Error processing form: " + str(e))
     return render(request, "staff_template/staff_add_result.html", context)
 
 
 @csrf_exempt
 def fetch_student_result(request):
     try:
-        subject_id = request.POST.get('subject')
+        group_id = request.POST.get('group')
         student_id = request.POST.get('student')
         student = get_object_or_404(Student, id=student_id)
-        subject = get_object_or_404(Subject, id=subject_id)
-        result = StudentResult.objects.get(student=student, subject=subject)
-        result_data = {
-            'exam': result.exam,
-            'test': result.test
-        }
-        return HttpResponse(json.dumps(result_data))
-    except Exception as e:
+        group = get_object_or_404(Group, id=group_id)
+        result = StudentResult.objects.get(student=student, group=group)
+        return HttpResponse(json.dumps({'exam': result.exam, 'test': result.test}))
+    except StudentResult.DoesNotExist:
+        return HttpResponse('False')
+    except Exception:
         return HttpResponse('False')
 
 #library

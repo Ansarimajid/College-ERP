@@ -1,140 +1,134 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
-{% block custom_css %}
-<style>
-.attendance_div_red{
-    padding: 10px;
-    background: #f44336;
-    border: 3px solid white;
-    text-align: center;
-    color: #fff;
-    border-radius: 30px;
-    box-shadow: 1px 1px 1px grey;
-    margin: 5px;
-}
-.attendance_div_green{
-    padding: 10px;
-    background: #4CAF50;
-    border: 3px solid white;
-    text-align: center;
-    color: #fff;
-    border-radius: 30px;
-    box-shadow: 1px 1px 1px grey;
-    margin: 5px;
-}
-</style>
-{% endblock custom_css %}
-
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-                <div class="card card-dark">
-                    <div class="card-header">
-                        <h3 class="card-title">{{page_title}}</h3>
-                    </div>
-                    <!-- /.card-header -->
-                    <!-- form start -->
-                    <div class="card-body">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ page_title }}</h3>
+          </div>
+          <div class="card-body">
 
-
-
-                        <div class="form-group">
-                            <label>Select Subject</label>
-                            <select  id="subject" class="form-control">
-                                <option value="">----</option>
-                                {% for subject in subjects  %}
-                                <option value="{{subject.id}}">{{subject.name}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label>Start Date</label>
-                                    <input type="date" class="form-control" placeholder="Start Date" name="start_date" required id="start_date">
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label>End Date</label>
-                                    <input type="date" class="form-control" placeholder="End Date" name="end_date"  id="end_date">
-                                </div>
-                            </div>
-                            <button type="button" id="fetch_attendance" class="btn btn-success btn-block">Fetch Attendance Data</button>
-               </div>
-
-                    </div>
-                    <!-- /.card-body -->
-
-                    <div class="card-footer" style="overflow: auto; max-height: 400px;">
-
-                        <div class="row" id="attendance_data"></div>
-                    </div>
-                </div>
-                <!-- /.card -->
-
+            {% if not groups %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              You are not enrolled in any groups yet. Please contact your teacher or admin.
             </div>
-        </div>
-    </div>
-</section>
-{% endblock content %}
+            {% else %}
 
+            <div class="form-group">
+              <label><i class="fas fa-layer-group mr-1"></i> Group</label>
+              <select id="group" class="form-control">
+                <option value="">— Select group —</option>
+                {% for g in groups %}
+                <option value="{{ g.id }}">{{ g.name }}{% if g.course %} · {{ g.course.name }}{% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label><i class="fas fa-calendar-alt mr-1"></i> From</label>
+                  <input type="date" id="start_date" class="form-control">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label><i class="fas fa-calendar-alt mr-1"></i> To</label>
+                  <input type="date" id="end_date" class="form-control">
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="fetch_btn" class="btn btn-primary btn-block">
+              <i class="fas fa-search mr-1"></i> View Attendance
+            </button>
+
+            {% endif %}
+          </div><!-- /.card-body -->
+
+          <div class="card-footer" style="overflow:auto; max-height:420px;">
+            <div id="summary" class="mb-3" style="display:none;">
+              <span class="badge badge-success p-2 mr-2">
+                <i class="fas fa-check-circle mr-1"></i> Present: <strong id="cnt_present">0</strong>
+              </span>
+              <span class="badge badge-danger p-2">
+                <i class="fas fa-times-circle mr-1"></i> Absent: <strong id="cnt_absent">0</strong>
+              </span>
+            </div>
+            <div id="attendance_data" class="row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
 
 {% block custom_js %}
+<style>
+.att-tile {
+  border-radius: 12px; padding: 10px 6px; text-align: center;
+  color: #fff; margin: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15); font-size: 13px;
+}
+.att-present { background: linear-gradient(135deg,#10B981,#059669); }
+.att-absent  { background: linear-gradient(135deg,#EF4444,#DC2626); }
+</style>
 <script>
-    $(document).ready(function () {
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
 
-       
-        $("#fetch_attendance").click(function () {
-            var subject = $("#subject").val()
-            var start_date = $("#start_date").val()
-            var end_date = $("#end_date").val()
-            if (subject.length  == 0 || end_date.length ==0 ||start_date.length == 0){
-                alert("Please Select Subject and Date Range");
-                return false;
-            }
-            $("#attendance_data").html(null)
-            $.ajax({
-                url: "{% url 'student_view_attendance' %}",
-                type: 'POST',
-                data: {
-                    subject: subject,
-                    start_date: start_date,
-                    end_date:end_date
-                }
-            }).done(function (response) {
-                var json_data = JSON.parse(response)
-                if (json_data.length < 1) {
-                    $("#attendance_data").html("<div class='col-md-12 alert alert-danger'>No Data For Specified Parameters</div>")
+document.getElementById('fetch_btn').addEventListener('click', function () {
+  const group      = document.getElementById('group').value;
+  const start_date = document.getElementById('start_date').value;
+  const end_date   = document.getElementById('end_date').value;
+  if (!group)                   { alert('Please select a group.'); return; }
+  if (!start_date || !end_date) { alert('Please choose a date range.'); return; }
 
-                } else {
-                    var div_data = ""
-                         
-                    for (key in json_data) {
-                    if (json_data[key]['status']){
-                        div_data += "<div class='col-lg-3 attendance_div_green'><b>"+ json_data[key]['date'] + "</b><br/>Present</div>" 
-                    }else{
+  document.getElementById('attendance_data').innerHTML =
+    '<div class="col-12 text-muted"><i class="fas fa-spinner fa-spin mr-1"></i> Loading…</div>';
 
-                        div_data += "<div class='col-lg-3 attendance_div_red'><b>"+ json_data[key]['date'] + "</b><br/>Absent</div>"
-                    }
-                }
-                    div_data += ""
-                    $("#attendance_data").html(div_data)
-
-                }
-            }).fail(function (response) {
-                $("#attendance_data").html("Error While Fetching Records")
-            })
-
-
-          
-
-        })
-    })
+  fetch("{% url 'student_view_attendance' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group, start_date, end_date })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    const container = document.getElementById('attendance_data');
+    if (!arr.length) {
+      container.innerHTML = '<div class="col-12"><div class="alert alert-info mb-0">No attendance records found for this period.</div></div>';
+      document.getElementById('summary').style.display = 'none';
+      return;
+    }
+    let present = 0, absent = 0, html = '';
+    arr.forEach(r => {
+      if (r.status) {
+        present++;
+        html += `<div class="col-lg-2 col-md-3 col-4"><div class="att-tile att-present">
+          <i class="fas fa-check-circle mb-1 d-block"></i>
+          <strong>${r.date}</strong><div>Present</div></div></div>`;
+      } else {
+        absent++;
+        html += `<div class="col-lg-2 col-md-3 col-4"><div class="att-tile att-absent">
+          <i class="fas fa-times-circle mb-1 d-block"></i>
+          <strong>${r.date}</strong><div>Absent</div></div></div>`;
+      }
+    });
+    container.innerHTML = html;
+    document.getElementById('cnt_present').textContent = present;
+    document.getElementById('cnt_absent').textContent  = absent;
+    document.getElementById('summary').style.display = 'block';
+  })
+  .catch(() => {
+    document.getElementById('attendance_data').innerHTML =
+      '<div class="col-12"><div class="alert alert-danger mb-0">Error loading attendance.</div></div>';
+  });
+});
 </script>
-{% endblock custom_js %}
+{% endblock %}

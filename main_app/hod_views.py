@@ -551,37 +551,29 @@ def view_student_leave(request):
 
 
 def admin_view_attendance(request):
-    subjects = Subject.objects.all()
-    sessions = Session.objects.all()
+    groups = Group.objects.select_related('course', 'teacher__admin').all()
     context = {
-        'subjects': subjects,
-        'sessions': sessions,
-        'page_title': 'View Attendance'
+        'groups': groups,
+        'page_title': 'View Attendance',
     }
-
     return render(request, "hod_template/admin_view_attendance.html", context)
 
 
 @csrf_exempt
 def get_admin_attendance(request):
-    subject_id = request.POST.get('subject')
-    session_id = request.POST.get('session')
     attendance_date_id = request.POST.get('attendance_date_id')
+    group_id = request.POST.get('group')
     try:
-        subject = get_object_or_404(Subject, id=subject_id)
-        session = get_object_or_404(Session, id=session_id)
-        attendance = get_object_or_404(
-            Attendance, id=attendance_date_id, session=session)
-        attendance_reports = AttendanceReport.objects.filter(
-            attendance=attendance)
-        json_data = []
-        for report in attendance_reports:
-            data = {
-                "status":  str(report.status),
-                "name": str(report.student)
-            }
-            json_data.append(data)
-        return JsonResponse(json.dumps(json_data), safe=False)
+        if attendance_date_id:
+            attendance = get_object_or_404(Attendance, id=attendance_date_id)
+            reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student')
+            data = [{"status": str(r.status), "name": str(r.student)} for r in reports]
+            return JsonResponse(json.dumps(data), safe=False)
+        # Return list of attendance dates for a group
+        group = get_object_or_404(Group, id=group_id)
+        dates = Attendance.objects.filter(group=group).order_by('-date')
+        data = [{"id": a.id, "attendance_date": str(a.date)} for a in dates]
+        return JsonResponse(json.dumps(data), safe=False)
     except Exception:
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 

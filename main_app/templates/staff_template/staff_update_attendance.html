@@ -1,231 +1,164 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-                <div class="card card-dark">
-                    <div class="card-header">
-                        <h3 class="card-title">{{page_title}}</h3>
-                    </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ page_title }}</h3>
+          </div>
+          <div class="card-body">
 
-                    <!-- /.card-header -->
-                    <!-- form start -->
-                    <div class="card-body">
-
-
-
-                        <div class="form-group">
-                            <label>Subject</label>
-                            <select name="subject" class="form-control" id='subject'>
-                                <option value="">----</option>
-                                {% for subject in subjects  %}
-                                <option value="{{subject.id}}">{{subject.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Session</label>
-                            <select name="session" class="form-control" id='session'>
-                                <option value="">----</option>
-                                {% for session in sessions  %}
-                                <option value="{{session.id}}">{{session}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group"><div  style="display: none;" class="alert alert-danger" id='error_attendance'></div>
-                                <div class="alert alert-success" id='success_attendance' style="display: none;"></div>
-                             <button type="button" id='fetch_attendance' class="btn btn-success btn-block">Fetch Attendance</button>
-                        </div>
-                    <!-- /.card-body -->
-                    
-                        
-                               
-                            <div class="form-group" style="display: none;" id="attendance_block">
-                            <div class="form-group">
-                                <label>Attendance Date</label>
-                                <select name="attendance_date" id='attendance_date' class="form-control">
-                               
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                
-                            <div id="fetch_student_block" style="display: none;">
-                                <button type="button" id='fetch_student' class="btn btn-success btn-block">Fetch Students</button>
-
-                            <!-- <button style="display: none;" type="button" id='save_attendance' class="btn btn-primary btn-block">Save Data</button> -->
-
-                            </div>
-                            <div id='student_data' class="card-footer">
-
-                            </div>
-                        </div>
-                    </div>  
-                </div>
-                <!-- /.card -->
-
+            <div class="form-group">
+              <label><i class="fas fa-layer-group mr-1"></i> Select Group</label>
+              <select id="group" class="form-control">
+                <option value="">— Choose a group —</option>
+                {% for g in groups %}
+                <option value="{{ g.id }}">{{ g.name }}{% if g.branch %} · {{ g.branch.name }}{% endif %}</option>
+                {% endfor %}
+              </select>
             </div>
-        </div>
-    </div>
-</section>
-{% endblock content %}
 
+            <button type="button" id="fetch_dates_btn" class="btn btn-primary btn-block">
+              <i class="fas fa-calendar-alt mr-1"></i> Load Attendance Dates
+            </button>
+
+            <div id="date_section" class="mt-3" style="display:none;">
+              <div class="form-group">
+                <label><i class="fas fa-calendar-day mr-1"></i> Select Date</label>
+                <select id="attendance_date" class="form-control"></select>
+              </div>
+              <button type="button" id="fetch_students_btn" class="btn btn-secondary btn-block">
+                <i class="fas fa-users mr-1"></i> Load Students
+              </button>
+            </div>
+
+          </div><!-- /.card-body -->
+
+          <div id="student_section" style="display:none;" class="card-footer">
+            <hr>
+            <h6 class="mb-3"><i class="fas fa-clipboard-list mr-1"></i> Edit Attendance</h6>
+            <div id="student_list" class="row mb-3"></div>
+            <button type="button" id="save_btn" class="btn btn-success btn-block">
+              <i class="fas fa-save mr-1"></i> Update Attendance
+            </button>
+            <div id="save_msg" class="mt-2"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
 
 {% block custom_js %}
 <script>
-    // Get CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
+
+document.getElementById('fetch_dates_btn').addEventListener('click', function () {
+  const group = document.getElementById('group').value;
+  if (!group) { alert('Please select a group first.'); return; }
+
+  fetch("{% url 'get_attendance' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    if (!arr.length) { alert('No attendance records found for this group.'); return; }
+    const sel = document.getElementById('attendance_date');
+    sel.innerHTML = arr.map(a => `<option value="${a.id}">${a.attendance_date}</option>`).join('');
+    document.getElementById('date_section').style.display = 'block';
+    document.getElementById('student_section').style.display = 'none';
+  })
+  .catch(() => alert('Error loading dates.'));
+});
+
+document.getElementById('fetch_students_btn').addEventListener('click', function () {
+  const attendance_date_id = document.getElementById('attendance_date').value;
+  if (!attendance_date_id) { alert('Please select a date.'); return; }
+
+  fetch("{% url 'get_student_attendance' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ attendance_date_id })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    if (!arr.length) { alert('No student data found for this date.'); return; }
+
+    const list = document.getElementById('student_list');
+    list.innerHTML = arr.map(s => {
+      const present = s.status;
+      return `
+        <div class="col-md-4 col-6 mb-2">
+          <div class="card p-2 text-center student-card" data-id="${s.id}"
+               style="cursor:pointer;border:2px solid ${present ? '#28a745' : '#dc3545'};">
+            <i class="fas fa-user-${present ? 'check text-success' : 'times text-danger'} mb-1"></i>
+            <small class="font-weight-bold">${s.name}</small>
+            <small class="${present ? 'text-success' : 'text-danger'} status-label">${present ? 'Present' : 'Absent'}</small>
+            <input type="hidden" class="student-status" value="${present ? 1 : 0}">
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('student_section').style.display = 'block';
+
+    document.querySelectorAll('.student-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const inp   = this.querySelector('.student-status');
+        const label = this.querySelector('.status-label');
+        const icon  = this.querySelector('i');
+        if (inp.value === '1') {
+          inp.value = '0'; this.style.border = '2px solid #dc3545';
+          icon.className = 'fas fa-user-times text-danger mb-1';
+          label.textContent = 'Absent'; label.className = 'text-danger status-label';
+        } else {
+          inp.value = '1'; this.style.border = '2px solid #28a745';
+          icon.className = 'fas fa-user-check text-success mb-1';
+          label.textContent = 'Present'; label.className = 'text-success status-label';
         }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-    
-    $(document).ready(function () {
-        $("#fetch_attendance").click(function(){
-            var subject = $("#subject").val()
-            var session = $("#session").val()
-            if (session.length < 1 || subject.length < 1){
-                $("#error_attendance").html("Kindly Choose Both Subject and Session")
-                $("#attendance_block").hide()
-                $("#error_attendance").show()
-                return false
-            }
-            $.ajax({
-                url: "{% url 'get_attendance' %}",
-                type: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken
-                },
-                data:{
-                    subject:subject,
-                    session:session
-                }
-            
-            }
+      });
+    });
+  })
+  .catch(() => alert('Error loading students.'));
+});
 
-            ).done(function(response){
-                var json_data = JSON.parse(response)
-                if (json_data.length > 0){
+document.getElementById('save_btn').addEventListener('click', function () {
+  const attendance_id = document.getElementById('attendance_date').value;
+  const cards = document.querySelectorAll('.student-card');
 
-                    var html = "";
-                    for (key in json_data){
-                        html += "<option value='"+json_data[key]['id']+"'>"+json_data[key]['attendance_date']+"</option>"
-                    }
-                    $("#attendance_date").html(html)
-                    $("#error_attendance").hide()
-                    $("#error_attendance").html("")
-                    $("#attendance_block").show()  
-                    $("#fetch_student_block").show()
-                }else{
-                    $("#error_attendance").html("No Attendance Date Found For Specified Data")
-                    $("#error_attendance").show()
-                    $("#attendance_date").html("")
-                    $("#attendance_block").hide()
+  const student_ids = JSON.stringify(
+    Array.from(cards).map(c => ({
+      id: c.dataset.id,
+      status: parseInt(c.querySelector('.student-status').value)
+    }))
+  );
 
+  this.disabled = true; this.textContent = 'Updating…';
 
-                }
-            }).fail(function(response){
-                alert("Error While Fetching Data")
-                $("#error_attendance").html("")
-                $("#error_attendance").show()
-                $("#attendance_block").hide()
-
-
-            })
-        })
-
-        $("#fetch_student").click(function () {
-            var attendance_date = $("#attendance_date").val()
-            $("#student_data").html(null)
-if (attendance_date.length  == 0){
-    alert("Please Choose A Date");
-    $("#save_attendance").hide()
-
-    return false;
-}
-            $.ajax({
-                url: "{% url 'get_student_attendance' %}",
-                type: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken
-                },
-                data: {
-                    attendance_date_id:attendance_date,
-                }
-            }).done(function (response) {
-                var json_data = JSON.parse(response)
-                if (json_data.length < 1) {
-                    alert("No data to display")
-            $("#save_attendance").hide()
-
-                } else {
-            $("#save_attendance").show()
-
-                    var div_data = "<hr/><div class='form-group'></div><div class='form-group'> <label>Student Attendance</label><div class='row'>"
-
-                    for (key in json_data) {
-                        div_data += "<div class='col-lg-3'><div class='form-check custom-control custom-checkbox'><input type='checkbox' class='custom-control-input' " + (json_data[key]['status'] ? "checked='checked'" : "")+" name='student_data[]' value=" + json_data[key]['id'] + " id='checkbox" + json_data[key]['id'] + "' /> <label for='checkbox" + json_data[key]['id'] + "' class='custom-control-label'>" + json_data[key]['name']  + (json_data[key]['status'] ? " [Present] " : " [Absent] ")+"</label></div> </div>"
-                    }
-                    div_data += "</div></div>"
-                    div_data += "<div class='form-group'><button id='save_attendance' class='btn btn-success' type='button'>Save Attendance</button></div>"
-                    $("#student_data").html(div_data)
-                }
-            }).fail(function (response) {
-                alert("Error in fetching students")
-            })
-
-        })
-        $(document).on('click', '#save_attendance', function () {
-            //$(this).attr("disabled","disabled")
-            $(this).text("Updating Attendance Data...")
-            var student_data = $("input[name='student_data[]']").map(function () {
-                if ($(this).is(":checked")){
-                return {'id':$(this).val(), 'status': 1};
-
-                }
-                return {'id':$(this).val(), 'status': 0};
-
-            }).get()
-      
-            student_data = JSON.stringify(student_data)
-            var attendance_date = $("#attendance_date").val()
-            $.ajax({
-                url: "{% url 'update_attendance' %}",
-                type: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken
-                },
-                data: {
-                    date: attendance_date,
-                    student_ids: student_data,
-                }
-            }).done(function (response) {
-                if (response == 'OK'){
-                    alert("Updated")
-                }else{
-                    alert("Error. Please try again")
-                }
-                location.reload()
-                
-            }).fail(function (response) {
-                alert("Error in saving attendance")
-            })
-
-        })
-    })
+  fetch("{% url 'update_attendance' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ date: attendance_id, student_ids })
+  })
+  .then(r => r.text())
+  .then(resp => {
+    document.getElementById('save_msg').innerHTML =
+      resp === 'OK'
+        ? '<div class="alert alert-success mb-0"><i class="fas fa-check-circle mr-1"></i> Attendance updated!</div>'
+        : '<div class="alert alert-danger mb-0">Error updating attendance.</div>';
+    if (resp === 'OK') setTimeout(() => location.reload(), 1500);
+    else { this.disabled = false; this.innerHTML = '<i class="fas fa-save mr-1"></i> Update Attendance'; }
+  })
+  .catch(() => { this.disabled = false; this.innerHTML = '<i class="fas fa-save mr-1"></i> Update Attendance'; });
+});
 </script>
-{% endblock custom_js %}
+{% endblock %}

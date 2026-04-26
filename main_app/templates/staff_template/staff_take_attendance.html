@@ -1,153 +1,154 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-                <div class="card card-dark">
-                    <div class="card-header">
-                        <h3 class="card-title">{{page_title}}</h3>
-                    </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ page_title }}</h3>
+          </div>
+          <div class="card-body">
 
-                    <!-- /.card-header -->
-                    <!-- form start -->
-                    <div class="card-body">
-
-
-
-                        <div class="form-group">
-                            <label>Subject</label>
-                            <select name="subject" class="form-control" id='subject'>
-                                <option value="">----</option>
-                                {% for subject in subjects  %}
-                                <option value="{{subject.id}}">{{subject.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-
-                        <div class="form-group">
-                            <label>Session Year</label>
-                            <select name="session" id='session' class="form-control">
-                                <option value="">----</option>
-                                {% for session in sessions  %}
-                                <option value="{{session.id}}">{{session}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% comment %}
-
-                        <div>
-                            <label>Attendance Date</label>
-                            <input type="date" class='form-control' name="attendance_date" id='attendance_date' id="">
-                        </div>
-                        {% endcomment %}
-
-                    </div>
-                    <!-- /.card-body -->
-
-                    <div class="card-footer">
-                        <button type="button" id='fetch_student' class="btn btn-success btn-block">Fetch Students</button>
-                        <div class="form-group" id="student_data">
-
-                        </div>
-                    </div>
-                </div>
-                <!-- /.card -->
-
+            <div class="form-group">
+              <label><i class="fas fa-layer-group mr-1"></i> Select Group</label>
+              <select id="group" class="form-control">
+                <option value="">— Choose a group —</option>
+                {% for g in groups %}
+                <option value="{{ g.id }}">{{ g.name }}{% if g.branch %} · {{ g.branch.name }}{% endif %}</option>
+                {% endfor %}
+              </select>
             </div>
-        </div>
-    </div>
-</section>
-{% endblock content %}
 
+            <div class="form-group">
+              <label><i class="fas fa-calendar-day mr-1"></i> Attendance Date</label>
+              <input type="date" id="attendance_date" class="form-control"
+                     value="{{ today }}" max="{{ today }}">
+            </div>
+
+            <button type="button" id="fetch_students_btn" class="btn btn-primary btn-block">
+              <i class="fas fa-users mr-1"></i> Load Students
+            </button>
+
+          </div><!-- /.card-body -->
+
+          <div id="student_section" style="display:none;" class="card-footer">
+            <hr>
+            <h6 class="mb-3"><i class="fas fa-clipboard-list mr-1"></i> Mark Attendance</h6>
+            <div id="student_list" class="row mb-3"></div>
+            <button type="button" id="save_btn" class="btn btn-success btn-block">
+              <i class="fas fa-save mr-1"></i> Save Attendance
+            </button>
+            <div id="save_msg" class="mt-2"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
 
 {% block custom_js %}
 <script>
-    $(document).ready(function () {
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? '';
 
-       
-        $("#fetch_student").click(function () {
-            var subject = $("#subject").val()
-            var session = $("#session").val()
-            $("#student_data").html(null)
-if (subject.length  == 0 || session.length == 0){
-    alert("Please select session and subject");
-    return false;
-}
-            $.ajax({
-                url: "{% url 'get_students' %}",
-                type: 'POST',
-                data: {
-                    subject: subject,
-                    session: session
-                }
-            }).done(function (response) {
-                var json_data = JSON.parse(response)
-                if (json_data.length < 1) {
-                    alert("No data to display")
-                } else {
-                    var div_data = "<hr/><div class='form-group'></div><div class='form-group'> <label>Attendance Date</label><input type='date' class='form-control' name='attendance_date' id='attendance_date' ><div class='row'>"
+document.getElementById('fetch_students_btn').addEventListener('click', function () {
+  const group = document.getElementById('group').value;
+  const date  = document.getElementById('attendance_date').value;
+  if (!group) { alert('Please select a group first.'); return; }
+  if (!date)  { alert('Please select a date.'); return; }
 
-                    for (key in json_data) {
-                        div_data += "<div class='col-lg-3'><div class='form-check custom-control custom-checkbox'><input type='checkbox' class='custom-control-input' checked='checked' name='student_data[]' value=" + json_data[key]['id'] + " id='checkbox" + json_data[key]['id'] + "' /> <label for='checkbox" + json_data[key]['id'] + "' class='custom-control-label'>" + json_data[key]['name'] + "</label></div> </div>"
-                    }
-                    div_data += "</div></div>"
-                    div_data += "<div class='form-group'><button id='save_attendance' class='btn btn-success' type='button'>Save Attendance</button></div>"
-                    $("#student_data").html(div_data)
-                }
-            }).fail(function (response) {
-                alert("Error in fetching students")
-            })
+  fetch("{% url 'get_students' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const arr = JSON.parse(data);
+    if (!arr.length) { alert('No enrolled students in this group.'); return; }
 
+    const list = document.getElementById('student_list');
+    list.innerHTML = arr.map(s => `
+      <div class="col-md-4 col-6 mb-2">
+        <div class="card p-2 text-center student-card" data-id="${s.id}" style="cursor:pointer;border:2px solid #28a745;">
+          <i class="fas fa-user-check text-success mb-1"></i>
+          <small class="font-weight-bold">${s.name}</small>
+          <small class="text-success status-label">Present</small>
+          <input type="hidden" class="student-status" value="1">
+        </div>
+      </div>`).join('');
 
-            $(document).on('click', '#save_attendance', function () {
-                $(this).attr("disabled","disabled")
-                $(this).text("Saving Attendance Data...")
-                var student_data = $("input[name='student_data[]']").map(function () {
-                    if ($(this).is(":checked")){
-                    return {'id':$(this).val(), 'status': 1};
-    
-                    }
-                    return {'id':$(this).val(), 'status': 0};
-    
-                }).get()
-                var attendance_date = $('#attendance_date').val()
-                if (attendance_date.length < 10){
-                    alert("Select date")
-                    return false;
-                }
-                student_data = JSON.stringify(student_data)
-                $.ajax({
-                    url: "{% url 'save_attendance' %}",
-                    type: 'POST',
-                    data: {
-                        date: attendance_date,
-                        student_ids: student_data,
-                        subject: subject,
-                        session: session
-            
-                    }
-                }).done(function (response) {
-                    if (response == 'OK'){
-                        alert("Saved")
-                    }else{
-                        alert("Error. Please try again")
-                    }
-                    location.reload()
-                    
-                }).fail(function (response) {
-                    alert("Error in saving attendance")
-                })
-    
-            })
+    document.getElementById('student_section').style.display = 'block';
+    document.getElementById('save_msg').innerHTML = '';
 
+    // Toggle present/absent on click
+    document.querySelectorAll('.student-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const inp   = this.querySelector('.student-status');
+        const label = this.querySelector('.status-label');
+        const icon  = this.querySelector('i');
+        if (inp.value === '1') {
+          inp.value = '0';
+          this.style.border = '2px solid #dc3545';
+          icon.className = 'fas fa-user-times text-danger mb-1';
+          label.textContent = 'Absent';
+          label.className = 'text-danger status-label';
+        } else {
+          inp.value = '1';
+          this.style.border = '2px solid #28a745';
+          icon.className = 'fas fa-user-check text-success mb-1';
+          label.textContent = 'Present';
+          label.className = 'text-success status-label';
+        }
+      });
+    });
+  })
+  .catch(() => alert('Error loading students.'));
+});
 
-        })
-    })
+document.getElementById('save_btn').addEventListener('click', function () {
+  const group = document.getElementById('group').value;
+  const date  = document.getElementById('attendance_date').value;
+  const cards = document.querySelectorAll('.student-card');
+  if (!cards.length) return;
+
+  const student_ids = JSON.stringify(
+    Array.from(cards).map(c => ({
+      id: c.dataset.id,
+      status: parseInt(c.querySelector('.student-status').value)
+    }))
+  );
+
+  this.disabled = true;
+  this.textContent = 'Saving…';
+
+  fetch("{% url 'save_attendance' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ group, date, student_ids })
+  })
+  .then(r => r.text())
+  .then(resp => {
+    document.getElementById('save_msg').innerHTML =
+      resp === 'OK'
+        ? '<div class="alert alert-success mb-0"><i class="fas fa-check-circle mr-1"></i> Attendance saved successfully!</div>'
+        : '<div class="alert alert-danger mb-0">Error saving attendance. Please try again.</div>';
+    if (resp === 'OK') {
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-save mr-1"></i> Save Attendance';
+    }
+  })
+  .catch(() => {
+    document.getElementById('save_msg').innerHTML = '<div class="alert alert-danger mb-0">Network error.</div>';
+    this.disabled = false;
+    this.innerHTML = '<i class="fas fa-save mr-1"></i> Save Attendance';
+  });
+});
 </script>
-{% endblock custom_js %}
+{% endblock %}

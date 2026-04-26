@@ -1,43 +1,64 @@
 {% extends 'main_app/base.html' %}
 {% load static %}
-{% block page_title %}{{page_title}}{% endblock page_title %}
-
+{% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-
 <section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <!-- general form elements -->
-       
-                <!-- /.card -->
-<div class="card card-dark">
-    <div class="card-header"><h3 class="card-title">{{page_title}}</h3>
-    </div>
-   <div class="table p-2" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
-
-       <table class="table table-bordered" style="min-width: 600px;">
-           <tr>
-               <th>ID</th>
-               <th>Subject</th>
-               <th>Test</th>
-               <th>Exam</th>
-               <th>Total</th>
-        </tr>
-        {% for result in results %}
-        <tr>
-            <td>{{forloop.counter}}</td>
-            <td>{{ result.subject }}</td>
-            <td>{{ result.test }}</td>
-            <td>{{ result.exam }}</td>
-            <td>{{ result.test|add:result.exam }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ page_title }}</h3>
+          </div>
+          <div class="card-body p-0">
+            {% if results %}
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>#</th>
+                    <th>Group</th>
+                    <th>Test <small class="text-muted">/40</small></th>
+                    <th>Exam <small class="text-muted">/60</small></th>
+                    <th>Total <small class="text-muted">/100</small></th>
+                    <th>Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in results %}
+                  {% with total=r.test|add:r.exam %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                      {% if r.group %}{{ r.group.name }}{% else %}—{% endif %}
+                      {% if r.subject %}<br><small class="text-muted">{{ r.subject.name }}</small>{% endif %}
+                    </td>
+                    <td>{{ r.test }}</td>
+                    <td>{{ r.exam }}</td>
+                    <td><strong>{{ total }}</strong></td>
+                    <td>
+                      {% if total >= 90 %}<span class="badge badge-success">A</span>
+                      {% elif total >= 75 %}<span class="badge badge-primary">B</span>
+                      {% elif total >= 60 %}<span class="badge badge-warning">C</span>
+                      {% elif total >= 45 %}<span class="badge badge-secondary">D</span>
+                      {% else %}<span class="badge badge-danger">F</span>{% endif %}
+                    </td>
+                  </tr>
+                  {% endwith %}
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
+            {% else %}
+            <div class="p-4 text-center text-muted">
+              <i class="fas fa-chart-bar fa-2x mb-2 d-block"></i>
+              No results have been recorded yet.
+            </div>
+            {% endif %}
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </section>
-{% endblock content %}
+{% endblock %}
