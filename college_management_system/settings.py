@@ -96,8 +96,11 @@ DATABASES = {
 }
 
 # Override with DATABASE_URL env var when present (Digital Ocean managed DB).
-_db_from_env = dj_database_url.config(conn_max_age=500, ssl_require=not DEBUG)
+# conn_max_age=0: disable persistent connections. Django 3.1 has no CONN_HEALTH_CHECKS,
+# so reusing a connection that PostgreSQL already closed raises OperationalError → 500.
+_db_from_env = dj_database_url.config(conn_max_age=0, ssl_require=not DEBUG)
 DATABASES['default'].update(_db_from_env)
+DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 # ---------------------------------------------------------------------------
 # Password validation
@@ -152,7 +155,10 @@ AUTHENTICATION_BACKENDS = ['main_app.EmailBackend.EmailBackend']
 
 SESSION_COOKIE_AGE = 1209600        # 2 weeks default
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
+# False: only save session when it's been modified; avoids a DB write on every
+# anonymous request (including the login page GET), which prevents 500s when
+# the session table is temporarily unavailable.
+SESSION_SAVE_EVERY_REQUEST = False
 
 # ---------------------------------------------------------------------------
 # Email

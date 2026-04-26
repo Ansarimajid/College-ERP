@@ -20,6 +20,7 @@ from main_app.EditResultView import EditResultView
 from . import hod_views, staff_views, student_views, views
 
 urlpatterns = [
+    path("health/", views.health, name='health'),
     path("", views.login_page, name='login_page'),
     path("get_attendance", views.get_attendance, name='get_attendance'),
     path("firebase-messaging-sw.js", views.showFirebaseJS, name='showFirebaseJS'),

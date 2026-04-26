@@ -199,6 +199,18 @@ def get_attendance(request):
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
+def health(request):
+    """Lightweight health-check endpoint for DO load-balancer probes."""
+    from django.db import connection
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    status = 200 if db_ok else 503
+    return JsonResponse({'status': 'ok' if db_ok else 'db_unavailable', 'db': db_ok}, status=status)
+
+
 def showFirebaseJS(request):
     data = """
 importScripts('https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js');
