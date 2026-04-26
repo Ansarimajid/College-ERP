@@ -91,9 +91,12 @@
     </nav>
 
     <!-- Sidebar -->
-    <aside class="erpnext-sidebar">
+    <aside class="erpnext-sidebar" id="erpnext-sidebar">
         {% include "main_app/erpnext_sidebar.html" %}
     </aside>
+
+    <!-- Mobile overlay (click to close sidebar) -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
     <!-- Main Content -->
     <main class="erpnext-main" id="main-content">
@@ -140,124 +143,71 @@
     <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
     
     <script>
-        // Sidebar toggle functionality
-        let isSidebarOpen = false;
-        
-        function toggleSidebar() {
-            const body = document.body;
-            if (window.innerWidth <= 768) {
-                // On mobile, toggle 'sidebar-open'
-                isSidebarOpen = !isSidebarOpen;
-                if (isSidebarOpen) {
-                    body.classList.add('sidebar-open');
-                    body.classList.remove('sidebar-collapsed');
-                } else {
-                    body.classList.remove('sidebar-open');
-                    body.classList.add('sidebar-collapsed');
-                }
-            } else {
-                // On desktop, toggle 'sidebar-collapsed'
-                isSidebarOpen = !isSidebarOpen;
-                if (isSidebarOpen) {
-                    body.classList.add('sidebar-collapsed');
-                    body.classList.remove('sidebar-open');
-                } else {
-                    body.classList.remove('sidebar-collapsed');
-                    body.classList.remove('sidebar-open');
-                }
-            }
-            // Store state in localStorage
-            localStorage.setItem('sidebarOpen', isSidebarOpen);
+        /* ── Sidebar management ──────────────────────────────────────────────── */
+        function isMobile() { return window.innerWidth <= 768; }
+
+        function openSidebar() {
+            document.body.classList.add('sidebar-open');
+            document.body.classList.remove('sidebar-collapsed');
+            localStorage.setItem('sidebarState', 'open');
         }
-        
-        // Restore sidebar state on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const stored = localStorage.getItem('sidebarOpen');
-            if (window.innerWidth <= 768) {
-                if (stored === 'true') {
-                    document.body.classList.add('sidebar-open');
-                    document.body.classList.remove('sidebar-collapsed');
-                    isSidebarOpen = true;
-                } else {
-                    document.body.classList.remove('sidebar-open');
-                    document.body.classList.add('sidebar-collapsed');
-                    isSidebarOpen = false;
-                }
+
+        function closeSidebar() {
+            document.body.classList.remove('sidebar-open');
+            if (!isMobile()) document.body.classList.add('sidebar-collapsed');
+            localStorage.setItem('sidebarState', 'closed');
+        }
+
+        function toggleSidebar() {
+            if (document.body.classList.contains('sidebar-open')) {
+                closeSidebar();
+            } else if (isMobile()) {
+                openSidebar();
             } else {
-                if (stored === 'true') {
-                    document.body.classList.add('sidebar-collapsed');
-                    document.body.classList.remove('sidebar-open');
-                    isSidebarOpen = true;
-                } else {
-                    document.body.classList.remove('sidebar-collapsed');
-                    document.body.classList.remove('sidebar-open');
-                    isSidebarOpen = false;
-                }
+                // Desktop: toggle collapsed class
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebarState',
+                    document.body.classList.contains('sidebar-collapsed') ? 'closed' : 'open');
             }
-        });
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth <= 768) {
-                if (!isSidebarOpen) {
-                    document.body.classList.add('sidebar-collapsed');
-                    document.body.classList.remove('sidebar-open');
-                } else {
-                    document.body.classList.remove('sidebar-collapsed');
-                    document.body.classList.add('sidebar-open');
-                }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Restore state
+            const state = localStorage.getItem('sidebarState');
+            if (isMobile()) {
+                // On mobile, sidebar always starts closed unless explicitly opened
+                closeSidebar();
             } else {
-                if (isSidebarOpen) {
-                    document.body.classList.add('sidebar-collapsed');
-                    document.body.classList.remove('sidebar-open');
-                } else {
-                    document.body.classList.remove('sidebar-collapsed');
-                    document.body.classList.remove('sidebar-open');
-                }
+                if (state === 'closed') document.body.classList.add('sidebar-collapsed');
             }
-        });
-        
-        // Navigation menu toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const navItems = document.querySelectorAll('.nav-item.has-submenu');
-            
-            navItems.forEach(item => {
-                const link = item.querySelector('.nav-link');
-                const submenu = item.querySelector('.nav-submenu');
-                
-                if (link && submenu) {
-                    link.addEventListener('click', function(e) {
+
+            // Submenu toggles
+            document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                const link = item.querySelector(':scope > .nav-link');
+                if (link) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
-                        
-                        // Toggle current item
                         item.classList.toggle('open');
-                        
-                        // Close other open items
-                        navItems.forEach(otherItem => {
-                            if (otherItem !== item && otherItem.classList.contains('open')) {
-                                otherItem.classList.remove('open');
-                            }
+                        document.querySelectorAll('.nav-item.has-submenu').forEach(other => {
+                            if (other !== item) other.classList.remove('open');
                         });
                     });
                 }
             });
-            
-            // Auto-close sidebar on mobile when clicking navigation links
-            const sidebarLinks = document.querySelectorAll('.erpnext-sidebar a[href]:not([href="#"]):not([href="javascript:void(0)"])');
-            
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    // Check if we're on mobile (768px or less)
-                    if (window.innerWidth <= 768) {
-                        // Close the sidebar
-                        const body = document.body;
-                        body.classList.remove('sidebar-open');
-                        body.classList.add('sidebar-collapsed');
-                        isSidebarOpen = false;
-                        localStorage.setItem('sidebarOpen', false);
-                    }
+
+            // Auto-close sidebar on mobile when a nav link is clicked
+            document.querySelectorAll('.erpnext-sidebar a[href]:not([href="#"])').forEach(link => {
+                link.addEventListener('click', function () {
+                    if (isMobile()) closeSidebar();
                 });
             });
+        });
+
+        // On resize, re-apply correct state
+        window.addEventListener('resize', function () {
+            if (!isMobile()) {
+                document.body.classList.remove('sidebar-open');
+            }
         });
         
         // Auto-hide alerts after 5 seconds

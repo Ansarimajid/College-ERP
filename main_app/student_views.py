@@ -18,48 +18,56 @@ from .models import *
 @student_only
 def student_home(request):
     student = get_object_or_404(Student, admin=request.user)
-    total_subject = Subject.objects.filter(course=student.course).count()
+
+    # Overall attendance
     total_attendance = AttendanceReport.objects.filter(student=student).count()
     total_present = AttendanceReport.objects.filter(student=student, status=True).count()
-    if total_attendance == 0:  # Don't divide. DivisionByZero
+    if total_attendance == 0:
         percent_absent = percent_present = 0
     else:
-        percent_present = math.floor((total_present/total_attendance) * 100)
+        percent_present = math.floor((total_present / total_attendance) * 100)
         percent_absent = math.ceil(100 - percent_present)
-    subject_name = []
+
+    # Per-group breakdown
+    enrollments = Enrollment.objects.filter(
+        student=student, is_active=True
+    ).select_related('group')
+    total_groups = enrollments.count()
+
+    group_name = []
     data_present = []
     data_absent = []
-    subject_rows = []  # list of dicts for the breakdown table
-    subjects = Subject.objects.filter(course=student.course)
-    for subject in subjects:
-        attendance = Attendance.objects.filter(subject=subject)
+    subject_rows = []
+    for enrollment in enrollments:
+        group = enrollment.group
+        att_qs = Attendance.objects.filter(group=group)
         present_count = AttendanceReport.objects.filter(
-            attendance__in=attendance, status=True, student=student).count()
+            attendance__in=att_qs, status=True, student=student).count()
         absent_count = AttendanceReport.objects.filter(
-            attendance__in=attendance, status=False, student=student).count()
+            attendance__in=att_qs, status=False, student=student).count()
         total_cls = present_count + absent_count
         pct = round((present_count / total_cls) * 100) if total_cls > 0 else 0
-        subject_name.append(subject.name)
+        group_name.append(group.name)
         data_present.append(present_count)
         data_absent.append(absent_count)
         subject_rows.append({
-            'name': subject.name,
+            'name': group.name,
             'present': present_count,
             'absent': absent_count,
             'total': total_cls,
             'pct': pct,
         })
+
     context = {
         'total_attendance': total_attendance,
         'percent_present': percent_present,
         'percent_absent': percent_absent,
-        'total_subject': total_subject,
-        'subjects': subjects,
+        'total_subject': total_groups,
         'subject_rows': subject_rows,
         'data_present': data_present,
         'data_absent': data_absent,
-        'data_name': subject_name,
-        'page_title': 'Student Homepage'
+        'data_name': group_name,
+        'page_title': 'My Dashboard',
     }
     return render(request, 'student_template/erpnext_student_home.html', context)
 

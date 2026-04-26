@@ -256,6 +256,7 @@ class Group(models.Model):
     schedule = models.CharField(max_length=200, blank=True, default="",
                                 help_text="e.g. Mon/Wed 10:00–12:00")
     capacity = models.PositiveIntegerField(default=20)
+    is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -279,7 +280,7 @@ class Enrollment(models.Model):
 class Assignment(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default="")
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
     due_date = models.DateField()
     created_by = models.ForeignKey(Staff, on_delete=models.CASCADE)
