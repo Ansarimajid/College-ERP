@@ -49,13 +49,9 @@
     .logo-icon {
       width: 44px;
       height: 44px;
-      background: linear-gradient(135deg, var(--navy), var(--cyan));
-      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 22px;
       flex-shrink: 0;
     }
     .logo-text h1 { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.2; }
@@ -138,7 +134,27 @@
   <div class="card">
 
     <div class="logo">
-      <div class="logo-icon">&#10052;</div>
+      <div class="logo-icon">
+        <svg width="44" height="44" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="lg" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="0.8" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7DD3FC"/>
+              <stop offset="100%" stop-color="#06B6D4"/>
+            </linearGradient>
+          </defs>
+          <polygon points="18,2 34,32 2,32" stroke="url(#lg2)" stroke-width="1.6" fill="none" filter="url(#lg)"/>
+          <polygon points="11,11 20,30 4,30" stroke="url(#lg2)" stroke-width="1.2" fill="none" opacity="0.85" filter="url(#lg)"/>
+          <polyline points="23,17 29,30 18,30" stroke="#7DD3FC" stroke-width="1" fill="none" opacity="0.6"/>
+          <line x1="18" y1="2" x2="11" y2="20" stroke="#06B6D4" stroke-width="1" opacity="0.7"/>
+          <line x1="11" y1="20" x2="23" y2="30" stroke="#06B6D4" stroke-width="1" opacity="0.7"/>
+          <line x1="11" y1="11" x2="29" y2="30" stroke="#7DD3FC" stroke-width="0.9" opacity="0.5"/>
+          <line x1="18" y1="15" x2="11" y2="30" stroke="#7DD3FC" stroke-width="0.8" opacity="0.5"/>
+        </svg>
+      </div>
       <div class="logo-text">
         <h1>Iceberg Study Center</h1>
         <p>Student Management System</p>
