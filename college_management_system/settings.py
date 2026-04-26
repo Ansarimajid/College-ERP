@@ -131,15 +131,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-_has_static_manifest = (STATIC_ROOT / 'staticfiles.json').exists()
-
-if DEBUG or 'test' in sys.argv or not _has_static_manifest:
+if DEBUG or 'test' in sys.argv:
     # Plain storage: no hashing, works without running collectstatic.
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
-    # Compressed + fingerprinted files. Uses non-strict manifest lookup so
-    # missing entries don't crash request rendering with HTTP 500.
-    STATICFILES_STORAGE = 'main_app.staticfiles_storage.NonStrictCompressedManifestStaticFilesStorage'
+    # Fingerprinted files for production. manifest_strict=False means missing
+    # entries fall back to the original path instead of raising ValueError.
+    STATICFILES_STORAGE = 'main_app.staticfiles_storage.NonStrictManifestStaticFilesStorage'
 
 # ---------------------------------------------------------------------------
 # Authentication
@@ -182,6 +180,48 @@ else:
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 LOGIN_URL = '/'
+
+# ---------------------------------------------------------------------------
+# Logging — surface 500 errors in Digital Ocean App Platform logs
+# ---------------------------------------------------------------------------
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'main_app': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Production security hardening
