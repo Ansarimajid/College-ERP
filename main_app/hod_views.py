@@ -66,8 +66,12 @@ def admin_home(request):
     student_attendance_leave_list = []
     student_name_list = []
     for student in Student.objects.select_related('admin').all():
-        present = AttendanceReport.objects.filter(student_id=student.id, status=True).count()
-        absent = AttendanceReport.objects.filter(student_id=student.id, status=False).count()
+        present = AttendanceReport.objects.filter(
+            student_id=student.id, status__in=[AttendanceReport.PRESENT, AttendanceReport.LATE]
+        ).count()
+        absent = AttendanceReport.objects.filter(
+            student_id=student.id, status=AttendanceReport.ABSENT
+        ).count()
         leave = LeaveReportStudent.objects.filter(student_id=student.id, status=1).count()
         student_attendance_present_list.append(present)
         student_attendance_leave_list.append(leave + absent)
@@ -90,6 +94,7 @@ def admin_home(request):
     return render(request, 'hod_template/home_content.html', context)
 
 
+@admin_only
 def add_staff(request):
     form = StaffForm(request.POST or None, request.FILES or None)
     context = {'form': form, 'page_title': 'Add Teacher'}
@@ -113,8 +118,11 @@ def add_staff(request):
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                user.staff.course = course
                 user.save()
+                staff_obj = Staff.objects.get(admin=user)
+                staff_obj.course = course
+                staff_obj.is_active = form.cleaned_data.get('is_active', True)
+                staff_obj.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_staff'))
 
@@ -126,6 +134,7 @@ def add_staff(request):
     return render(request, 'hod_template/add_staff_template.html', context)
 
 
+@admin_only
 def add_student(request):
     student_form = AddStudentForm(request.POST or None, request.FILES or None)
     context = {'form': student_form, 'page_title': 'Add Student'}
@@ -137,7 +146,8 @@ def add_student(request):
             email       = student_form.cleaned_data.get('email')
             gender      = student_form.cleaned_data.get('gender')
             password    = student_form.cleaned_data.get('password')
-            teacher     = student_form.cleaned_data.get('teacher')
+            course      = student_form.cleaned_data.get('course')
+            group       = student_form.cleaned_data.get('group')
             passport    = request.FILES.get('profile_pic')
             try:
                 passport_url = ''
@@ -152,19 +162,19 @@ def add_student(request):
                 user.gender = gender
                 user.address = address
                 user.save()
-                # Link student to the teacher's course and enroll in teacher's first group
                 student = user.student
-                student.course = teacher.course
+                student.course = course
                 student.session = None
                 student.save()
-                group = Group.objects.filter(teacher=teacher).first()
                 if group:
-                    Enrollment.objects.get_or_create(student=student, group=group)
-                messages.success(
-                    request,
-                    f"Student added and assigned to {teacher.admin.first_name} {teacher.admin.last_name}"
-                    + (f" · enrolled in group '{group.name}'" if group else "")
-                )
+                    Enrollment.objects.get_or_create(student=student, group=group, defaults={'is_active': True})
+                    NotificationStudent.objects.create(
+                        student=student,
+                        message=f"Welcome! You have been enrolled in {group.name}.",
+                    )
+                    messages.success(request, f"Student added and enrolled in '{group.name}'.")
+                else:
+                    messages.success(request, f"Student {first_name} {last_name} added. Enroll them in a group from the Enrollments page.")
                 return redirect(reverse('add_student'))
             except Exception as e:
                 messages.error(request, "Could Not Add: " + str(e))
@@ -173,6 +183,7 @@ def add_student(request):
     return render(request, 'hod_template/add_student_template.html', context)
 
 
+@admin_only
 def add_course(request):
     form = CourseForm(request.POST or None)
     context = {
@@ -195,6 +206,7 @@ def add_course(request):
     return render(request, 'hod_template/add_course_template.html', context)
 
 
+@admin_only
 def add_subject(request):
     form = SubjectForm(request.POST or None)
     context = {
@@ -223,6 +235,7 @@ def add_subject(request):
     return render(request, 'hod_template/add_subject_template.html', context)
 
 
+@admin_only
 def manage_staff(request):
     allStaff = CustomUser.objects.filter(user_type=2)
     context = {
@@ -232,6 +245,7 @@ def manage_staff(request):
     return render(request, "hod_template/manage_staff.html", context)
 
 
+@admin_only
 def manage_student(request):
     students = CustomUser.objects.filter(user_type=3)
     context = {
@@ -241,6 +255,7 @@ def manage_student(request):
     return render(request, "hod_template/manage_student.html", context)
 
 
+@admin_only
 def manage_course(request):
     courses = Course.objects.all()
     context = {
@@ -250,6 +265,7 @@ def manage_course(request):
     return render(request, "hod_template/manage_course.html", context)
 
 
+@admin_only
 def manage_subject(request):
     subjects = Subject.objects.all()
     context = {
@@ -259,6 +275,7 @@ def manage_subject(request):
     return render(request, "hod_template/manage_subject.html", context)
 
 
+@admin_only
 def edit_staff(request, staff_id):
     staff = get_object_or_404(Staff, id=staff_id)
     form = StaffEditForm(request.POST or None, request.FILES or None, instance=staff)
@@ -276,6 +293,7 @@ def edit_staff(request, staff_id):
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
             course = form.cleaned_data.get('course')
+            is_active = form.cleaned_data.get('is_active', True)
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=staff.admin.id)
@@ -292,6 +310,7 @@ def edit_staff(request, staff_id):
                 user.gender = gender
                 user.address = address
                 staff.course = course
+                staff.is_active = is_active
                 user.save()
                 staff.save()
                 messages.success(request, "Successfully Updated")
@@ -303,6 +322,7 @@ def edit_staff(request, staff_id):
     return render(request, "hod_template/edit_staff_template.html", context)
 
 
+@admin_only
 def edit_student(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     form = StudentForm(request.POST or None, instance=student)
@@ -347,6 +367,7 @@ def edit_student(request, student_id):
     return render(request, "hod_template/edit_student_template.html", context)
 
 
+@admin_only
 def edit_course(request, course_id):
     instance = get_object_or_404(Course, id=course_id)
     form = CourseForm(request.POST or None, instance=instance)
@@ -371,6 +392,7 @@ def edit_course(request, course_id):
     return render(request, 'hod_template/edit_course_template.html', context)
 
 
+@admin_only
 def edit_subject(request, subject_id):
     instance = get_object_or_404(Subject, id=subject_id)
     form = SubjectForm(request.POST or None, instance=instance)
@@ -399,6 +421,7 @@ def edit_subject(request, subject_id):
     return render(request, 'hod_template/edit_subject_template.html', context)
 
 
+@admin_only
 def add_session(request):
     form = SessionForm(request.POST or None)
     context = {'form': form, 'page_title': 'Add Session'}
@@ -415,12 +438,14 @@ def add_session(request):
     return render(request, "hod_template/add_session_template.html", context)
 
 
+@admin_only
 def manage_session(request):
     sessions = Session.objects.all()
     context = {'sessions': sessions, 'page_title': 'Manage Sessions'}
     return render(request, "hod_template/manage_session.html", context)
 
 
+@admin_only
 def edit_session(request, session_id):
     instance = get_object_or_404(Session, id=session_id)
     form = SessionForm(request.POST or None, instance=instance)
@@ -445,6 +470,7 @@ def edit_session(request, session_id):
 
 
 @csrf_exempt
+@admin_only
 def check_email_availability(request):
     email = request.POST.get("email")
     try:
@@ -457,6 +483,7 @@ def check_email_availability(request):
 
 
 @csrf_exempt
+@admin_only
 def student_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStudent.objects.all()
@@ -478,6 +505,7 @@ def student_feedback_message(request):
 
 
 @csrf_exempt
+@admin_only
 def staff_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStaff.objects.all()
@@ -499,6 +527,7 @@ def staff_feedback_message(request):
 
 
 @csrf_exempt
+@admin_only
 def view_staff_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStaff.objects.all()
@@ -524,6 +553,7 @@ def view_staff_leave(request):
 
 
 @csrf_exempt
+@admin_only
 def view_student_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStudent.objects.all()
@@ -548,8 +578,9 @@ def view_student_leave(request):
             return HttpResponse(False)
 
 
+@admin_only
 def admin_view_attendance(request):
-    groups = Group.objects.select_related('course', 'teacher__admin').all()
+    groups = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
     context = {
         'groups': groups,
         'page_title': 'View Attendance',
@@ -558,6 +589,7 @@ def admin_view_attendance(request):
 
 
 @csrf_exempt
+@admin_only
 def get_admin_attendance(request):
     attendance_date_id = request.POST.get('attendance_date_id')
     group_id = request.POST.get('group')
@@ -565,7 +597,7 @@ def get_admin_attendance(request):
         if attendance_date_id:
             attendance = get_object_or_404(Attendance, id=attendance_date_id)
             reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student')
-            data = [{"status": str(r.status), "name": str(r.student)} for r in reports]
+            data = [{"status": r.status, "name": str(r.student)} for r in reports]
             return JsonResponse(json.dumps(data), safe=False)
         # Return list of attendance dates for a group
         group = get_object_or_404(Group, id=group_id)
@@ -576,6 +608,7 @@ def get_admin_attendance(request):
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
+@admin_only
 def admin_view_profile(request):
     admin = get_object_or_404(Admin, admin=request.user)
     form = AdminForm(request.POST or None, request.FILES or None,
@@ -620,6 +653,7 @@ def admin_view_profile(request):
     return render(request, "hod_template/admin_view_profile.html", context)
 
 
+@admin_only
 def admin_notify_staff(request):
     staff = CustomUser.objects.filter(user_type=2)
     context = {
@@ -629,6 +663,7 @@ def admin_notify_staff(request):
     return render(request, "hod_template/staff_notification.html", context)
 
 
+@admin_only
 def admin_notify_student(request):
     student = CustomUser.objects.filter(user_type=3)
     context = {
@@ -639,6 +674,7 @@ def admin_notify_student(request):
 
 
 @csrf_exempt
+@admin_only
 def send_student_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -668,6 +704,7 @@ def send_student_notification(request):
 
 
 @csrf_exempt
+@admin_only
 def send_staff_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -696,6 +733,7 @@ def send_staff_notification(request):
         return HttpResponse("False")
 
 
+@admin_only
 def delete_staff(request, staff_id):
     staff = get_object_or_404(CustomUser, staff__id=staff_id)
     try:
@@ -709,6 +747,7 @@ def delete_staff(request, staff_id):
     return redirect(reverse('manage_staff'))
 
 
+@admin_only
 def delete_student(request, student_id):
     student_user = get_object_or_404(CustomUser, student__id=student_id)
     try:
@@ -726,6 +765,7 @@ def delete_student(request, student_id):
     return redirect(reverse('manage_student'))
 
 
+@admin_only
 def delete_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     try:
@@ -737,6 +777,7 @@ def delete_course(request, course_id):
     return redirect(reverse('manage_course'))
 
 
+@admin_only
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     try:
@@ -750,6 +791,7 @@ def delete_subject(request, subject_id):
     return redirect(reverse('manage_subject'))
 
 
+@admin_only
 def delete_session(request, session_id):
     session = get_object_or_404(Session, id=session_id)
     try:
@@ -759,6 +801,48 @@ def delete_session(request, session_id):
         messages.error(
             request, "There are students assigned to this session. Please move them to another session.")
     return redirect(reverse('manage_session'))
+
+
+@csrf_exempt
+@admin_only
+def get_teachers_for_course(request):
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    try:
+        teachers = Staff.objects.filter(
+            course_id=course_id, is_active=True
+        ).select_related('admin').order_by('admin__last_name')
+        data = [{'id': t.id, 'name': f"{t.admin.first_name} {t.admin.last_name}"} for t in teachers]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        return JsonResponse([], safe=False)
+
+
+@csrf_exempt
+@admin_only
+def get_groups_for_teacher(request):
+    teacher_id = request.GET.get('teacher_id') or request.POST.get('teacher_id')
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    try:
+        qs = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
+        if teacher_id:
+            qs = qs.filter(teacher_id=teacher_id)
+        elif course_id:
+            qs = qs.filter(course_id=course_id)
+        qs = qs.order_by('name')
+        data = [
+            {
+                'id': g.id,
+                'name': (
+                    g.name
+                    + (f" · {g.course.name}" if g.course else "")
+                    + (f" · {g.teacher}" if g.teacher else "")
+                )
+            }
+            for g in qs
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        return JsonResponse([], safe=False)
 
 
 # ── Branch CRUD ──────────────────────────────────────────────────────────────
@@ -897,8 +981,11 @@ def archive_group(request, group_id):
 @admin_only
 def manage_enrollment(request):
     group_id = request.GET.get('group')
-    groups = Group.objects.all()
-    enrollments = Enrollment.objects.select_related('student__admin', 'group').all()
+    groups = Group.objects.filter(is_archived=False).select_related('course')
+    enrollments = Enrollment.objects.select_related(
+        'student__admin', 'student__course',
+        'group__course', 'group__teacher__admin'
+    ).all().order_by('group__name', 'student__admin__last_name')
     if group_id:
         enrollments = enrollments.filter(group_id=group_id)
     return render(request, 'hod_template/manage_enrollment.html', {
@@ -937,12 +1024,18 @@ def add_enrollment(request):
                     defaults={'is_active': is_active}
                 )
                 if created:
+                    NotificationStudent.objects.create(
+                        student=student,
+                        message=f"You have been enrolled in {group.name}" + (f" ({group.course.name})" if group.course else "") + ".",
+                    )
                     messages.success(request, f"{student} enrolled in {group.name}.")
                     return redirect(reverse('manage_enrollment'))
                 else:
                     errors['student'] = f"{student} is already enrolled in {group.name}."
+            except (ValueError, TypeError):
+                errors['error'] = 'Invalid selection. Please choose valid group and student.'
             except Exception as e:
-                errors['__all__'] = str(e)
+                errors['error'] = f"Could not enroll: {e}"
 
         return render(request, 'hod_template/add_enrollment.html', {
             'groups': groups,

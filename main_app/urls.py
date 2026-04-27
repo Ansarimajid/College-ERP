@@ -179,4 +179,8 @@ urlpatterns = [
 
     # Result Files (Student)
     path("student/result/files/", student_views.student_result_files, name='student_result_files'),
+
+    # AJAX helpers
+    path("ajax/teachers-for-course/", hod_views.get_teachers_for_course, name='get_teachers_for_course'),
+    path("ajax/groups-for-teacher/", hod_views.get_groups_for_teacher, name='get_groups_for_teacher'),
 ]

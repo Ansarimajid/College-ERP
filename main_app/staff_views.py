@@ -34,7 +34,7 @@ def staff_home(request):
         attendance_list.append(Attendance.objects.filter(group=group).count())
 
     context = {
-        'page_title': f"{staff.admin.first_name} {staff.admin.last_name} · {staff.course}",
+        'page_title': f"{staff.admin.first_name} {staff.admin.last_name}" + (f" · {staff.course}" if staff.course else ""),
         'total_students': total_students,
         'total_attendance': total_attendance,
         'total_leave': total_leave,
@@ -45,6 +45,7 @@ def staff_home(request):
     return render(request, "staff_template/erpnext_staff_home.html", context)
 
 
+@staff_only
 def staff_take_attendance(request):
     # Show ALL non-archived groups so any teacher can take attendance
     groups = Group.objects.filter(is_archived=False).select_related('course', 'branch')
@@ -108,6 +109,7 @@ def save_attendance(request):
     return HttpResponse("OK")
 
 
+@staff_only
 def staff_update_attendance(request):
     groups = Group.objects.filter(is_archived=False).select_related('course', 'branch')
     context = {
@@ -163,6 +165,7 @@ def update_attendance(request):
     return HttpResponse("OK")
 
 
+@staff_only
 def staff_apply_leave(request):
     form = LeaveReportStaffForm(request.POST or None)
     staff = get_object_or_404(Staff, admin_id=request.user.id)
@@ -187,6 +190,7 @@ def staff_apply_leave(request):
     return render(request, "staff_template/staff_apply_leave.html", context)
 
 
+@staff_only
 def staff_feedback(request):
     form = FeedbackStaffForm(request.POST or None)
     staff = get_object_or_404(Staff, admin_id=request.user.id)
@@ -210,6 +214,7 @@ def staff_feedback(request):
     return render(request, "staff_template/staff_feedback.html", context)
 
 
+@staff_only
 def staff_view_profile(request):
     staff = get_object_or_404(Staff, admin=request.user)
     form = StaffEditForm(request.POST or None, request.FILES or None,instance=staff)
@@ -262,6 +267,7 @@ def staff_fcmtoken(request):
         return HttpResponse("False")
 
 
+@staff_only
 def staff_view_notification(request):
     staff = get_object_or_404(Staff, admin=request.user)
     notifications = NotificationStaff.objects.filter(staff=staff)
@@ -272,6 +278,7 @@ def staff_view_notification(request):
     return render(request, "staff_template/staff_view_notification.html", context)
 
 
+@staff_only
 def staff_add_result(request):
     staff = get_object_or_404(Staff, admin=request.user)
     groups = Group.objects.filter(is_archived=False).select_related('course')
@@ -316,6 +323,7 @@ def fetch_student_result(request):
         return HttpResponse('False')
 
 #library
+@staff_only
 def add_book(request):
     if request.method == "POST":
         name = request.POST['name']
@@ -336,6 +344,7 @@ def add_book(request):
 #issue book
 
 
+@staff_only
 def issue_book(request):
     form = forms.IssueBookForm()
     if request.method == "POST":
@@ -349,6 +358,7 @@ def issue_book(request):
             return render(request, "staff_template/issue_book.html", {'obj':obj, 'alert':alert})
     return render(request, "staff_template/issue_book.html", {'form':form})
 
+@staff_only
 def view_issued_book(request):
     issuedBooks = IssuedBook.objects.all()
     details = []

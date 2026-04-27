@@ -78,7 +78,8 @@ def student_home(request):
     return render(request, 'student_template/erpnext_student_home.html', context)
 
 
-@ csrf_exempt
+@student_only
+@csrf_exempt
 def student_view_attendance(request):
     student = get_object_or_404(Student, admin=request.user)
     enrolled_group_ids = Enrollment.objects.filter(
@@ -116,6 +117,7 @@ def student_view_attendance(request):
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
+@student_only
 def student_apply_leave(request):
     form = LeaveReportStudentForm(request.POST or None)
     student = get_object_or_404(Student, admin_id=request.user.id)
@@ -140,6 +142,7 @@ def student_apply_leave(request):
     return render(request, "student_template/student_apply_leave.html", context)
 
 
+@student_only
 def student_feedback(request):
     form = FeedbackStudentForm(request.POST or None)
     student = get_object_or_404(Student, admin_id=request.user.id)
@@ -165,6 +168,7 @@ def student_feedback(request):
     return render(request, "student_template/student_feedback.html", context)
 
 
+@student_only
 def student_view_profile(request):
     student = get_object_or_404(Student, admin=request.user)
     form = StudentEditForm(request.POST or None, request.FILES or None,
@@ -217,6 +221,7 @@ def student_fcmtoken(request):
         return HttpResponse("False")
 
 
+@student_only
 def student_view_notification(request):
     student = get_object_or_404(Student, admin=request.user)
     notifications = NotificationStudent.objects.filter(student=student)
@@ -227,6 +232,7 @@ def student_view_notification(request):
     return render(request, "student_template/student_view_notification.html", context)
 
 
+@student_only
 def student_view_result(request):
     student = get_object_or_404(Student, admin=request.user)
     results = StudentResult.objects.filter(student=student).select_related('group')
@@ -258,6 +264,7 @@ def student_result_files(request):
 
 #library
 
+@student_only
 def view_books(request):
     books = Book.objects.all()
     context = {
