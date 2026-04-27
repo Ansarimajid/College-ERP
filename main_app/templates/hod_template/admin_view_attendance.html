@@ -44,6 +44,7 @@
             <hr>
             <div id="summary" class="mb-3">
               <span class="badge badge-success p-2 mr-2">Present: <strong id="cnt_present">0</strong></span>
+              <span class="badge badge-warning p-2 mr-2">Late: <strong id="cnt_late">0</strong></span>
               <span class="badge badge-danger p-2">Absent: <strong id="cnt_absent">0</strong></span>
             </div>
             <div id="student_data" class="row"></div>
@@ -60,6 +61,7 @@
 <style>
 .att-card { border-radius: 10px; padding: 10px 8px; text-align: center; color: #fff; margin: 4px; font-size: 13px; }
 .att-present { background: linear-gradient(135deg,#10B981,#059669); }
+.att-late    { background: linear-gradient(135deg,#F59E0B,#D97706); }
 .att-absent  { background: linear-gradient(135deg,#EF4444,#DC2626); }
 </style>
 <script>
@@ -99,19 +101,23 @@ document.getElementById('fetch_students_btn').addEventListener('click', function
   .then(data => {
     const arr = JSON.parse(data);
     if (!arr.length) { alert('No student data for this date.'); return; }
-    let present = 0, absent = 0, html = '';
+    let present = 0, late = 0, absent = 0, html = '';
     arr.forEach(s => {
-      const isPresent = s.status === 'True';
-      if (isPresent) present++; else absent++;
+      const st = parseInt(s.status, 10);
+      let cls, label;
+      if (st === 1)      { cls = 'att-present'; label = 'Present'; present++; }
+      else if (st === 2) { cls = 'att-late';    label = 'Late';    late++;    }
+      else               { cls = 'att-absent';  label = 'Absent';  absent++;  }
       html += `<div class="col-lg-2 col-md-3 col-6">
-        <div class="att-card ${isPresent ? 'att-present' : 'att-absent'}">
+        <div class="att-card ${cls}">
           <i class="fas fa-user mb-1 d-block"></i>
           <strong>${s.name}</strong>
-          <div>${isPresent ? 'Present' : 'Absent'}</div>
+          <div>${label}</div>
         </div></div>`;
     });
     document.getElementById('student_data').innerHTML = html;
     document.getElementById('cnt_present').textContent = present;
+    document.getElementById('cnt_late').textContent    = late;
     document.getElementById('cnt_absent').textContent  = absent;
     document.getElementById('student_section').style.display = 'block';
   })

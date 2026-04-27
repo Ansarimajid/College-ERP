@@ -44,8 +44,12 @@ def admin_home(request):
     student_attendance_leave_list = []
     student_name_list = []
     for student in Student.objects.select_related('admin').all():
-        present = AttendanceReport.objects.filter(student_id=student.id, status=True).count()
-        absent = AttendanceReport.objects.filter(student_id=student.id, status=False).count()
+        present = AttendanceReport.objects.filter(
+            student_id=student.id, status__in=[AttendanceReport.PRESENT, AttendanceReport.LATE]
+        ).count()
+        absent = AttendanceReport.objects.filter(
+            student_id=student.id, status=AttendanceReport.ABSENT
+        ).count()
         leave = LeaveReportStudent.objects.filter(student_id=student.id, status=1).count()
         student_attendance_present_list.append(present)
         student_attendance_leave_list.append(leave + absent)
@@ -68,6 +72,7 @@ def admin_home(request):
     return render(request, 'hod_template/home_content.html', context)
 
 
+@admin_only
 def add_staff(request):
     form = StaffForm(request.POST or None, request.FILES or None)
     context = {'form': form, 'page_title': 'Add Teacher'}
@@ -104,6 +109,7 @@ def add_staff(request):
     return render(request, 'hod_template/add_staff_template.html', context)
 
 
+@admin_only
 def add_student(request):
     student_form = AddStudentForm(request.POST or None, request.FILES or None)
     context = {'form': student_form, 'page_title': 'Add Student'}
@@ -151,6 +157,7 @@ def add_student(request):
     return render(request, 'hod_template/add_student_template.html', context)
 
 
+@admin_only
 def add_course(request):
     form = CourseForm(request.POST or None)
     context = {
@@ -173,6 +180,7 @@ def add_course(request):
     return render(request, 'hod_template/add_course_template.html', context)
 
 
+@admin_only
 def add_subject(request):
     form = SubjectForm(request.POST or None)
     context = {
@@ -201,6 +209,7 @@ def add_subject(request):
     return render(request, 'hod_template/add_subject_template.html', context)
 
 
+@admin_only
 def manage_staff(request):
     allStaff = CustomUser.objects.filter(user_type=2)
     context = {
@@ -210,6 +219,7 @@ def manage_staff(request):
     return render(request, "hod_template/manage_staff.html", context)
 
 
+@admin_only
 def manage_student(request):
     students = CustomUser.objects.filter(user_type=3)
     context = {
@@ -219,6 +229,7 @@ def manage_student(request):
     return render(request, "hod_template/manage_student.html", context)
 
 
+@admin_only
 def manage_course(request):
     courses = Course.objects.all()
     context = {
@@ -228,6 +239,7 @@ def manage_course(request):
     return render(request, "hod_template/manage_course.html", context)
 
 
+@admin_only
 def manage_subject(request):
     subjects = Subject.objects.all()
     context = {
@@ -237,6 +249,7 @@ def manage_subject(request):
     return render(request, "hod_template/manage_subject.html", context)
 
 
+@admin_only
 def edit_staff(request, staff_id):
     staff = get_object_or_404(Staff, id=staff_id)
     form = StaffEditForm(request.POST or None, request.FILES or None, instance=staff)
@@ -281,6 +294,7 @@ def edit_staff(request, staff_id):
     return render(request, "hod_template/edit_staff_template.html", context)
 
 
+@admin_only
 def edit_student(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     form = StudentForm(request.POST or None, instance=student)
@@ -325,6 +339,7 @@ def edit_student(request, student_id):
     return render(request, "hod_template/edit_student_template.html", context)
 
 
+@admin_only
 def edit_course(request, course_id):
     instance = get_object_or_404(Course, id=course_id)
     form = CourseForm(request.POST or None, instance=instance)
@@ -349,6 +364,7 @@ def edit_course(request, course_id):
     return render(request, 'hod_template/edit_course_template.html', context)
 
 
+@admin_only
 def edit_subject(request, subject_id):
     instance = get_object_or_404(Subject, id=subject_id)
     form = SubjectForm(request.POST or None, instance=instance)
@@ -377,6 +393,7 @@ def edit_subject(request, subject_id):
     return render(request, 'hod_template/edit_subject_template.html', context)
 
 
+@admin_only
 def add_session(request):
     form = SessionForm(request.POST or None)
     context = {'form': form, 'page_title': 'Add Session'}
@@ -393,12 +410,14 @@ def add_session(request):
     return render(request, "hod_template/add_session_template.html", context)
 
 
+@admin_only
 def manage_session(request):
     sessions = Session.objects.all()
     context = {'sessions': sessions, 'page_title': 'Manage Sessions'}
     return render(request, "hod_template/manage_session.html", context)
 
 
+@admin_only
 def edit_session(request, session_id):
     instance = get_object_or_404(Session, id=session_id)
     form = SessionForm(request.POST or None, instance=instance)
@@ -423,6 +442,7 @@ def edit_session(request, session_id):
 
 
 @csrf_exempt
+@admin_only
 def check_email_availability(request):
     email = request.POST.get("email")
     try:
@@ -435,6 +455,7 @@ def check_email_availability(request):
 
 
 @csrf_exempt
+@admin_only
 def student_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStudent.objects.all()
@@ -456,6 +477,7 @@ def student_feedback_message(request):
 
 
 @csrf_exempt
+@admin_only
 def staff_feedback_message(request):
     if request.method != 'POST':
         feedbacks = FeedbackStaff.objects.all()
@@ -477,6 +499,7 @@ def staff_feedback_message(request):
 
 
 @csrf_exempt
+@admin_only
 def view_staff_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStaff.objects.all()
@@ -502,6 +525,7 @@ def view_staff_leave(request):
 
 
 @csrf_exempt
+@admin_only
 def view_student_leave(request):
     if request.method != 'POST':
         allLeave = LeaveReportStudent.objects.all()
@@ -526,8 +550,9 @@ def view_student_leave(request):
             return HttpResponse(False)
 
 
+@admin_only
 def admin_view_attendance(request):
-    groups = Group.objects.select_related('course', 'teacher__admin').all()
+    groups = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
     context = {
         'groups': groups,
         'page_title': 'View Attendance',
@@ -536,6 +561,7 @@ def admin_view_attendance(request):
 
 
 @csrf_exempt
+@admin_only
 def get_admin_attendance(request):
     attendance_date_id = request.POST.get('attendance_date_id')
     group_id = request.POST.get('group')
@@ -543,7 +569,7 @@ def get_admin_attendance(request):
         if attendance_date_id:
             attendance = get_object_or_404(Attendance, id=attendance_date_id)
             reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student')
-            data = [{"status": str(r.status), "name": str(r.student)} for r in reports]
+            data = [{"status": r.status, "name": str(r.student)} for r in reports]
             return JsonResponse(json.dumps(data), safe=False)
         # Return list of attendance dates for a group
         group = get_object_or_404(Group, id=group_id)
@@ -554,6 +580,7 @@ def get_admin_attendance(request):
         return JsonResponse({'error': 'Unable to fetch attendance.'}, status=400)
 
 
+@admin_only
 def admin_view_profile(request):
     admin = get_object_or_404(Admin, admin=request.user)
     form = AdminForm(request.POST or None, request.FILES or None,
@@ -598,6 +625,7 @@ def admin_view_profile(request):
     return render(request, "hod_template/admin_view_profile.html", context)
 
 
+@admin_only
 def admin_notify_staff(request):
     staff = CustomUser.objects.filter(user_type=2)
     context = {
@@ -607,6 +635,7 @@ def admin_notify_staff(request):
     return render(request, "hod_template/staff_notification.html", context)
 
 
+@admin_only
 def admin_notify_student(request):
     student = CustomUser.objects.filter(user_type=3)
     context = {
@@ -617,6 +646,7 @@ def admin_notify_student(request):
 
 
 @csrf_exempt
+@admin_only
 def send_student_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -646,6 +676,7 @@ def send_student_notification(request):
 
 
 @csrf_exempt
+@admin_only
 def send_staff_notification(request):
     id = request.POST.get('id')
     message = request.POST.get('message')
@@ -674,6 +705,7 @@ def send_staff_notification(request):
         return HttpResponse("False")
 
 
+@admin_only
 def delete_staff(request, staff_id):
     staff = get_object_or_404(CustomUser, staff__id=staff_id)
     try:
@@ -687,6 +719,7 @@ def delete_staff(request, staff_id):
     return redirect(reverse('manage_staff'))
 
 
+@admin_only
 def delete_student(request, student_id):
     student_user = get_object_or_404(CustomUser, student__id=student_id)
     try:
@@ -704,6 +737,7 @@ def delete_student(request, student_id):
     return redirect(reverse('manage_student'))
 
 
+@admin_only
 def delete_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     try:
@@ -715,6 +749,7 @@ def delete_course(request, course_id):
     return redirect(reverse('manage_course'))
 
 
+@admin_only
 def delete_subject(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     try:
@@ -728,6 +763,7 @@ def delete_subject(request, subject_id):
     return redirect(reverse('manage_subject'))
 
 
+@admin_only
 def delete_session(request, session_id):
     session = get_object_or_404(Session, id=session_id)
     try:
