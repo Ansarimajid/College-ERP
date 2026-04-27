@@ -96,8 +96,11 @@ def add_staff(request):
                     email=email, password=password, user_type=2, first_name=first_name, last_name=last_name, profile_pic=passport_url)
                 user.gender = gender
                 user.address = address
-                user.staff.course = course
                 user.save()
+                staff_obj = Staff.objects.get(admin=user)
+                staff_obj.course = course
+                staff_obj.is_active = form.cleaned_data.get('is_active', True)
+                staff_obj.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_staff'))
 
@@ -121,7 +124,8 @@ def add_student(request):
             email       = student_form.cleaned_data.get('email')
             gender      = student_form.cleaned_data.get('gender')
             password    = student_form.cleaned_data.get('password')
-            teacher     = student_form.cleaned_data.get('teacher')
+            course      = student_form.cleaned_data.get('course')
+            group       = student_form.cleaned_data.get('group')
             passport    = request.FILES.get('profile_pic')
             try:
                 passport_url = ''
@@ -136,19 +140,19 @@ def add_student(request):
                 user.gender = gender
                 user.address = address
                 user.save()
-                # Link student to the teacher's course and enroll in teacher's first group
                 student = user.student
-                student.course = teacher.course
+                student.course = course
                 student.session = None
                 student.save()
-                group = Group.objects.filter(teacher=teacher).first()
                 if group:
-                    Enrollment.objects.get_or_create(student=student, group=group)
-                messages.success(
-                    request,
-                    f"Student added and assigned to {teacher.admin.first_name} {teacher.admin.last_name}"
-                    + (f" · enrolled in group '{group.name}'" if group else "")
-                )
+                    Enrollment.objects.get_or_create(student=student, group=group, defaults={'is_active': True})
+                    NotificationStudent.objects.create(
+                        student=student,
+                        message=f"Welcome! You have been enrolled in {group.name}.",
+                    )
+                    messages.success(request, f"Student added and enrolled in '{group.name}'.")
+                else:
+                    messages.success(request, f"Student {first_name} {last_name} added. Enroll them in a group from the Enrollments page.")
                 return redirect(reverse('add_student'))
             except Exception as e:
                 messages.error(request, "Could Not Add: " + str(e))
@@ -267,6 +271,7 @@ def edit_staff(request, staff_id):
             gender = form.cleaned_data.get('gender')
             password = form.cleaned_data.get('password') or None
             course = form.cleaned_data.get('course')
+            is_active = form.cleaned_data.get('is_active', True)
             passport = request.FILES.get('profile_pic') or None
             try:
                 user = CustomUser.objects.get(id=staff.admin.id)
@@ -283,6 +288,7 @@ def edit_staff(request, staff_id):
                 user.gender = gender
                 user.address = address
                 staff.course = course
+                staff.is_active = is_active
                 user.save()
                 staff.save()
                 messages.success(request, "Successfully Updated")
@@ -775,6 +781,48 @@ def delete_session(request, session_id):
     return redirect(reverse('manage_session'))
 
 
+@csrf_exempt
+@admin_only
+def get_teachers_for_course(request):
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    try:
+        teachers = Staff.objects.filter(
+            course_id=course_id, is_active=True
+        ).select_related('admin').order_by('admin__last_name')
+        data = [{'id': t.id, 'name': f"{t.admin.first_name} {t.admin.last_name}"} for t in teachers]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        return JsonResponse([], safe=False)
+
+
+@csrf_exempt
+@admin_only
+def get_groups_for_teacher(request):
+    teacher_id = request.GET.get('teacher_id') or request.POST.get('teacher_id')
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    try:
+        qs = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
+        if teacher_id:
+            qs = qs.filter(teacher_id=teacher_id)
+        elif course_id:
+            qs = qs.filter(course_id=course_id)
+        qs = qs.order_by('name')
+        data = [
+            {
+                'id': g.id,
+                'name': (
+                    g.name
+                    + (f" · {g.course.name}" if g.course else "")
+                    + (f" · {g.teacher}" if g.teacher else "")
+                )
+            }
+            for g in qs
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        return JsonResponse([], safe=False)
+
+
 # ── Branch CRUD ──────────────────────────────────────────────────────────────
 
 @admin_only
@@ -911,8 +959,11 @@ def archive_group(request, group_id):
 @admin_only
 def manage_enrollment(request):
     group_id = request.GET.get('group')
-    groups = Group.objects.all()
-    enrollments = Enrollment.objects.select_related('student__admin', 'group').all()
+    groups = Group.objects.filter(is_archived=False).select_related('course')
+    enrollments = Enrollment.objects.select_related(
+        'student__admin', 'student__course',
+        'group__course', 'group__teacher__admin'
+    ).all().order_by('group__name', 'student__admin__last_name')
     if group_id:
         enrollments = enrollments.filter(group_id=group_id)
     return render(request, 'hod_template/manage_enrollment.html', {
@@ -946,12 +997,18 @@ def add_enrollment(request):
                     defaults={'is_active': is_active}
                 )
                 if created:
+                    NotificationStudent.objects.create(
+                        student=student,
+                        message=f"You have been enrolled in {group.name}" + (f" ({group.course.name})" if group.course else "") + ".",
+                    )
                     messages.success(request, f"{student} enrolled in {group.name}.")
                     return redirect(reverse('manage_enrollment'))
                 else:
                     errors['student'] = f"{student} is already enrolled in {group.name}."
+            except (ValueError, TypeError):
+                errors['error'] = 'Invalid selection. Please choose valid group and student.'
             except Exception as e:
-                errors['__all__'] = str(e)
+                errors['error'] = f"Could not enroll: {e}"
 
         return render(request, 'hod_template/add_enrollment.html', {
             'groups': groups,
