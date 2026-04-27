@@ -1,9 +1,10 @@
 import json
 import os
+import logging
 import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, OperationalError, ProgrammingError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import (HttpResponse, HttpResponseRedirect,
                               get_object_or_404, redirect, render)
@@ -15,6 +16,27 @@ from django.views.generic import UpdateView
 from .decorators import admin_only
 from .forms import *
 from .models import *
+
+
+logger = logging.getLogger(__name__)
+
+
+def _active_groups_for_enrollment():
+    """
+    Keep enrollment page usable even if deploy is running with an older schema.
+    """
+    base_qs = Group.objects.select_related('course', 'teacher__admin')
+    try:
+        active_qs = base_qs.filter(is_archived=False)
+        active_qs.exists()
+        return active_qs, False
+    except (OperationalError, ProgrammingError):
+        logger.exception(
+            "Group.is_archived is unavailable. Falling back to all groups; migrations are likely pending."
+        )
+        fallback_qs = base_qs.all()
+        fallback_qs.exists()
+        return fallback_qs, True
 
 
 @admin_only
@@ -889,7 +911,12 @@ def manage_enrollment(request):
 
 @admin_only
 def add_enrollment(request):
-    groups = Group.objects.filter(is_archived=False).select_related('course', 'teacher__admin')
+    groups, schema_fallback = _active_groups_for_enrollment()
+    if schema_fallback:
+        messages.warning(
+            request,
+            "Database schema looks outdated on this server. Showing all groups for now; run migrations to fully restore enrollment filtering."
+        )
     students = Student.objects.select_related('admin', 'course').order_by('admin__last_name')
 
     if request.method == 'POST':
