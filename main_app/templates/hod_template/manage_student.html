@@ -35,11 +35,13 @@
                                     <td>{{student.gender}}</td>
                                     <td>{{student.student.course.name}}</td>
                                     <td>
-                                        {% if student.profile_pic == ""  %}
-                                        No Image
+                                        {% if student.profile_pic %}
+                                        <img class="img img-fluid mb-2" height="56" width="56"
+                                            src="{{student.profile_pic}}" alt="Student profile picture"
+                                            onerror="this.onerror=null; this.src='{% static 'dist/img/default-avatar.png' %}';">
                                         {% else %}
                                         <img class="img img-fluid mb-2" height="56" width="56"
-                                            src="{{student.profile_pic}}" alt="">
+                                            src="{% static 'dist/img/default-avatar.png' %}" alt="Default student profile picture">
                                         {% endif %}
                                     </td>
                                     

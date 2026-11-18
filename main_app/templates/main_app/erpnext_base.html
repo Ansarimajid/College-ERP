@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{% block title %}College ERP - {% block page_title %}Dashboard{% endblock page_title %}{% endblock title %}</title>
+    <title>{% block title %}College ERP - Dashboard{% endblock title %}</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{% static '/image/favicon1.ico' %}">
@@ -50,7 +50,12 @@
             <p>gygy</p>
             
             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            <img src="{{ user.profile_pic.url }}" alt="User Avatar" class="user-avatar">
+            {% if user.profile_pic %}
+            <img src="{{ user.profile_pic.url }}" alt="User Avatar" class="user-avatar"
+                onerror="this.onerror=null; this.src='{% static 'dist/img/default-avatar.png' %}';">
+            {% else %}
+            <img src="{% static 'dist/img/default-avatar.png' %}" alt="Default user avatar" class="user-avatar">
+            {% endif %}
         </div>
     </nav>
 

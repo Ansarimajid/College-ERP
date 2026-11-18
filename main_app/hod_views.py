@@ -15,11 +15,11 @@ from .models import *
 
 
 def admin_home(request):
-    total_staff = Staff.objects.all().count()
-    total_students = Student.objects.all().count()
+    total_staff = Staff.objects.count()
+    total_students = Student.objects.count()
     subjects = Subject.objects.all()
     total_subject = subjects.count()
-    total_course = Course.objects.all().count()
+    total_course = Course.objects.count()
     attendance_list = Attendance.objects.filter(subject__in=subjects)
     total_attendance = attendance_list.count()
     attendance_list = []

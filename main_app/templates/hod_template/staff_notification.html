@@ -35,11 +35,13 @@
                                     <td>{{staff.gender}}</td>
                                     <td>{{staff.staff.course.name}}</td>
                                     <td>
-                                        {% if staff.profile_pic == ""  %}
-                                        No Image
+                                        {% if staff.profile_pic %}
+                                        <img class="img img-fluid mb-2" height="56" width="56"
+                                            src="{{staff.profile_pic}}" alt="Staff profile picture"
+                                            onerror="this.onerror=null; this.src='{% static 'dist/img/default-avatar.png' %}';">
                                         {% else %}
                                         <img class="img img-fluid mb-2" height="56" width="56"
-                                            src="{{staff.profile_pic}}" alt="">
+                                            src="{% static 'dist/img/default-avatar.png' %}" alt="Default staff profile picture">
                                         {% endif %}
                                     </td>
                                     <td><button data-bs-toggle="modal" data-bs-target="#myModal" class="btn btn-primary show_notification" value="{{staff.id}}">Send Notification</button> 
