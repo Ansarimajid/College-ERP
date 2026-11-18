@@ -18,7 +18,9 @@ class EditResultView(View):
         return render(request, "staff_template/edit_student_result.html", context)
 
     def post(self, request, *args, **kwargs):
+        staff = get_object_or_404(Staff, admin=request.user)
         form = EditResultForm(request.POST)
+        form.fields['subject'].queryset = Subject.objects.filter(staff=staff)
         context = {'form': form, 'page_title': "Edit Student's Result"}
         if form.is_valid():
             try:
