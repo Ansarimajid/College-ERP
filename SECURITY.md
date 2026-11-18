@@ -388,8 +388,6 @@ DB_NAME=college_erp_prod
 DB_USER=college_erp_user
 DB_PASSWORD=strong-db-password
 DB_HOST=localhost
-RECAPTCHA_PUBLIC_KEY=your-recaptcha-site-key
-RECAPTCHA_PRIVATE_KEY=your-recaptcha-secret-key
 EMAIL_HOST_PASSWORD=your-email-app-password
 ```
 
@@ -422,7 +420,6 @@ The following are known limitations that deployers should be aware of:
 | **`DEBUG = True` in dev** | The development `settings.py` has `DEBUG = True` which exposes stack traces. | This is intentional for local development. Always set `DEBUG = False` in production. |
 | **No rate limiting by default** | The login form does not have rate limiting out of the box, making it vulnerable to brute-force. | Add `django-axes` as described above before production deployment. |
 | **Media files served by Django** | In development, Django serves uploaded media files directly. | In production, delegate media file serving to nginx, Apache, or a CDN like AWS S3. |
-| **reCAPTCHA requires API keys** | Google reCAPTCHA is integrated but requires valid API keys to function. | Set `RECAPTCHA_PUBLIC_KEY` and `RECAPTCHA_PRIVATE_KEY` in your environment. Without them, the CAPTCHA check is bypassed. |
 
 ---
 
@@ -438,7 +435,6 @@ College ERP includes the following security measures by default:
 | **XSS prevention** | Django's template engine auto-escapes all variables by default |
 | **Role-based access control** | Views are protected by user type (`user_type` check) — students cannot access staff or admin views |
 | **Authentication required** | All sensitive views require `@login_required` or equivalent checks |
-| **Google reCAPTCHA** | Login form includes reCAPTCHA v2 to block automated login attempts |
 | **Clickjacking protection** | `XFrameOptionsMiddleware` prevents the app from being embedded in iframes |
 | **Custom email authentication** | `EmailBackend.py` allows login via email — usernames are not exposed |
 | **`.gitignore` hygiene** | `db.sqlite3`, `__pycache__`, `.env`, and media files are excluded from version control |
