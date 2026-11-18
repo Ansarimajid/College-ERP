@@ -167,8 +167,8 @@ source venv/bin/activate
 <summary>Linux</summary>
 
 ```bash
-virtualenv .
-source bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 </details>
 

@@ -31,7 +31,6 @@ dependencies:
       - six==1.16.0
       - sqlparse==0.4.4
       - urllib3==2.0.7
-      - virtualenv==20.0.31
       - whitenoise==5.2.0
       - zipp==3.15.0
 prefix: Django-env
