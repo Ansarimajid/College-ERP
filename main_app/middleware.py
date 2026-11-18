@@ -7,9 +7,6 @@ from django.db.utils import OperationalError, ProgrammingError
 class LoginCheckMiddleWare(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
         modulename = view_func.__module__
-<<<<<<< HEAD
-        user = request.user # Who is the current user ?
-=======
         auth_allowed_paths = {
             reverse('login_page'),
             reverse('user_login'),
@@ -28,8 +25,6 @@ class LoginCheckMiddleWare(MiddlewareMixin):
             ):
                 return None
             return redirect(reverse('login_page'))
-
->>>>>>> 1cca3cd (Fix login 500 by handling DB readiness in auth middleware)
         if user.is_authenticated:
             if user.user_type == '1': # Is it the HOD/Admin
                 if modulename == 'main_app.student_views':
